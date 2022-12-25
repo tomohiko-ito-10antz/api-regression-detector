@@ -1,0 +1,15 @@
+{
+  "name": "dev",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "dev",
+  "workspaceFolder": "/work/",
+  "extensions": [
+    "donjayamanne.githistory",
+    "streetsidesoftware.code-spell-checker",
+    "golang.go"
+  ],
+  "settings": {
+    "editor.wordWrap": "on",
+    "editor.formatOnSave": true
+  }
+}
