@@ -7,6 +7,7 @@ import (
 	"github.com/Jumpaku/api-regression-detector/prepare"
 	"github.com/Jumpaku/api-regression-detector/prepare/mysql"
 	"github.com/Jumpaku/api-regression-detector/prepare/postgres"
+	"github.com/Jumpaku/api-regression-detector/prepare/sqlite"
 )
 
 func main() {
@@ -21,6 +22,8 @@ func main() {
 		sql = postgres.Build(tables)
 	case "mysql":
 		sql = mysql.Build(tables)
+	case "sqlite":
+		sql = sqlite.Build(tables)
 	default:
 		log.Fatalln("no database specified")
 	}

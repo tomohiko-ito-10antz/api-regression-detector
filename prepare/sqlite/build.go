@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -28,7 +29,7 @@ func getColumns(rows prepare.Rows) (columns []string) {
 	return columns
 }
 func makeTruncateStatement(table string) string {
-	return fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY;\n", table)
+	return fmt.Sprintf("DELETE FROM %s;\nDELETE FROM `sqlite_sequence` WHERE `name` = '%s';\n", table, table)
 }
 func makeInsertValues(columns []string, rows prepare.Rows) (sql string) {
 	values := []string{}
@@ -42,7 +43,7 @@ func makeInsertValues(columns []string, rows prepare.Rows) (sql string) {
 				switch cell := cell.(type) {
 				case nil:
 					cells = append(cells, "NULL")
-				case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64:
+				case json.Number, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64:
 					cells = append(cells, fmt.Sprint(cell))
 				case string:
 					cells = append(cells, fmt.Sprintf(`'%s'`, strings.ReplaceAll(cell, `'`, `''`)))
