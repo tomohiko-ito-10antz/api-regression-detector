@@ -1,34 +1,42 @@
 package main
 
 import (
+	"context"
+	"database/sql"
 	"log"
 	"os"
 
+	_ "github.com/go-sql-driver/mysql"
+
+	"github.com/Jumpaku/api-regression-detector/mysql"
+	"github.com/Jumpaku/api-regression-detector/postgres"
 	"github.com/Jumpaku/api-regression-detector/prepare"
-	"github.com/Jumpaku/api-regression-detector/prepare/mysql"
-	"github.com/Jumpaku/api-regression-detector/prepare/postgres"
-	"github.com/Jumpaku/api-regression-detector/prepare/sqlite"
+	"github.com/Jumpaku/api-regression-detector/sqlite"
 )
 
 func main() {
-	tables, err := prepare.ReadTablesFrom(os.Stdin)
+	tables, err := prepare.Load(os.Stdin)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
-	sql := ""
-	db := "postgres"
-	switch db {
-	case "postgres":
-		sql = postgres.Build(tables)
+	driver := "mysql"
+	ctx := context.Background()
+	db, err := sql.Open(driver, "main:password@(mysql)/main")
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	defer db.Close()
+	switch driver {
 	case "mysql":
-		sql = mysql.Build(tables)
+		err = prepare.Prepare(ctx, db, tables, mysql.Truncate(), mysql.Insert())
+	case "postgres":
+		err = prepare.Prepare(ctx, db, tables, postgres.Truncate(), postgres.Insert())
 	case "sqlite":
-		sql = sqlite.Build(tables)
+		err = prepare.Prepare(ctx, db, tables, sqlite.Truncate(), sqlite.Insert())
 	default:
-		log.Fatalln("no database specified")
+		log.Fatalln("driver specified")
 	}
-	err = prepare.WriteSqlTo(sql, os.Stdout)
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Fatalln(err)
 	}
 }
