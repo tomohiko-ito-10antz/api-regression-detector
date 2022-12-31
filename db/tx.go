@@ -44,7 +44,7 @@ func Transaction(ctx context.Context, db *sql.DB, handler func(ctx context.Conte
 }
 
 func (e *exec) Write(ctx context.Context, stmt string, params []any) (err error) {
-	log.Stderr("SQL\nstatement: %v\nparams   : %v", stmt, params)
+	log.Stderr("SQL\n\tstatement: %v\n\tparams   : %v", stmt, params)
 	_, err = e.tx.Exec(stmt, params...)
 	if err != nil {
 		return err
@@ -53,7 +53,7 @@ func (e *exec) Write(ctx context.Context, stmt string, params []any) (err error)
 }
 
 func (e *exec) Read(ctx context.Context, stmt string, params []any) (rows Rows, err error) {
-	log.Stderr("SQL\nstatement: %v\nparams   : %v", stmt, params)
+	log.Stderr("SQL\n\tstatement: %v\n\tparams   : %v", stmt, params)
 	itr, err := e.tx.Query(stmt, params...)
 	if err != nil {
 		return nil, err

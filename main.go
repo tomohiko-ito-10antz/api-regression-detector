@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"os"
@@ -9,8 +10,10 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
+	"go.uber.org/multierr"
 
 	"github.com/Jumpaku/api-regression-detector/cmd"
+	"github.com/Jumpaku/api-regression-detector/io"
 	"github.com/Jumpaku/api-regression-detector/log"
 	"github.com/Jumpaku/api-regression-detector/mysql"
 	"github.com/Jumpaku/api-regression-detector/postgres"
@@ -106,7 +109,6 @@ Options:
   --strict        Disallow superset match. [default: false]`
 
 	args, _ := docopt.ParseArgs(usage, os.Args[1:], "1.0.0")
-	fmt.Println(args)
 	var (
 		code int
 		err  error
@@ -119,7 +121,9 @@ Options:
 			args["--verbose"].(bool),
 			args["--strict"].(bool))
 	case args["prepare"]:
-		fmt.Println("prepare", args["<database-driver>"].(string), args["<connection-string>"].(string))
+		code, err = RunPrepare(
+			args["<database-driver>"].(string),
+			args["<connection-string>"].(string))
 	case args["dump"]:
 		fmt.Println("dump", args["<database-driver>"].(string), args["<connection-string>"].(string))
 	}
@@ -158,4 +162,27 @@ func RunCompare(expectedJson string, actualJson string, verbose bool, strict boo
 	default:
 		return 1, nil
 	}
+}
+
+func RunPrepare(databaseDriver string, connectionString string) (code int, err error) {
+	fmt.Println("prepare", databaseDriver, connectionString)
+	driver, err := Connect(databaseDriver, connectionString)
+	if err != nil {
+		return 1, err
+	}
+	defer func() {
+		err = multierr.Combine(err, driver.Close())
+		if err != nil {
+			code = 1
+		}
+	}()
+	tables, err := io.Load(os.Stdin)
+	if err != nil {
+		return 1, err
+	}
+	err = cmd.Prepare(context.Background(), driver.DB, tables, driver.Truncate, driver.Insert)
+	if err != nil {
+		return 1, err
+	}
+	return 0, nil
 }
