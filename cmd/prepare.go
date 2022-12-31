@@ -1,4 +1,4 @@
-package prepare
+package cmd
 
 import (
 	"context"

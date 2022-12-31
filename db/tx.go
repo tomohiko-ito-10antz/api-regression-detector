@@ -3,14 +3,12 @@ package db
 import (
 	"context"
 	"database/sql"
-	"log"
+	"fmt"
+	"reflect"
 
+	"github.com/Jumpaku/api-regression-detector/log"
 	"go.uber.org/multierr"
 )
-
-type Row map[string]any
-type Rows []Row
-type Tables map[string]Rows
 
 type Exec interface {
 	Write(ctx context.Context, stmt string, params []any) (err error)
@@ -46,7 +44,7 @@ func Transaction(ctx context.Context, db *sql.DB, handler func(ctx context.Conte
 }
 
 func (e *exec) Write(ctx context.Context, stmt string, params []any) (err error) {
-	log.Println(stmt, params)
+	log.Stderr("SQL\nstatement: %v\nparams   : %v", stmt, params)
 	_, err = e.tx.Exec(stmt, params...)
 	if err != nil {
 		return err
@@ -55,7 +53,7 @@ func (e *exec) Write(ctx context.Context, stmt string, params []any) (err error)
 }
 
 func (e *exec) Read(ctx context.Context, stmt string, params []any) (rows Rows, err error) {
-	log.Println(stmt, params)
+	log.Stderr("SQL\nstatement: %v\nparams   : %v", stmt, params)
 	itr, err := e.tx.Query(stmt, params...)
 	if err != nil {
 		return nil, err
@@ -69,6 +67,10 @@ func (e *exec) Read(ctx context.Context, stmt string, params []any) (rows Rows, 
 		if err != nil {
 			return nil, err
 		}
+		types, err := itr.ColumnTypes()
+		if err != nil {
+			return nil, err
+		}
 		var values []any
 		for range columns {
 			var val any
@@ -78,6 +80,9 @@ func (e *exec) Read(ctx context.Context, stmt string, params []any) (rows Rows, 
 		row := Row{}
 		for i, column := range columns {
 			row[column] = values[i]
+		}
+		for i, v := range columns {
+			fmt.Printf(`%v:%v=%v:%v`+"\n", v, types[i].ScanType(), values[i], reflect.TypeOf(values[i]))
 		}
 		rows = append(rows, row)
 	}

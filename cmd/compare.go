@@ -1,4 +1,4 @@
-package compare
+package cmd
 
 import (
 	"io/ioutil"

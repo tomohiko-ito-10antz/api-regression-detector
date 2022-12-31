@@ -1,4 +1,4 @@
-package sqlite
+package postgres
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Jumpaku/api-regression-detector/cmd"
 	"github.com/Jumpaku/api-regression-detector/db"
-	"github.com/Jumpaku/api-regression-detector/prepare"
 )
 
 type op struct {
@@ -25,27 +25,38 @@ func Insert() interface {
 	return &op{}
 }
 
-var _ prepare.Truncate = (*op)(nil)
-var _ prepare.Insert = (*op)(nil)
+func Select() interface {
+	Select(ctx context.Context, exec db.Exec, table string) (rows db.Rows, err error)
+} {
+	return &op{}
+}
 
-func (o *op) Truncate(ctx context.Context, tx db.Exec, table string) (err error) {
-	err = tx.Write(ctx, fmt.Sprintf(`"DELETE FROM %s`, table), nil)
+var _ cmd.Truncate = (*op)(nil)
+var _ cmd.Insert = (*op)(nil)
+var _ cmd.Select = (*op)(nil)
+
+func (o *op) Select(ctx context.Context, exec db.Exec, table string) (rows db.Rows, err error) {
+	rows, err = exec.Read(ctx, fmt.Sprintf(`SELECT * FROM %s`, table), nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	err = tx.Write(ctx, fmt.Sprintf(`DELETE FROM sqlite_sequence WHERE name = '%s'`, table), nil)
+	return rows, nil
+}
+func (o *op) Truncate(ctx context.Context, exec db.Exec, table string) (err error) {
+	err = exec.Write(ctx, fmt.Sprintf(`TRUNCATE TABLE %s RESTART IDENTITY`, table), nil)
 	if err != nil {
 		return err
 	}
 	return nil
 }
-func (o *op) Insert(ctx context.Context, tx db.Exec, table string, rows db.Rows) (err error) {
+func (o *op) Insert(ctx context.Context, exec db.Exec, table string, rows db.Rows) (err error) {
 	columns := getColumns(rows)
 	if len(columns) == 0 {
 		return nil
 	}
 	stmt := fmt.Sprintf("INSERT INTO %s (%s) VALUES", table, strings.Join(columns, ", "))
 	values := []any{}
+	n := 0
 	for i, row := range rows {
 		if i > 0 {
 			stmt += ","
@@ -55,7 +66,8 @@ func (o *op) Insert(ctx context.Context, tx db.Exec, table string, rows db.Rows)
 			if j > 0 {
 				stmt += ","
 			}
-			stmt += "?"
+			n++
+			stmt += fmt.Sprintf(`$%d`, n)
 			value, ok := row[column]
 			if !ok || value == nil {
 				values = append(values, nil)
@@ -74,7 +86,7 @@ func (o *op) Insert(ctx context.Context, tx db.Exec, table string, rows db.Rows)
 		}
 		stmt += ")"
 	}
-	err = tx.Write(ctx, stmt, values)
+	err = exec.Write(ctx, stmt, values)
 	if err != nil {
 		return err
 	}

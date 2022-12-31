@@ -1,4 +1,4 @@
-package postgres
+package mysql
 
 import (
 	"context"
@@ -6,30 +6,60 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Jumpaku/api-regression-detector/cmd"
 	"github.com/Jumpaku/api-regression-detector/db"
-	"github.com/Jumpaku/api-regression-detector/prepare"
 )
+
+func getColumns(rows db.Rows) (columns []string) {
+	columnAdded := map[string]bool{}
+	for _, row := range rows {
+		for column := range row {
+			if _, added := columnAdded[column]; !added {
+				columnAdded[column] = true
+				columns = append(columns, column)
+			}
+		}
+	}
+	return columns
+}
 
 type op struct {
 }
 
 func Truncate() interface {
-	Truncate(ctx context.Context, tx db.Exec, table string) (err error)
+	Truncate(ctx context.Context, exec db.Exec, table string) (err error)
 } {
 	return &op{}
 }
 
 func Insert() interface {
-	Insert(ctx context.Context, tx db.Exec, table string, rows db.Rows) (err error)
+	Insert(ctx context.Context, exec db.Exec, table string, rows db.Rows) (err error)
 } {
 	return &op{}
 }
 
-var _ prepare.Truncate = (*op)(nil)
-var _ prepare.Insert = (*op)(nil)
+func Select() interface {
+	Select(ctx context.Context, exec db.Exec, table string) (rows db.Rows, err error)
+} {
+	return &op{}
+}
 
+var _ cmd.Truncate = (*op)(nil)
+var _ cmd.Insert = (*op)(nil)
+var _ cmd.Select = (*op)(nil)
+
+func (o *op) Select(ctx context.Context, exec db.Exec, table string) (rows db.Rows, err error) {
+	rows, err = exec.Read(ctx, fmt.Sprintf(`SELECT * FROM %s`, table), nil)
+	for _, row := range rows {
+		fmt.Print(row["C0"])
+	}
+	if err != nil {
+		return nil, err
+	}
+	return rows, nil
+}
 func (o *op) Truncate(ctx context.Context, exec db.Exec, table string) (err error) {
-	err = exec.Write(ctx, fmt.Sprintf(`TRUNCATE TABLE %s RESTART IDENTITY`, table), nil)
+	err = exec.Write(ctx, fmt.Sprintf(`TRUNCATE TABLE %s`, table), nil)
 	if err != nil {
 		return err
 	}
@@ -79,17 +109,4 @@ func (o *op) Insert(ctx context.Context, exec db.Exec, table string, rows db.Row
 		return err
 	}
 	return nil
-}
-
-func getColumns(rows db.Rows) (columns []string) {
-	columnAdded := map[string]bool{}
-	for _, row := range rows {
-		for column := range row {
-			if _, added := columnAdded[column]; !added {
-				columnAdded[column] = true
-				columns = append(columns, column)
-			}
-		}
-	}
-	return columns
 }
