@@ -1,17 +1,16 @@
 package main
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"os"
 
+	"github.com/docopt/docopt-go"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/Jumpaku/api-regression-detector/cmd"
-	"github.com/Jumpaku/api-regression-detector/io"
 	"github.com/Jumpaku/api-regression-detector/log"
 	"github.com/Jumpaku/api-regression-detector/mysql"
 	"github.com/Jumpaku/api-regression-detector/postgres"
@@ -77,36 +76,86 @@ func Connect(name string, connectionString string) (*Driver, error) {
 	}
 }
 func main() {
-	ctx := context.Background()
-	//driverName := "mysql"
-	driverName := "postgres"
-	//driverName := "sqlite3"
-	//connectionString := "root:password@(mysql)/main"
-	connectionString := "user=postgres password=password host=postgres dbname=main sslmode=disable"
-	//connectionString := "file:examples/sqlite/sqlite.db";
-	connection, err := Connect(driverName, connectionString)
+	usage := `Regression detector.
+Examples of prepare
+./program prepare mysql "root:password@(mysql)/main" <examples/prepare.json
+./program prepare postgres "user=postgres password=password host=postgres dbname=main sslmode=disable" <examples/prepare.json
+./program prepare sqlite3 "file:examples/sqlite/sqlite.db" <examples/prepare.json
+
+Examples of dump
+./program dump mysql "root:password@(mysql)/main" >examples/dump.json
+./program dump postgres "user=postgres password=password host=postgres dbname=main sslmode=disable" >examples/dump.json
+./program dump sqlite3 "file:examples/sqlite/sqlite.db" >examples/dump.json
+
+Examples of compare
+./program compare examples/expected.json examples/actual.json
+./program compare --verbose examples/expected.json examples/actual.json
+
+
+Usage:
+  program prepare <database-driver> <connection-string>
+  program dump <database-driver> <connection-string>
+  program compare [--verbose] [--strict] <expected-json> <actual-json>
+  program -h | --help
+  program --version
+
+Options:
+  -h --help       Show this screen.
+  --version       Show version.
+  --verbose       Show verbose difference. [default: false]
+  --strict        Disallow superset match. [default: false]`
+
+	args, _ := docopt.ParseArgs(usage, os.Args[1:], "1.0.0")
+	fmt.Println(args)
+	var (
+		code int
+		err  error
+	)
+	switch {
+	case args["compare"]:
+		code, err = RunCompare(
+			args["<expected-json>"].(string),
+			args["<actual-json>"].(string),
+			args["--verbose"].(bool),
+			args["--strict"].(bool))
+	case args["prepare"]:
+		fmt.Println("prepare", args["<database-driver>"].(string), args["<connection-string>"].(string))
+	case args["dump"]:
+		fmt.Println("dump", args["<database-driver>"].(string), args["<connection-string>"].(string))
+	}
+
 	if err != nil {
 		fail(err)
 	}
-	defer connection.Close()
-	tables, err := io.Load(os.Stdin)
+	os.Exit(code)
+}
+
+func RunCompare(expectedJson string, actualJson string, verbose bool, strict bool) (code int, err error) {
+	expectedJsonFile, err := os.Open(expectedJson)
 	if err != nil {
-		fail(err)
+		return 1, err
 	}
-	err = cmd.Prepare(ctx, connection.DB, tables, connection.Truncate, connection.Insert)
+	actualJsonFile, err := os.Open(actualJson)
 	if err != nil {
-		fail(err)
+		return 1, err
 	}
-	tableNames := []string{}
-	for table := range tables {
-		tableNames = append(tableNames, table)
-	}
-	tables, err = cmd.Dump(ctx, connection.DB, tableNames, connection.Select)
+	match, detail, err := cmd.Compare(expectedJsonFile, actualJsonFile)
 	if err != nil {
-		fail(err)
+		return 1, err
 	}
-	/*err = io.Save(tables, os.Stdout)
-	if err != nil {
-		fail(err)
-	}*/
+	fmt.Println(match)
+	if verbose {
+		fmt.Println(detail)
+	}
+	switch match {
+	case cmd.CompareResult_FullMatch:
+		return 0, nil
+	case cmd.CompareResult_SupersetMatch:
+		if strict {
+			return 1, nil
+		}
+		return 0, nil
+	default:
+		return 1, nil
+	}
 }
