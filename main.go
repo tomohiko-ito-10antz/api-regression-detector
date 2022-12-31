@@ -80,20 +80,6 @@ func Connect(name string, connectionString string) (*Driver, error) {
 }
 func main() {
 	usage := `Regression detector.
-Examples of prepare
-./program prepare mysql "root:password@(mysql)/main" <examples/prepare.json
-./program prepare postgres "user=postgres password=password host=postgres dbname=main sslmode=disable" <examples/prepare.json
-./program prepare sqlite3 "file:examples/sqlite/sqlite.db" <examples/prepare.json
-
-Examples of dump
-./program dump mysql "root:password@(mysql)/main" >examples/dump.json
-./program dump postgres "user=postgres password=password host=postgres dbname=main sslmode=disable" >examples/dump.json
-./program dump sqlite3 "file:examples/sqlite/sqlite.db" >examples/dump.json
-
-Examples of compare
-./program compare examples/expected.json examples/actual.json
-./program compare --verbose examples/expected.json examples/actual.json
-
 
 Usage:
   program prepare <database-driver> <connection-string>
@@ -125,7 +111,10 @@ Options:
 			args["<database-driver>"].(string),
 			args["<connection-string>"].(string))
 	case args["dump"]:
-		fmt.Println("dump", args["<database-driver>"].(string), args["<connection-string>"].(string))
+		code, err = RunDump(
+			args["<database-driver>"].(string),
+			args["<connection-string>"].(string))
+	default:
 	}
 
 	if err != nil {
@@ -139,10 +128,19 @@ func RunCompare(expectedJson string, actualJson string, verbose bool, strict boo
 	if err != nil {
 		return 1, err
 	}
+	defer func() {
+		err = multierr.Combine(err, expectedJsonFile.Close())
+		if err != nil {
+			code = 1
+		}
+	}()
 	actualJsonFile, err := os.Open(actualJson)
-	if err != nil {
-		return 1, err
-	}
+	defer func() {
+		err = multierr.Combine(err, actualJsonFile.Close())
+		if err != nil {
+			code = 1
+		}
+	}()
 	match, detail, err := cmd.Compare(expectedJsonFile, actualJsonFile)
 	if err != nil {
 		return 1, err
@@ -165,7 +163,6 @@ func RunCompare(expectedJson string, actualJson string, verbose bool, strict boo
 }
 
 func RunPrepare(databaseDriver string, connectionString string) (code int, err error) {
-	fmt.Println("prepare", databaseDriver, connectionString)
 	driver, err := Connect(databaseDriver, connectionString)
 	if err != nil {
 		return 1, err
@@ -181,6 +178,36 @@ func RunPrepare(databaseDriver string, connectionString string) (code int, err e
 		return 1, err
 	}
 	err = cmd.Prepare(context.Background(), driver.DB, tables, driver.Truncate, driver.Insert)
+	if err != nil {
+		return 1, err
+	}
+	return 0, nil
+}
+
+func RunDump(databaseDriver string, connectionString string) (code int, err error) {
+	driver, err := Connect(databaseDriver, connectionString)
+	if err != nil {
+		return 1, err
+	}
+	defer func() {
+		err = multierr.Combine(err, driver.Close())
+		if err != nil {
+			code = 1
+		}
+	}()
+	tables, err := io.Load(os.Stdin)
+	if err != nil {
+		return 1, err
+	}
+	tableNames := []string{}
+	for tableName := range tables {
+		tableNames = append(tableNames, tableName)
+	}
+	dump, err := cmd.Dump(context.Background(), driver.DB, tableNames, driver.Select)
+	if err != nil {
+		return 1, err
+	}
+	err = io.Save(dump, os.Stdout)
 	if err != nil {
 		return 1, err
 	}

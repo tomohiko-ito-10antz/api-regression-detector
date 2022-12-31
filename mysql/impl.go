@@ -50,9 +50,6 @@ var _ cmd.Select = (*op)(nil)
 
 func (o *op) Select(ctx context.Context, exec db.Exec, table string) (rows db.Rows, err error) {
 	rows, err = exec.Read(ctx, fmt.Sprintf(`SELECT * FROM %s`, table), nil)
-	for _, row := range rows {
-		fmt.Print(row["C0"])
-	}
 	if err != nil {
 		return nil, err
 	}
