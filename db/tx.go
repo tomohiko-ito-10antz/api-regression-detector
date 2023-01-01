@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"reflect"
-	"time"
 
 	"github.com/Jumpaku/api-regression-detector/log"
 	"go.uber.org/multierr"
@@ -76,16 +75,12 @@ func (e *exec) Read(ctx context.Context, stmt string, params []any) (rows Rows, 
 			case isBoolean(typ):
 				var v *bool
 				values = append(values, &v)
-			case isTime(typ):
-				var v *time.Time
-				values = append(values, &v)
 			case isInteger(typ):
 				var v *int64
 				values = append(values, &v)
 			case isFloat(typ):
 				var v *float64
 				values = append(values, &v)
-
 			default:
 				var v *string
 				values = append(values, &v)
@@ -106,7 +101,8 @@ func (e *exec) Read(ctx context.Context, stmt string, params []any) (rows Rows, 
 
 func isBoolean(typ *sql.ColumnType) bool {
 	t := typ.ScanType()
-	switch reflect.New(t).Interface().(type) {
+	v := reflect.New(t).Elem().Interface()
+	switch v.(type) {
 	case bool, *bool, sql.NullBool:
 		return true
 	default:
@@ -116,10 +112,11 @@ func isBoolean(typ *sql.ColumnType) bool {
 
 func isInteger(typ *sql.ColumnType) bool {
 	t := typ.ScanType()
-	switch reflect.New(t).Interface().(type) {
+	v := reflect.New(t).Elem().Interface()
+	switch v.(type) {
 	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64,
 		*int, *int8, *int16, *int32, *int64, *uint, *uint8, *uint16, *uint32, *uint64,
-		sql.NullByte, sql.NullInt16, sql.NullInt32, *sql.NullInt64:
+		sql.NullByte, sql.NullInt16, sql.NullInt32, sql.NullInt64:
 		return true
 	default:
 		return false
@@ -128,18 +125,9 @@ func isInteger(typ *sql.ColumnType) bool {
 
 func isFloat(typ *sql.ColumnType) bool {
 	t := typ.ScanType()
-	switch reflect.New(t).Interface().(type) {
+	v := reflect.New(t).Elem().Interface()
+	switch v.(type) {
 	case float32, float64, *float32, *float64, sql.NullFloat64:
-		return true
-	default:
-		return false
-	}
-}
-
-func isTime(typ *sql.ColumnType) bool {
-	t := typ.ScanType()
-	switch reflect.New(t).Interface().(type) {
-	case time.Time, *time.Time, sql.NullTime:
 		return true
 	default:
 		return false

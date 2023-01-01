@@ -89,10 +89,10 @@ Usage:
   program --version
 
 Options:
-  -h --help       Show this screen.
-  --version       Show version.
-  --verbose       Show verbose difference. [default: false]
-  --strict        Disallow superset match. [default: false]`
+  -h --help          Show this screen.
+  --version          Show version.
+  --verbose          Show verbose difference. [default: false]
+  --strict           Disallow superset match. [default: false]`
 
 	args, _ := docopt.ParseArgs(usage, os.Args[1:], "1.0.0")
 	var (
@@ -105,7 +105,7 @@ Options:
 			args["<expected-json>"].(string),
 			args["<actual-json>"].(string),
 			args["--verbose"].(bool),
-			args["--strict"].(bool))
+			args["--strict-match"].(bool))
 	case args["prepare"]:
 		code, err = RunPrepare(
 			args["<database-driver>"].(string),
