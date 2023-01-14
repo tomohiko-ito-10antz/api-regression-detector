@@ -80,9 +80,13 @@ func Connect(name string, connectionString string) (*Driver, error) {
 }
 func main() {
 	usage := `Regression detector.
+The following commands are available:
+* init: It initializes database according to json provided by stdin.
+* dump: It outputs database according to json provided by stdin.
+* compare: It compares two JSON files and outputs the comparison result to stdout.
 
 Usage:
-  program prepare <database-driver> <connection-string>
+  program init <database-driver> <connection-string>
   program dump <database-driver> <connection-string>
   program compare [--verbose] [--strict] <expected-json> <actual-json>
   program -h | --help
@@ -106,8 +110,8 @@ Options:
 			args["<actual-json>"].(string),
 			args["--verbose"].(bool),
 			args["--strict"].(bool))
-	case args["prepare"]:
-		code, err = RunPrepare(
+	case args["init"]:
+		code, err = RunInit(
 			args["<database-driver>"].(string),
 			args["<connection-string>"].(string))
 	case args["dump"]:
@@ -162,7 +166,7 @@ func RunCompare(expectedJson string, actualJson string, verbose bool, strict boo
 	}
 }
 
-func RunPrepare(databaseDriver string, connectionString string) (code int, err error) {
+func RunInit(databaseDriver string, connectionString string) (code int, err error) {
 	driver, err := Connect(databaseDriver, connectionString)
 	if err != nil {
 		return 1, err
@@ -177,7 +181,7 @@ func RunPrepare(databaseDriver string, connectionString string) (code int, err e
 	if err != nil {
 		return 1, err
 	}
-	err = cmd.Prepare(context.Background(), driver.DB, tables, driver.Truncate, driver.Insert)
+	err = cmd.Init(context.Background(), driver.DB, tables, driver.Truncate, driver.Insert)
 	if err != nil {
 		return 1, err
 	}

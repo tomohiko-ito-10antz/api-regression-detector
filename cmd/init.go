@@ -14,7 +14,7 @@ type Insert interface {
 	Insert(ctx context.Context, exec db.Exec, table string, rows db.Rows) error
 }
 
-func Prepare(ctx context.Context, database *sql.DB, tables db.Tables, truncate Truncate, insert Insert) (err error) {
+func Init(ctx context.Context, database *sql.DB, tables db.Tables, truncate Truncate, insert Insert) (err error) {
 	return db.Transaction(ctx, database, func(ctx context.Context, exec db.Exec) error {
 		for table, rows := range tables {
 			err = truncate.Truncate(ctx, exec, table)
