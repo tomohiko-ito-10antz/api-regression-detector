@@ -105,7 +105,7 @@ Options:
 			args["<expected-json>"].(string),
 			args["<actual-json>"].(string),
 			args["--verbose"].(bool),
-			args["--strict-match"].(bool))
+			args["--strict"].(bool))
 	case args["prepare"]:
 		code, err = RunPrepare(
 			args["<database-driver>"].(string),

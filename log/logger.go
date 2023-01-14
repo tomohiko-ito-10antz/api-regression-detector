@@ -1,6 +1,7 @@
 package log
 
 import (
+	"fmt"
 	"log"
 	"os"
 )
@@ -17,5 +18,5 @@ func init() {
 }
 
 func Stderr(format string, args ...any) {
-	logger.Printf(format, args...)
+	logger.Output(3, fmt.Sprintf(format, args...))
 }
