@@ -1,4 +1,4 @@
-package mysql
+package spanner
 
 import (
 	"context"
@@ -10,8 +10,7 @@ import (
 	"github.com/Jumpaku/api-regression-detector/json"
 )
 
-type insertOperation struct {
-}
+type insertOperation struct{}
 
 func Insert() insertOperation {
 	return insertOperation{}

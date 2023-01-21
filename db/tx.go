@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/Jumpaku/api-regression-detector/log"
@@ -45,7 +46,7 @@ func Transaction(ctx context.Context, db *sql.DB, handler func(ctx context.Conte
 }
 
 func (e *exec) Write(ctx context.Context, stmt string, params []any) (err error) {
-	log.Stderr("SQL\n\tstatement: %v\n\tparams   : %v", stmt, params)
+	log.Stderr("SQL\n\tstatement: %v\n\tparams   : %v", stmt, paramsToStrings(params))
 	_, err = e.tx.Exec(stmt, params...)
 	if err != nil {
 		return err
@@ -54,7 +55,7 @@ func (e *exec) Write(ctx context.Context, stmt string, params []any) (err error)
 }
 
 func (e *exec) Read(ctx context.Context, stmt string, params []any) (rows Rows, err error) {
-	log.Stderr("SQL\n\tstatement: %v\n\tparams   : %v", stmt, params)
+	log.Stderr("SQL\n\tstatement: %v\n\tparams   : %v", stmt, paramsToStrings(params))
 	itr, err := e.tx.Query(stmt, params...)
 	if err != nil {
 		return nil, err
@@ -79,11 +80,28 @@ func (e *exec) Read(ctx context.Context, stmt string, params []any) (rows Rows, 
 		}
 		row := Row{}
 		for i, column := range columns {
-			row[column] = values[i]
+			row[strings.ToLower(column)] = values[i]
 		}
 		rows = append(rows, row)
 	}
+	fmt.Printf("%t\n", rows)
 	return rows, nil
+}
+
+func paramsToStrings(params []any) (strArr []string) {
+	strArr = []string{}
+	for _, param := range params {
+		rv := reflect.ValueOf(param)
+		switch {
+		case !rv.IsValid(), rv.Kind() == reflect.Pointer && rv.IsNil():
+			strArr = append(strArr, "<nil>")
+		case rv.Kind() == reflect.Pointer:
+			strArr = append(strArr, fmt.Sprintf("%v", rv.Elem().Interface()))
+		default:
+			strArr = append(strArr, fmt.Sprintf("%v", rv.Interface()))
+		}
+	}
+	return strArr
 }
 
 func getType(rt reflect.Type) (ct columnType, err error) {

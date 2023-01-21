@@ -1,4 +1,4 @@
-package mysql
+package spanner
 
 import (
 	"context"
@@ -21,16 +21,6 @@ func (o selectOperation) Select(ctx context.Context, exec db.Exec, table string)
 	rows, err = exec.Read(ctx, fmt.Sprintf(`SELECT * FROM %s`, table), nil)
 	if err != nil {
 		return nil, err
-	}
-	for i, row := range rows {
-		rows[i] = db.Row{}
-		for col, val := range row {
-			if val == nil {
-				rows[i][col] = nil
-			} else {
-				rows[i][col] = string(val.([]byte))
-			}
-		}
 	}
 	return rows, nil
 }
