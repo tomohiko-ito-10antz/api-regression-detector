@@ -3,7 +3,9 @@ package db
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/Jumpaku/api-regression-detector/log"
 	"go.uber.org/multierr"
@@ -65,28 +67,13 @@ func (e *exec) Read(ctx context.Context, stmt string, params []any) (rows Rows, 
 		if err != nil {
 			return nil, err
 		}
-		types, err := itr.ColumnTypes()
-		if err != nil {
-			return nil, err
+		columnCount := len(columns)
+		var pointers = make([]any, columnCount)
+		var values = make([]any, columnCount)
+		for i := 0; i < columnCount; i++ {
+			pointers[i] = &values[i]
 		}
-		var values []any
-		for _, typ := range types {
-			switch {
-			case isBoolean(typ):
-				var v *bool
-				values = append(values, &v)
-			case isInteger(typ):
-				var v *int64
-				values = append(values, &v)
-			case isFloat(typ):
-				var v *float64
-				values = append(values, &v)
-			default:
-				var v *string
-				values = append(values, &v)
-			}
-		}
-		err = itr.Scan(values...)
+		err = itr.Scan(pointers...)
 		if err != nil {
 			return nil, err
 		}
@@ -99,37 +86,24 @@ func (e *exec) Read(ctx context.Context, stmt string, params []any) (rows Rows, 
 	return rows, nil
 }
 
-func isBoolean(typ *sql.ColumnType) bool {
-	t := typ.ScanType()
-	v := reflect.New(t).Elem().Interface()
-	switch v.(type) {
-	case bool, *bool, sql.NullBool:
-		return true
-	default:
-		return false
+func getType(rt reflect.Type) (ct columnType, err error) {
+	switch rt.Kind() {
+	case reflect.Bool:
+		return ColumnTypeBoolean, nil
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return ColumnTypeInteger, nil
+	case reflect.Float32, reflect.Float64:
+		return ColumnTypeFloat, nil
+	case reflect.String:
+		return ColumnTypeString, nil
+	case reflect.Pointer:
+		return getType(rt.Elem())
+	case reflect.Struct:
+		rv := reflect.New(rt).Elem()
+		if _, isTime := rv.Interface().(time.Time); isTime {
+			return ColumnTypeTimestamp, nil
+		}
 	}
-}
-
-func isInteger(typ *sql.ColumnType) bool {
-	t := typ.ScanType()
-	v := reflect.New(t).Elem().Interface()
-	switch v.(type) {
-	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64,
-		*int, *int8, *int16, *int32, *int64, *uint, *uint8, *uint16, *uint32, *uint64,
-		sql.NullByte, sql.NullInt16, sql.NullInt32, sql.NullInt64:
-		return true
-	default:
-		return false
-	}
-}
-
-func isFloat(typ *sql.ColumnType) bool {
-	t := typ.ScanType()
-	v := reflect.New(t).Elem().Interface()
-	switch v.(type) {
-	case float32, float64, *float32, *float64, sql.NullFloat64:
-		return true
-	default:
-		return false
-	}
+	return ColumnTypeUnknown, fmt.Errorf("unsupported column type %v", rt.String())
 }

@@ -34,18 +34,22 @@ Options:
 
 ### Execution
 
-#### Prepare
+#### Init
 
 ```sh
-go run main.go prepare mysql "root:password@(mysql)/main" <examples/prepare.json
+go run main.go init mysql "root:password@(mysql)/main" <examples/init.json
 ```
 
 ```sh
-go run main.go prepare postgres "user=postgres password=password host=postgres dbname=main sslmode=disable" <examples/prepare.json
+go run main.go init postgres "user=postgres password=password host=postgres dbname=main sslmode=disable" <examples/init.json
 ```
 
 ```sh
-go run main.go prepare sqlite3 "file:examples/sqlite/sqlite.db" <examples/prepare.json
+go run main.go init sqlite3 "file:examples/sqlite/sqlite.db" <examples/init.json
+```
+
+```sh
+go run main.go init spanner "projects/regression-detector/instances/example/databases/main" <examples/init.json
 ```
 
 #### Dump

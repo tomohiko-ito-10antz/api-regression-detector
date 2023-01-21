@@ -6,18 +6,19 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/Jumpaku/api-regression-detector/cmd"
+	"github.com/Jumpaku/api-regression-detector/impl/mysql"
+	"github.com/Jumpaku/api-regression-detector/impl/postgres"
+	"github.com/Jumpaku/api-regression-detector/impl/spanner"
+	"github.com/Jumpaku/api-regression-detector/impl/sqlite"
+	"github.com/Jumpaku/api-regression-detector/io"
+	"github.com/Jumpaku/api-regression-detector/log"
 	"github.com/docopt/docopt-go"
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/googleapis/go-sql-spanner"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 	"go.uber.org/multierr"
-
-	"github.com/Jumpaku/api-regression-detector/cmd"
-	"github.com/Jumpaku/api-regression-detector/io"
-	"github.com/Jumpaku/api-regression-detector/log"
-	"github.com/Jumpaku/api-regression-detector/mysql"
-	"github.com/Jumpaku/api-regression-detector/postgres"
-	"github.com/Jumpaku/api-regression-detector/sqlite"
 )
 
 func fail(err error) {
@@ -37,12 +38,12 @@ func (d *Driver) Close() error {
 	return d.DB.Close()
 }
 func Connect(name string, connectionString string) (*Driver, error) {
+	db, err := sql.Open(name, connectionString)
+	if err != nil {
+		return nil, err
+	}
 	switch name {
 	case "mysql":
-		db, err := sql.Open(name, connectionString)
-		if err != nil {
-			return nil, err
-		}
 		return &Driver{
 			Name:     name,
 			DB:       db,
@@ -51,10 +52,6 @@ func Connect(name string, connectionString string) (*Driver, error) {
 			Insert:   mysql.Insert(),
 		}, nil
 	case "postgres":
-		db, err := sql.Open(name, connectionString)
-		if err != nil {
-			return nil, err
-		}
 		return &Driver{
 			Name:     name,
 			DB:       db,
@@ -63,16 +60,20 @@ func Connect(name string, connectionString string) (*Driver, error) {
 			Insert:   postgres.Insert(),
 		}, nil
 	case "sqlite3":
-		db, err := sql.Open(name, connectionString)
-		if err != nil {
-			return nil, err
-		}
 		return &Driver{
 			Name:     name,
 			DB:       db,
 			Select:   sqlite.Select(),
 			Truncate: sqlite.Truncate(),
 			Insert:   sqlite.Insert(),
+		}, nil
+	case "spanner":
+		return &Driver{
+			Name:     name,
+			DB:       db,
+			Select:   spanner.Select(),
+			Truncate: spanner.Truncate(),
+			Insert:   spanner.Insert(),
 		}, nil
 	default:
 		return nil, fmt.Errorf("invalid driver name")
