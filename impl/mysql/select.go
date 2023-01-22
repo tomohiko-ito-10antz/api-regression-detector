@@ -3,6 +3,7 @@ package mysql
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/Jumpaku/api-regression-detector/cmd"
 	"github.com/Jumpaku/api-regression-detector/db"
@@ -17,20 +18,33 @@ func Select() selectOperation {
 
 var _ cmd.Select = selectOperation{}
 
-func (o selectOperation) Select(ctx context.Context, exec db.Exec, table string) (rows db.Rows, err error) {
-	rows, err = exec.Read(ctx, fmt.Sprintf(`SELECT * FROM %s`, table), nil)
+func (o selectOperation) Select(ctx context.Context, tx db.Exec, table string) (rows db.Rows, err error) {
+	primaryKeys, err := getPrimaryKeys(ctx, tx, table)
 	if err != nil {
 		return nil, err
 	}
+	rows, err = tx.Read(ctx, fmt.Sprintf(`SELECT * FROM %s ORDER BY %s`, table, strings.Join(primaryKeys, ", ")), nil)
+	if err != nil {
+		return nil, err
+	}
+	out := db.Rows{}
 	for i, row := range rows {
-		rows[i] = db.Row{}
-		for col, val := range row {
-			if val == nil {
-				rows[i][col] = nil
+		out = append(out, db.Row{})
+		for _, col := range row.GetColumns() {
+			isNull, err := row.IsNull(col)
+			if err != nil {
+				return nil, err
+			}
+			if isNull {
+				out[i][col] = nil
 			} else {
-				rows[i][col] = string(val.([]byte))
+				byteArray, err := rows[i].GetByteArray(col)
+				if err != nil {
+					return nil, err
+				}
+				out[i][col] = string(byteArray)
 			}
 		}
 	}
-	return rows, nil
+	return out, nil
 }

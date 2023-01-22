@@ -7,7 +7,8 @@ import (
 	"strings"
 )
 
-type Row map[string]any
+type ColumnValue any
+type Row map[string]ColumnValue
 type Rows []Row
 type Tables map[string]Rows
 

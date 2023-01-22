@@ -58,3 +58,31 @@ func getColumnTypes(ctx context.Context, tx db.Exec, table string) (columnTypes 
 	}
 	return columnTypes, nil
 }
+
+func getPrimaryKeys(ctx context.Context, tx db.Exec, table string) (primaryKeys []string, err error) {
+	rows, err := tx.Read(ctx, `
+SELECT 
+    column_name
+FROM 
+    information_schema.key_column_usage AS key_columns 
+    JOIN information_schema.table_constraints AS constraints 
+    ON key_columns.constraint_name = constraints.constraint_name 
+        AND key_columns.table_name = constraints.table_name
+WHERE
+    key_columns.table_name = ?
+    AND constraint_type = 'PRIMARY KEY'
+ORDER BY
+    ordinal_position
+`, []any{table})
+	if err != nil {
+		return nil, err
+	}
+	for _, row := range rows {
+		col, err := row.GetByteArray("column_name")
+		if err != nil {
+			return nil, err
+		}
+		primaryKeys = append(primaryKeys, strings.ToLower(string(col)))
+	}
+	return primaryKeys, nil
+}
