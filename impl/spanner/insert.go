@@ -7,7 +7,7 @@ import (
 
 	"github.com/Jumpaku/api-regression-detector/cmd"
 	"github.com/Jumpaku/api-regression-detector/db"
-	"github.com/Jumpaku/api-regression-detector/json"
+	"github.com/Jumpaku/api-regression-detector/io/json"
 )
 
 type insertOperation struct{}

@@ -27,27 +27,19 @@ func getColumnTypes(ctx context.Context, tx db.Exec, table string) (columnTypes 
 	}
 	columnTypes = db.ColumnTypes{}
 	for _, row := range rows {
-		colAny, ok := row["column_name"]
-		if !ok || colAny == nil {
+		colBytes, err := row.GetByteArray("column_name")
+		if err != nil {
 			return nil, err
 		}
-		colBytes, ok := colAny.([]byte)
-		if !ok || colAny == nil {
+		col := string(colBytes)
+		typBytes, err := row.GetByteArray("column_type")
+		if err != nil {
 			return nil, err
 		}
-		col := strings.ToLower(string(colBytes))
-		typAny, ok := row["column_type"]
-		if !ok || typAny == nil {
-			return nil, err
-		}
-		typ, ok := typAny.([]byte)
-		if !ok || typAny == nil {
-			return nil, err
-		}
-		s := strings.ToUpper(string(typ))
+		typ := strings.ToUpper(string(typBytes))
 		startsWithAny := func(prefixes ...string) bool {
 			for _, prefix := range prefixes {
-				if strings.HasPrefix(s, prefix) {
+				if strings.HasPrefix(typ, prefix) {
 					return true
 				}
 			}

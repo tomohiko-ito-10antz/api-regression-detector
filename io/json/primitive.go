@@ -7,6 +7,10 @@ import (
 	"strings"
 )
 
+type Row map[string]any
+type Rows []Row
+type Tables map[string]Rows
+
 func ToNullableString(value any) (p *string, err error) {
 	var s string
 	switch value := value.(type) {

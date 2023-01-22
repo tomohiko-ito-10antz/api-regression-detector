@@ -27,25 +27,16 @@ func getColumnTypes(ctx context.Context, tx db.Exec, table string) (columnTypes 
 	}
 	columnTypes = db.ColumnTypes{}
 	for _, row := range rows {
-		colAny, ok := row["column_name"]
-		if !ok || colAny == nil {
+		col, err := row.GetString("column_name")
+		if err != nil {
 			return nil, err
 		}
-		col, ok := colAny.(string)
-		if !ok || colAny == nil {
+		typ, err := row.GetString("spanner_type")
+		if err != nil {
 			return nil, err
 		}
-		typAny, ok := row["spanner_type"]
-		if !ok || typAny == nil {
-			return nil, err
-		}
-		typ, ok := typAny.(string)
-		if !ok || typAny == nil {
-			return nil, err
-		}
-		s := strings.ToUpper(typ)
 		startsWith := func(prefix string) bool {
-			return strings.HasPrefix(s, prefix)
+			return strings.HasPrefix(strings.ToUpper(typ), prefix)
 		}
 		switch {
 		case startsWith("BOOL"):
@@ -59,4 +50,32 @@ func getColumnTypes(ctx context.Context, tx db.Exec, table string) (columnTypes 
 		}
 	}
 	return columnTypes, nil
+}
+
+func getPrimaryKeys(ctx context.Context, tx db.Exec, table string) (primaryKeys []string, err error) {
+	rows, err := tx.Read(ctx, `
+SELECT 
+    column_name
+FROM 
+    information_schema.key_column_usage AS keys 
+    JOIN information_schema.table_constraints AS constraints 
+    ON keys.constraint_name = constraints.constraint_name 
+        AND keys.table_name = constraints.table_name
+WHERE
+    keys.table_name = ?
+    AND constraint_type = 'PRIMARY KEY'
+ORDER BY
+    ordinal_position
+`, []any{table})
+	if err != nil {
+		return nil, err
+	}
+	for _, row := range rows {
+		col, err := row.GetString("column_name")
+		if err != nil {
+			return nil, err
+		}
+		primaryKeys = append(primaryKeys, strings.ToLower(col))
+	}
+	return primaryKeys, nil
 }

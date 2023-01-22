@@ -84,7 +84,6 @@ func (e *exec) Read(ctx context.Context, stmt string, params []any) (rows Rows, 
 		}
 		rows = append(rows, row)
 	}
-	fmt.Printf("%t\n", rows)
 	return rows, nil
 }
 
