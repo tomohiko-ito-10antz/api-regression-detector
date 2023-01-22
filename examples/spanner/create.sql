@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS T(
+CREATE TABLE IF NOT EXISTS example_table (
     id int64 not null,
     c0 string(MAX),
     c1 int64,

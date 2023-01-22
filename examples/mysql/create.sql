@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS T(
+CREATE TABLE IF NOT EXISTS example_table (
     id integer auto_increment,
     c0 text,
     c1 integer,

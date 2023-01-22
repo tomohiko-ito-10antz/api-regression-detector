@@ -193,7 +193,7 @@ func (row Row) GetNullFloat(column string) (val sql.NullFloat64, err error) {
 	case sql.NullFloat64:
 		return val, nil
 	default:
-		return sql.NullFloat64{}, fmt.Errorf("value is not string")
+		return sql.NullFloat64{}, fmt.Errorf("value is not float")
 	}
 }
 func (row Row) GetBoolean(column string) (val bool, err error) {
@@ -247,6 +247,6 @@ func (row Row) GetByteArray(column string) (val []byte, err error) {
 	case []byte:
 		return val, nil
 	default:
-		return nil, fmt.Errorf("value is not boolean")
+		return nil, fmt.Errorf("value is not array of bytes")
 	}
 }

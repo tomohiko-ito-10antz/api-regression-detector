@@ -31,7 +31,7 @@ go run main.go init mysql "root:password@(mysql)/main" <examples/init.json
 ```
 
 ```sh
-go run main.go init postgres "user=postgres password=password host=postgres dbname=main sslmode=disable" <examples/init.json
+go run main.go init postgres "user=root password=password host=postgres dbname=main sslmode=disable" <examples/init.json
 ```
 
 ```sh
@@ -49,7 +49,7 @@ go run main.go dump mysql "root:password@(mysql)/main" <examples/init.json
 ```
 
 ```sh
-go run main.go dump postgres "user=postgres password=password host=postgres dbname=main sslmode=disable" <examples/init.json
+go run main.go dump postgres "user=root password=password host=postgres dbname=main sslmode=disable" <examples/init.json
 ```
 
 ```sh

@@ -1,4 +1,4 @@
-CREATE TABLE T(
+CREATE TABLE example_table (
     id serial,
     c0 text,
     c1 integer,

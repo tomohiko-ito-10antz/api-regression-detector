@@ -17,6 +17,7 @@ services:
     image: postgres:15.1-bullseye
     restart: always
     environment:
+      POSTGRES_USER: root
       POSTGRES_PASSWORD: password
       POSTGRES_DB: main
 

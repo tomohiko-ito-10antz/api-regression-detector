@@ -10,3 +10,7 @@ init-spanner:
 .PHONY: init-mysql
 init-mysql:
 	mysql --host=mysql --password=password main < examples/mysql/create.sql
+
+.PHONY: init-postgres
+init-postgres:
+	psql --host=postgres --username=root --dbname=main < examples/postgres/create.sql

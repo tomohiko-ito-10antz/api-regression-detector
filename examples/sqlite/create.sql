@@ -1,4 +1,4 @@
-CREATE TABLE T(
+CREATE TABLE example_table (
     id integer PRIMARY KEY AUTOINCREMENT,
     c0 text,
     c1 integer,
