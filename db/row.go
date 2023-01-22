@@ -33,8 +33,14 @@ func (row Row) IsNull(column string) (isNull bool, err error) {
 		return false, fmt.Errorf("column not found")
 	}
 	rv := reflect.ValueOf(valAny)
-	if !rv.IsValid() || rv.IsNil() {
+	if !rv.IsValid() {
 		return true, nil
+	}
+	switch rv.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Map, reflect.Pointer, reflect.UnsafePointer, reflect.Interface, reflect.Slice:
+		if rv.IsNil() {
+			return true, nil
+		}
 	}
 	switch val := valAny.(type) {
 	case sql.NullBool:

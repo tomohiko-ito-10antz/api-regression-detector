@@ -1,4 +1,5 @@
-CREATE TABLE IF NOT EXISTS example_table (
+DROP TABLE IF EXISTS example_table;
+CREATE TABLE example_table (
     id int64 not null,
     c0 string(MAX),
     c1 int64,

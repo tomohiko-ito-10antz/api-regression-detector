@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS example_table;
 CREATE TABLE example_table (
     id serial,
     c0 text,

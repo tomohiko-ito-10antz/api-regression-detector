@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS example_table;
 CREATE TABLE example_table (
     id integer PRIMARY KEY AUTOINCREMENT,
     c0 text,

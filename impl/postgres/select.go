@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"strings"
 
 	"github.com/Jumpaku/api-regression-detector/cmd"
@@ -25,7 +24,6 @@ func (o selectOperation) Select(ctx context.Context, tx db.Exec, table string) (
 		return nil, err
 	}
 	rows, err = tx.Read(ctx, fmt.Sprintf(`SELECT * FROM %s ORDER BY %s`, table, strings.Join(columnNames, ", ")), nil)
-	fmt.Printf("%v:%v\n", rows, reflect.ValueOf(rows))
 	if err != nil {
 		return nil, err
 	}

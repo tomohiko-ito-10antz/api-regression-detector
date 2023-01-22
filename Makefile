@@ -14,3 +14,7 @@ init-mysql:
 .PHONY: init-postgres
 init-postgres:
 	psql --host=postgres --username=root --dbname=main < examples/postgres/create.sql
+
+.PHONY: init-sqlite
+init-sqlite:
+	sqlite3 examples/sqlite/sqlite.db <examples/sqlite/create.sql

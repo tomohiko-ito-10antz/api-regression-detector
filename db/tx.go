@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/Jumpaku/api-regression-detector/log"
 	"go.uber.org/multierr"
@@ -101,26 +100,4 @@ func paramsToStrings(params []any) (strArr []string) {
 		}
 	}
 	return strArr
-}
-
-func getType(rt reflect.Type) (ct columnType, err error) {
-	switch rt.Kind() {
-	case reflect.Bool:
-		return ColumnTypeBoolean, nil
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return ColumnTypeInteger, nil
-	case reflect.Float32, reflect.Float64:
-		return ColumnTypeFloat, nil
-	case reflect.String:
-		return ColumnTypeString, nil
-	case reflect.Pointer:
-		return getType(rt.Elem())
-	case reflect.Struct:
-		rv := reflect.New(rt).Elem()
-		if _, isTime := rv.Interface().(time.Time); isTime {
-			return ColumnTypeTimestamp, nil
-		}
-	}
-	return ColumnTypeUnknown, fmt.Errorf("unsupported column type %v", rt.String())
 }
