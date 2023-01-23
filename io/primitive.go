@@ -1,4 +1,4 @@
-package json
+package io
 
 import (
 	"encoding/json"
@@ -6,11 +6,6 @@ import (
 	"strconv"
 	"strings"
 )
-
-type ColumnValue any
-type Row map[string]ColumnValue
-type Rows []Row
-type Tables map[string]Rows
 
 func ToNullableString(value any) (p *string, err error) {
 	var s string

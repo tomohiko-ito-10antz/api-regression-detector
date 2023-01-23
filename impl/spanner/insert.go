@@ -7,7 +7,7 @@ import (
 
 	"github.com/Jumpaku/api-regression-detector/cmd"
 	"github.com/Jumpaku/api-regression-detector/db"
-	"github.com/Jumpaku/api-regression-detector/io/json"
+	"github.com/Jumpaku/api-regression-detector/io"
 )
 
 type insertOperation struct{}
@@ -49,25 +49,25 @@ func (o insertOperation) Insert(ctx context.Context, tx db.Exec, table string, r
 			}
 			switch columnType {
 			case db.ColumnTypeBoolean:
-				v, err := json.ToNullableBoolean(value)
+				v, err := io.ToNullableBoolean(value)
 				if err != nil {
 					return err
 				}
 				values = append(values, v)
 			case db.ColumnTypeInteger:
-				v, err := json.ToNullableInteger(value)
+				v, err := io.ToNullableInteger(value)
 				if err != nil {
 					return err
 				}
 				values = append(values, v)
 			case db.ColumnTypeFloat:
-				v, err := json.ToNullableFloat(value)
+				v, err := io.ToNullableFloat(value)
 				if err != nil {
 					return err
 				}
 				values = append(values, v)
 			default:
-				v, err := json.ToNullableString(value)
+				v, err := io.ToNullableString(value)
 				if err != nil {
 					return err
 				}
