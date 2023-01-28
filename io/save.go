@@ -29,7 +29,7 @@ func Save(tables Tables, file *os.File) (err error) {
 				case JsonTypeNumber:
 					jsonRow[columnName], err = jsonValue.ToInt64()
 					if err != nil {
-						jsonRow[columnName], err = jsonValue.ToInt64()
+						jsonRow[columnName], err = jsonValue.ToFloat64()
 						if err != nil {
 							return err
 						}
