@@ -8,7 +8,7 @@ import (
 	"github.com/Jumpaku/api-regression-detector/io"
 )
 
-func ExtractColumnValueAsDB(row io.JsonRow, columnName string, dbType db.ColumnType) (any, error) {
+func ExtractColumnValueAsDB(row io.Row, columnName string, dbType db.ColumnType) (any, error) {
 	isNull := false
 	jsonType, err := row.GetColumnType(columnName)
 	if err != nil {

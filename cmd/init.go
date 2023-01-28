@@ -12,10 +12,10 @@ type RowClearer interface {
 	ClearRows(ctx context.Context, exec db.Transaction, table string) error
 }
 type RowCreator interface {
-	CreateRows(ctx context.Context, exec db.Transaction, tableName string, table io.JsonTable) error
+	CreateRows(ctx context.Context, exec db.Transaction, tableName string, table io.Table) error
 }
 
-func Init(ctx context.Context, database *sql.DB, jsonTables io.JsonTables, clearer RowClearer, creator RowCreator) (err error) {
+func Init(ctx context.Context, database *sql.DB, jsonTables io.Tables, clearer RowClearer, creator RowCreator) (err error) {
 	return db.ExecuteTransaction(ctx, database, func(ctx context.Context, exec db.Transaction) error {
 		for tableName, table := range jsonTables {
 			err = clearer.ClearRows(ctx, exec, tableName)

@@ -19,7 +19,7 @@ func Insert() insertOperation {
 
 var _ cmd.RowCreator = insertOperation{}
 
-func (o insertOperation) CreateRows(ctx context.Context, tx db.Transaction, table string, rows io.JsonTable) (err error) {
+func (o insertOperation) CreateRows(ctx context.Context, tx db.Transaction, table string, rows io.Table) (err error) {
 	columnTypes, err := getColumnTypes(ctx, tx, table)
 	if err != nil {
 		return err

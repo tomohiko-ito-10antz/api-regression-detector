@@ -30,8 +30,8 @@ type Driver struct {
 	Name     string
 	DB       *sql.DB
 	Select   cmd.RowLister
-	Truncate cmd.ClearRows
-	Insert   cmd.CreateRows
+	Truncate cmd.RowClearer
+	Insert   cmd.RowCreator
 }
 
 func (d *Driver) Close() error {
@@ -48,7 +48,7 @@ func Connect(name string, connectionString string) (*Driver, error) {
 			Name:     name,
 			DB:       db,
 			Select:   mysql.Select(),
-			Truncate: mysql.Truncate(),
+			Truncate: mysql.ClearRows(),
 			Insert:   mysql.Insert(),
 		}, nil
 	case "postgres":

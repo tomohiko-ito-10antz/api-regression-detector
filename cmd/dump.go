@@ -13,8 +13,8 @@ type RowLister interface {
 	ListRows(ctx context.Context, exec db.Transaction, table string) (db.Table, error)
 }
 
-func Dump(ctx context.Context, database *sql.DB, tableNames []string, s RowLister) (tables io.JsonTables, err error) {
-	tables = io.JsonTables{}
+func Dump(ctx context.Context, database *sql.DB, tableNames []string, s RowLister) (tables io.Tables, err error) {
+	tables = io.Tables{}
 	err = db.ExecuteTransaction(ctx, database, func(ctx context.Context, exec db.Transaction) error {
 		dbTables := db.Tables{}
 		for _, tableName := range tableNames {
@@ -36,12 +36,12 @@ func Dump(ctx context.Context, database *sql.DB, tableNames []string, s RowListe
 	return tables, nil
 }
 
-func convertTablesDBToJson(dbTables db.Tables) (jsonTables io.JsonTables, err error) {
-	jsonTables = io.JsonTables{}
+func convertTablesDBToJson(dbTables db.Tables) (jsonTables io.Tables, err error) {
+	jsonTables = io.Tables{}
 	for dbTableName, dbRows := range dbTables {
-		jsonRows := io.JsonTable{}
+		jsonRows := io.Table{}
 		for _, dbRow := range dbRows {
-			jsonRow := io.JsonRow{}
+			jsonRow := io.Row{}
 			for dbColumnName, dbColumnValue := range dbRow {
 				jsonRow[dbColumnName], err = convertDBColumnValueToJsonValue(dbColumnValue)
 				if err != nil {

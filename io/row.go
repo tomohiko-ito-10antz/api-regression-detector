@@ -4,16 +4,16 @@ import (
 	"fmt"
 )
 
-type JsonRow map[string]*JsonValue
+type Row map[string]*JsonValue
 
-func (row JsonRow) GetColumnNames() (columnNames []string) {
+func (row Row) GetColumnNames() (columnNames []string) {
 	for columnName := range row {
 		columnNames = append(columnNames, columnName)
 	}
 	return columnNames
 }
 
-func (row JsonRow) GetColumnType(columnName string) (jsonType jsonType, err error) {
+func (row Row) GetColumnType(columnName string) (jsonType jsonType, err error) {
 	val, exists := row[columnName]
 	if !exists {
 		return JsonTypeUnknown, fmt.Errorf("column not found in JsonRow")
@@ -21,7 +21,7 @@ func (row JsonRow) GetColumnType(columnName string) (jsonType jsonType, err erro
 	return val.Type, nil
 }
 
-func (row JsonRow) ToString(columnName string) (string, error) {
+func (row Row) ToString(columnName string) (string, error) {
 	val, ok := row[columnName]
 	if !ok {
 		return "", fmt.Errorf("column not found in JsonRow")
@@ -29,7 +29,7 @@ func (row JsonRow) ToString(columnName string) (string, error) {
 	return val.ToString()
 }
 
-func (row JsonRow) ToBool(columnName string) (bool, error) {
+func (row Row) ToBool(columnName string) (bool, error) {
 	val, ok := row[columnName]
 	if !ok {
 		return false, fmt.Errorf("column not found in JsonRow")
@@ -37,7 +37,7 @@ func (row JsonRow) ToBool(columnName string) (bool, error) {
 	return val.ToBool()
 }
 
-func (row JsonRow) ToInt64(columnName string) (int64, error) {
+func (row Row) ToInt64(columnName string) (int64, error) {
 	val, ok := row[columnName]
 	if !ok {
 		return 0, fmt.Errorf("column not found in JsonRow")
@@ -45,7 +45,7 @@ func (row JsonRow) ToInt64(columnName string) (int64, error) {
 	return val.ToInt64()
 }
 
-func (row JsonRow) ToFloat64(columnName string) (float64, error) {
+func (row Row) ToFloat64(columnName string) (float64, error) {
 	val, ok := row[columnName]
 	if !ok {
 		return 0, fmt.Errorf("column not found in JsonRow")
@@ -53,27 +53,27 @@ func (row JsonRow) ToFloat64(columnName string) (float64, error) {
 	return val.ToFloat64()
 }
 
-func (row JsonRow) SetString(columnName string, val string) (err error) {
+func (row Row) SetString(columnName string, val string) (err error) {
 	row[columnName], err = NewJson(val)
 	return err
 }
 
-func (row JsonRow) SetBool(columnName string, val bool) (err error) {
+func (row Row) SetBool(columnName string, val bool) (err error) {
 	row[columnName], err = NewJson(val)
 	return err
 }
 
-func (row JsonRow) SetInt64(columnName string, val int64) (err error) {
+func (row Row) SetInt64(columnName string, val int64) (err error) {
 	row[columnName], err = NewJson(val)
 	return err
 }
 
-func (row JsonRow) SetFloat64(columnName string, val float64) (err error) {
+func (row Row) SetFloat64(columnName string, val float64) (err error) {
 	row[columnName], err = NewJson(val)
 	return err
 }
 
-func (row JsonRow) SetNil(columnName string) (err error) {
+func (row Row) SetNil(columnName string) (err error) {
 	row[columnName], err = NewJson(nil)
 	return err
 }
