@@ -1,3 +1,5 @@
 package db
 
-type Tables map[string]Rows
+type Tables map[string]Table
+
+type Table []Row

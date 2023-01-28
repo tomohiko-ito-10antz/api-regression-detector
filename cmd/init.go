@@ -8,22 +8,21 @@ import (
 	"github.com/Jumpaku/api-regression-detector/io"
 )
 
-type Truncate interface {
-	Truncate(ctx context.Context, exec db.Exec, table string) error
+type RowClearer interface {
+	ClearRows(ctx context.Context, exec db.Transaction, table string) error
 }
-type Insert interface {
-	Insert(ctx context.Context, exec db.Exec, table string, rows db.Rows) error
+type RowCreator interface {
+	CreateRows(ctx context.Context, exec db.Transaction, tableName string, table io.JsonTable) error
 }
 
-func Init(ctx context.Context, database *sql.DB, jsonTables io.JsonTables, truncate Truncate, insert Insert) (err error) {
-	tables := convertTablesJsonToDB(jsonTables)
-	return db.Transaction(ctx, database, func(ctx context.Context, exec db.Exec) error {
-		for table, rows := range tables {
-			err = truncate.Truncate(ctx, exec, table)
+func Init(ctx context.Context, database *sql.DB, jsonTables io.JsonTables, clearer RowClearer, creator RowCreator) (err error) {
+	return db.ExecuteTransaction(ctx, database, func(ctx context.Context, exec db.Transaction) error {
+		for tableName, table := range jsonTables {
+			err = clearer.ClearRows(ctx, exec, tableName)
 			if err != nil {
 				return err
 			}
-			err = insert.Insert(ctx, exec, table, rows)
+			err = creator.CreateRows(ctx, exec, tableName, table)
 			if err != nil {
 				return err
 			}
@@ -32,10 +31,11 @@ func Init(ctx context.Context, database *sql.DB, jsonTables io.JsonTables, trunc
 	})
 }
 
+/*
 func convertTablesJsonToDB(jsonTables io.JsonTables) (dbTables db.Tables) {
 	dbTables = db.Tables{}
 	for jsonTableName, jsonRows := range jsonTables {
-		dbRows := db.Rows{}
+		dbRows := db.Table{}
 		for _, jsonRow := range jsonRows {
 			dbRow := db.Row{}
 			for jsonColumnName, jsonColumnValue := range jsonRow {
@@ -47,3 +47,4 @@ func convertTablesJsonToDB(jsonTables io.JsonTables) (dbTables db.Tables) {
 	}
 	return dbTables
 }
+*/

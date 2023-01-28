@@ -5,18 +5,17 @@ import (
 	"database/sql"
 	"fmt"
 	"reflect"
-	"strings"
 
 	"github.com/Jumpaku/api-regression-detector/log"
 	"go.uber.org/multierr"
 )
 
-type Exec interface {
+type Transaction interface {
 	Write(ctx context.Context, stmt string, params []any) (err error)
-	Read(ctx context.Context, stmt string, params []any) (rows Rows, err error)
+	Read(ctx context.Context, stmt string, params []any) (table Table, err error)
 }
 
-type exec struct {
+type transaction struct {
 	tx *sql.Tx
 }
 
@@ -30,21 +29,20 @@ func commit(ctx context.Context, tx *sql.Tx) (err error) {
 	}
 	return nil
 }
-func Transaction(ctx context.Context, db *sql.DB, handler func(ctx context.Context, exec Exec) error) error {
+func ExecuteTransaction(ctx context.Context, db *sql.DB, handler func(ctx context.Context, tx Transaction) error) error {
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer func() { err = rollback(ctx, tx, err) }()
-	e := exec{tx: tx}
-	err = handler(ctx, &e)
+	err = handler(ctx, &transaction{tx: tx})
 	if err != nil {
 		return err
 	}
 	return commit(ctx, tx)
 }
 
-func (e *exec) Write(ctx context.Context, stmt string, params []any) (err error) {
+func (e *transaction) Write(ctx context.Context, stmt string, params []any) (err error) {
 	log.Stderr("SQL\n\tstatement: %v\n\tparams   : %v", stmt, paramsToStrings(params))
 	_, err = e.tx.Exec(stmt, params...)
 	if err != nil {
@@ -53,7 +51,7 @@ func (e *exec) Write(ctx context.Context, stmt string, params []any) (err error)
 	return nil
 }
 
-func (e *exec) Read(ctx context.Context, stmt string, params []any) (rows Rows, err error) {
+func (e *transaction) Read(ctx context.Context, stmt string, params []any) (table Table, err error) {
 	log.Stderr("SQL\n\tstatement: %v\n\tparams   : %v", stmt, paramsToStrings(params))
 	itr, err := e.tx.Query(stmt, params...)
 	if err != nil {
@@ -79,11 +77,11 @@ func (e *exec) Read(ctx context.Context, stmt string, params []any) (rows Rows, 
 		}
 		row := Row{}
 		for i, column := range columns {
-			row[strings.ToLower(column)] = values[i]
+			row[column] = NewColumnValue(values[i])
 		}
-		rows = append(rows, row)
+		table = append(table, row)
 	}
-	return rows, nil
+	return table, nil
 }
 
 func paramsToStrings(params []any) (strArr []string) {

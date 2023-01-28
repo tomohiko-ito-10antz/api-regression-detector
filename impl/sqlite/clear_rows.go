@@ -1,4 +1,4 @@
-package mysql
+package sqlite
 
 import (
 	"context"
@@ -15,14 +15,14 @@ func Truncate() truncateOperation {
 	return truncateOperation{}
 }
 
-var _ cmd.Truncate = truncateOperation{}
+var _ cmd.RowClearer = truncateOperation{}
 
-func (o truncateOperation) Truncate(ctx context.Context, exec db.Exec, table string) (err error) {
-	err = exec.Write(ctx, fmt.Sprintf(`TRUNCATE TABLE %s`, table), nil)
+func (o truncateOperation) ClearRows(ctx context.Context, tx db.Transaction, table string) (err error) {
+	err = tx.Write(ctx, fmt.Sprintf(`DELETE FROM %s`, table), nil)
 	if err != nil {
 		return err
 	}
-	err = exec.Write(ctx, fmt.Sprintf(`ALTER TABLE %s AUTO_INCREMENT = 1`, table), nil)
+	err = tx.Write(ctx, `DELETE FROM sqlite_sequence WHERE name = ?`, []any{table})
 	if err != nil {
 		return err
 	}

@@ -7,34 +7,74 @@ import (
 	"github.com/Jumpaku/api-regression-detector/db"
 )
 
-func getColumns(rows db.Rows) (columns []string) {
-	columnAdded := map[string]bool{}
+func getColumnTypes(ctx context.Context, tx db.Transaction, table string) (columnTypes db.ColumnTypes, err error) {
+	rows, err := tx.Read(ctx, `SELECT column_name, column_type FROM information_schema.columns WHERE table_name = ?`, []any{table})
+	if err != nil {
+		return nil, err
+	}
+	columnTypes = db.ColumnTypes{}
 	for _, row := range rows {
-		for column := range row {
-			if _, added := columnAdded[column]; !added {
-				columnAdded[column] = true
-				columns = append(columns, column)
+		col := ""
+		{
+			columnName, err := row.GetColumnValue("column_name")
+			if err != nil {
+				return nil, err
 			}
+			columnNameString, err := columnName.AsString()
+			if err != nil {
+				return nil, err
+			}
+			col = columnNameString.String
+		}
+		typ := ""
+		{
+			columnType, err := row.GetColumnValue("data_type")
+			if err != nil {
+				return nil, err
+			}
+			columnTypeString, err := columnType.AsString()
+			if err != nil {
+				return nil, err
+			}
+			typ = columnTypeString.String
+		}
+		lowerTyp := strings.ToLower(typ)
+		startsWithAny := func(prefixes ...string) bool {
+			for _, prefix := range prefixes {
+				if strings.HasPrefix(lowerTyp, strings.ToUpper(prefix)) {
+					return true
+				}
+			}
+			return false
+		}
+		switch {
+		case startsWithAny("bool"):
+			columnTypes[col] = db.ColumnTypeBoolean
+		case startsWithAny("int", "smallint", "bigint", "smallserial", "serial", "bigserial"):
+			columnTypes[col] = db.ColumnTypeInteger
+		case startsWithAny("float", "double", "real", "numeric"):
+			columnTypes[col] = db.ColumnTypeFloat
+		case startsWithAny("date", "timestamp"):
+			columnTypes[col] = db.ColumnTypeTime
+		default:
+			columnTypes[col] = db.ColumnTypeString
 		}
 	}
-	return columns
+	return columnTypes, nil
 }
 
-func getColumnNames(ctx context.Context, tx db.Exec, table string) (primaryKeys []string, err error) {
-	trimmed := table
-	if strings.HasPrefix(trimmed, `"`) && strings.HasSuffix(trimmed, `"`) {
-		trimmed = strings.TrimPrefix(strings.TrimSuffix(trimmed, `"`), `"`)
-	}
-	rows, err := tx.Read(ctx, `SELECT column_name FROM information_schema.columns WHERE table_name = $1 ORDER BY ordinal_position`, []any{trimmed})
+func getColumnNames(ctx context.Context, tx db.Transaction, table string) (columnNames []string, err error) {
+	rows, err := tx.Read(ctx, `SELECT column_name FROM information_schema.columns WHERE table_name = $1 ORDER BY ordinal_position`, []any{table})
 	if err != nil {
 		return nil, err
 	}
 	for _, row := range rows {
-		col, err := row.GetByteArray("column_name")
+		columnName, err := row.GetColumnValue("column_name")
 		if err != nil {
 			return nil, err
 		}
-		primaryKeys = append(primaryKeys, strings.ToLower(string(col)))
+		columnNameString, err := columnName.AsString()
+		columnNames = append(columnNames, columnNameString.String)
 	}
-	return primaryKeys, nil
+	return columnNames, nil
 }

@@ -29,9 +29,9 @@ func fail(err error) {
 type Driver struct {
 	Name     string
 	DB       *sql.DB
-	Select   cmd.Select
-	Truncate cmd.Truncate
-	Insert   cmd.Insert
+	Select   cmd.RowLister
+	Truncate cmd.ClearRows
+	Insert   cmd.CreateRows
 }
 
 func (d *Driver) Close() error {

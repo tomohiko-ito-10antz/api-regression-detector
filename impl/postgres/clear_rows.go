@@ -15,10 +15,10 @@ func Truncate() truncateOperation {
 	return truncateOperation{}
 }
 
-var _ cmd.Truncate = truncateOperation{}
+var _ cmd.RowClearer = truncateOperation{}
 
-func (o truncateOperation) Truncate(ctx context.Context, exec db.Exec, table string) (err error) {
-	err = exec.Write(ctx, fmt.Sprintf(`TRUNCATE TABLE %s RESTART IDENTITY`, table), nil)
+func (o truncateOperation) ClearRows(ctx context.Context, tx db.Transaction, table string) (err error) {
+	err = tx.Write(ctx, fmt.Sprintf(`TRUNCATE TABLE %s RESTART IDENTITY`, table), nil)
 	if err != nil {
 		return err
 	}
