@@ -10,7 +10,7 @@ import (
 )
 
 type RowLister interface {
-	ListRows(ctx context.Context, exec db.Transaction, tableName string) (db.Table, error)
+	ListRows(ctx context.Context, exec db.Transaction, tableName string, schema db.Schema) (db.Table, error)
 }
 
 type RowClearer interface {
@@ -26,11 +26,12 @@ type SchemaGetter interface {
 }
 
 type Driver struct {
-	Name       string
-	DB         *sql.DB
-	ListRows   RowLister
-	ClearRows  RowClearer
-	CreateRows RowCreator
+	Name         string
+	DB           *sql.DB
+	ListRows     RowLister
+	ClearRows    RowClearer
+	CreateRows   RowCreator
+	SchemaGetter SchemaGetter
 }
 
 func (d *Driver) Close() error {

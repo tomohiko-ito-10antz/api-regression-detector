@@ -9,12 +9,22 @@ import (
 	"github.com/Jumpaku/api-regression-detector/io"
 )
 
-func Dump(ctx context.Context, database *sql.DB, tableNames []string, s RowLister) (tables io.Tables, err error) {
+func Dump(
+	ctx context.Context,
+	database *sql.DB,
+	tableNames []string,
+	rowLister RowLister,
+	schemaGetter SchemaGetter,
+) (tables io.Tables, err error) {
 	tables = io.Tables{}
-	err = db.RunTransaction(ctx, database, func(ctx context.Context, exec db.Transaction) error {
+	err = db.RunTransaction(ctx, database, func(ctx context.Context, tx db.Transaction) error {
 		dbTables := db.Tables{}
 		for _, tableName := range tableNames {
-			rows, err := s.ListRows(ctx, exec, tableName)
+			schema, err := schemaGetter.GetSchema(ctx, tx, tableName)
+			if err != nil {
+				return err
+			}
+			rows, err := rowLister.ListRows(ctx, tx, tableName, schema)
 			if err != nil {
 				return err
 			}

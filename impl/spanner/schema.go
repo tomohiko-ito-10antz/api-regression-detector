@@ -4,8 +4,30 @@ import (
 	"context"
 	"strings"
 
+	"github.com/Jumpaku/api-regression-detector/cmd"
 	"github.com/Jumpaku/api-regression-detector/db"
 )
+
+type schemaGetter struct{}
+
+func GetSchema() schemaGetter { return schemaGetter{} }
+
+var _ cmd.SchemaGetter = schemaGetter{}
+
+func (o schemaGetter) GetSchema(ctx context.Context, tx db.Transaction, tableName string) (schema db.Schema, err error) {
+	columnTypes, err := getColumnTypes(ctx, tx, tableName)
+	if err != nil {
+		return db.Schema{}, err
+	}
+	primaryKeys, err := getPrimaryKeys(ctx, tx, tableName)
+	if err != nil {
+		return db.Schema{}, err
+	}
+	return db.Schema{
+		ColumnTypes: columnTypes,
+		PrimaryKeys: primaryKeys,
+	}, nil
+}
 
 func getColumnTypes(ctx context.Context, tx db.Transaction, table string) (columnTypes db.ColumnTypes, err error) {
 	rows, err := tx.Read(ctx, `SELECT column_name, spanner_type FROM information_schema.columns WHERE table_name = ?`, []any{table})
