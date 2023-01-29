@@ -22,6 +22,7 @@ type transaction struct {
 func rollback(ctx context.Context, tx *sql.Tx, err error) error {
 	return multierr.Combine(err, tx.Rollback())
 }
+
 func commit(ctx context.Context, tx *sql.Tx) (err error) {
 	err = tx.Commit()
 	if err != nil {
@@ -29,7 +30,8 @@ func commit(ctx context.Context, tx *sql.Tx) (err error) {
 	}
 	return nil
 }
-func ExecuteTransaction(ctx context.Context, db *sql.DB, handler func(ctx context.Context, tx Transaction) error) error {
+
+func RunTransaction(ctx context.Context, db *sql.DB, handler func(ctx context.Context, tx Transaction) error) error {
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return err

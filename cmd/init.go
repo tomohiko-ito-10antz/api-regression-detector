@@ -9,7 +9,7 @@ import (
 )
 
 func Init(ctx context.Context, database *sql.DB, jsonTables io.Tables, clearer RowClearer, creator RowCreator) (err error) {
-	return db.ExecuteTransaction(ctx, database, func(ctx context.Context, exec db.Transaction) error {
+	return db.RunTransaction(ctx, database, func(ctx context.Context, exec db.Transaction) error {
 		for tableName, table := range jsonTables {
 			err = clearer.ClearRows(ctx, exec, tableName)
 			if err != nil {

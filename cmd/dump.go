@@ -11,7 +11,7 @@ import (
 
 func Dump(ctx context.Context, database *sql.DB, tableNames []string, s RowLister) (tables io.Tables, err error) {
 	tables = io.Tables{}
-	err = db.ExecuteTransaction(ctx, database, func(ctx context.Context, exec db.Transaction) error {
+	err = db.RunTransaction(ctx, database, func(ctx context.Context, exec db.Transaction) error {
 		dbTables := db.Tables{}
 		for _, tableName := range tableNames {
 			rows, err := s.ListRows(ctx, exec, tableName)
