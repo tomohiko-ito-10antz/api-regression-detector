@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"os"
 
@@ -26,58 +25,41 @@ func fail(err error) {
 	panic(err)
 }
 
-type Driver struct {
-	Name     string
-	DB       *sql.DB
-	Select   cmd.RowLister
-	Truncate cmd.RowClearer
-	Insert   cmd.RowCreator
-}
-
-func (d *Driver) Close() error {
-	return d.DB.Close()
-}
-func Connect(name string, connectionString string) (*Driver, error) {
-	db, err := sql.Open(name, connectionString)
-	if err != nil {
-		return nil, err
-	}
+func Connect(name string, connectionString string) (*cmd.Driver, error) {
+	var driver *cmd.Driver
 	switch name {
 	case "mysql":
-		return &Driver{
-			Name:     name,
-			DB:       db,
+		driver = &cmd.Driver{
 			Select:   mysql.Select(),
 			Truncate: mysql.ClearRows(),
 			Insert:   mysql.Insert(),
-		}, nil
+		}
 	case "postgres":
-		return &Driver{
-			Name:     name,
-			DB:       db,
+		driver = &cmd.Driver{
 			Select:   postgres.Select(),
 			Truncate: postgres.Truncate(),
 			Insert:   postgres.Insert(),
-		}, nil
+		}
 	case "sqlite3":
-		return &Driver{
-			Name:     name,
-			DB:       db,
+		driver = &cmd.Driver{
 			Select:   sqlite.Select(),
 			Truncate: sqlite.Truncate(),
 			Insert:   sqlite.Insert(),
-		}, nil
+		}
 	case "spanner":
-		return &Driver{
-			Name:     name,
-			DB:       db,
+		driver = &cmd.Driver{
 			Select:   spanner.Select(),
 			Truncate: spanner.Truncate(),
 			Insert:   spanner.Insert(),
-		}, nil
+		}
 	default:
 		return nil, fmt.Errorf("invalid driver name")
 	}
+	err := driver.Open(name, connectionString)
+	if err != nil {
+		return nil, err
+	}
+	return driver, nil
 }
 func main() {
 	usage := `Regression detector.
