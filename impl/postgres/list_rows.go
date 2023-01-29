@@ -18,18 +18,26 @@ func Select() selectOperation {
 
 var _ cmd.RowLister = selectOperation{}
 
-func (o selectOperation) ListRows(ctx context.Context, tx db.Transaction, table string) (rows db.Table, err error) {
-	columnNames, err := getColumnNames(ctx, tx, table)
+func (o selectOperation) ListRows(ctx context.Context, tx db.Transaction, tableName string) (table db.Table, err error) {
+	primaryKeys, err := getPrimaryKeys(ctx, tx, tableName)
 	if err != nil {
-		return nil, err
+		return db.Table{}, err
 	}
-	columnTypes, err := getColumnTypes(ctx, tx, table)
+	columnTypes, err := getColumnTypes(ctx, tx, tableName)
 	if err != nil {
-		return nil, err
+		return db.Table{}, err
 	}
-	rows, err = tx.Read(ctx, fmt.Sprintf(`SELECT * FROM %s ORDER BY %s`, table, strings.Join(columnNames, ", ")), nil)
-	if err != nil {
-		return nil, err
+	var rows []db.Row
+	if len(primaryKeys) == 0 {
+		rows, err = tx.Read(ctx, fmt.Sprintf(`SELECT * FROM %s ORDER BY ?::regclass::oid`, tableName), []any{table})
+		if err != nil {
+			return db.Table{}, err
+		}
+	} else {
+		rows, err = tx.Read(ctx, fmt.Sprintf(`SELECT * FROM %s ORDER BY %s`, tableName, strings.Join(primaryKeys, ", ")), nil)
+		if err != nil {
+			return db.Table{}, err
+		}
 	}
 	out := db.Table{}
 	for _, row := range rows {
@@ -37,15 +45,15 @@ func (o selectOperation) ListRows(ctx context.Context, tx db.Transaction, table 
 		for _, columnName := range row.GetColumnNames() {
 			col, err := row.GetColumnValue(columnName)
 			if err != nil {
-				return nil, err
+				return db.Table{}, err
 			}
 			typ, exists := columnTypes[columnName]
 			if !exists {
-				return nil, fmt.Errorf("column %s not found", columnName)
+				return db.Table{}, fmt.Errorf("column %s not found", columnName)
 			}
 			outRow.SetColumnValue(columnName, col, typ)
 		}
-		out = append(out, outRow)
+		out.Rows = append(out.Rows, outRow)
 	}
-	return rows, nil
+	return out, nil
 }

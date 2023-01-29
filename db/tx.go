@@ -12,7 +12,7 @@ import (
 
 type Transaction interface {
 	Write(ctx context.Context, stmt string, params []any) (err error)
-	Read(ctx context.Context, stmt string, params []any) (table Table, err error)
+	Read(ctx context.Context, stmt string, params []any) (rows []Row, err error)
 }
 
 type transaction struct {
@@ -51,7 +51,7 @@ func (e *transaction) Write(ctx context.Context, stmt string, params []any) (err
 	return nil
 }
 
-func (e *transaction) Read(ctx context.Context, stmt string, params []any) (table Table, err error) {
+func (e *transaction) Read(ctx context.Context, stmt string, params []any) (rows []Row, err error) {
 	log.Stderr("SQL\n\tstatement: %v\n\tparams   : %v", stmt, paramsToStrings(params))
 	itr, err := e.tx.Query(stmt, params...)
 	if err != nil {
@@ -79,9 +79,9 @@ func (e *transaction) Read(ctx context.Context, stmt string, params []any) (tabl
 		for i, column := range columns {
 			row[column] = NewColumnValue(values[i])
 		}
-		table = append(table, row)
+		rows = append(rows, row)
 	}
-	return table, nil
+	return rows, nil
 }
 
 func paramsToStrings(params []any) (strArr []string) {

@@ -63,8 +63,21 @@ func getColumnTypes(ctx context.Context, tx db.Transaction, table string) (colum
 	return columnTypes, nil
 }
 
-func getColumnNames(ctx context.Context, tx db.Transaction, table string) (columnNames []string, err error) {
-	rows, err := tx.Read(ctx, `SELECT column_name FROM information_schema.columns WHERE table_name = $1 ORDER BY ordinal_position`, []any{table})
+func getPrimaryKeys(ctx context.Context, tx db.Transaction, table string) (primaryKeys []string, err error) {
+	rows, err := tx.Read(ctx, `
+SELECT 
+    column_name
+FROM 
+    information_schema.key_column_usage AS keys 
+    JOIN information_schema.table_constraints AS constraints 
+    ON keys.constraint_name = constraints.constraint_name 
+        AND keys.table_name = constraints.table_name
+WHERE
+    keys.table_name = ?
+    AND constraint_type = 'PRIMARY KEY'
+ORDER BY
+    ordinal_position
+`, []any{table})
 	if err != nil {
 		return nil, err
 	}
@@ -73,8 +86,8 @@ func getColumnNames(ctx context.Context, tx db.Transaction, table string) (colum
 		if err != nil {
 			return nil, err
 		}
-		columnNameString, err := columnName.AsString()
-		columnNames = append(columnNames, columnNameString.String)
+		col, _ := columnName.AsString()
+		primaryKeys = append(primaryKeys, col.String)
 	}
-	return columnNames, nil
+	return primaryKeys, nil
 }

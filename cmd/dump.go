@@ -9,10 +9,6 @@ import (
 	"github.com/Jumpaku/api-regression-detector/io"
 )
 
-type RowLister interface {
-	ListRows(ctx context.Context, exec db.Transaction, table string) (db.Table, error)
-}
-
 func Dump(ctx context.Context, database *sql.DB, tableNames []string, s RowLister) (tables io.Tables, err error) {
 	tables = io.Tables{}
 	err = db.ExecuteTransaction(ctx, database, func(ctx context.Context, exec db.Transaction) error {
@@ -38,9 +34,9 @@ func Dump(ctx context.Context, database *sql.DB, tableNames []string, s RowListe
 
 func convertTablesDBToJson(dbTables db.Tables) (jsonTables io.Tables, err error) {
 	jsonTables = io.Tables{}
-	for dbTableName, dbRows := range dbTables {
+	for dbTableName, dbTable := range dbTables {
 		jsonRows := io.Table{}
-		for _, dbRow := range dbRows {
+		for _, dbRow := range dbTable.Rows {
 			jsonRow := io.Row{}
 			for dbColumnName, dbColumnValue := range dbRow {
 				jsonRow[dbColumnName], err = convertDBColumnValueToJsonValue(dbColumnValue)
