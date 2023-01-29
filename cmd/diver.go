@@ -26,11 +26,11 @@ type SchemaGetter interface {
 }
 
 type Driver struct {
-	Name     string
-	DB       *sql.DB
-	Select   RowLister
-	Truncate RowClearer
-	Insert   RowCreator
+	Name       string
+	DB         *sql.DB
+	ListRows   RowLister
+	ClearRows  RowClearer
+	CreateRows RowCreator
 }
 
 func (d *Driver) Close() error {

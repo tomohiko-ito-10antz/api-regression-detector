@@ -10,7 +10,7 @@ import (
 
 type truncateOperation struct{}
 
-func Truncate() truncateOperation {
+func ClearRows() truncateOperation {
 	return truncateOperation{}
 }
 

@@ -12,7 +12,7 @@ import (
 type selectOperation struct {
 }
 
-func Select() selectOperation {
+func ListRows() selectOperation {
 	return selectOperation{}
 }
 

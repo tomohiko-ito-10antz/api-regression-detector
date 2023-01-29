@@ -13,7 +13,7 @@ import (
 
 type insertOperation struct{}
 
-func Insert() insertOperation {
+func CreateRows() insertOperation {
 	return insertOperation{}
 }
 

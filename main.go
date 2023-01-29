@@ -30,27 +30,27 @@ func Connect(name string, connectionString string) (*cmd.Driver, error) {
 	switch name {
 	case "mysql":
 		driver = &cmd.Driver{
-			Select:   mysql.Select(),
-			Truncate: mysql.ClearRows(),
-			Insert:   mysql.Insert(),
+			ListRows:   mysql.ListRows(),
+			ClearRows:  mysql.ClearRows(),
+			CreateRows: mysql.CreateRows(),
 		}
 	case "postgres":
 		driver = &cmd.Driver{
-			Select:   postgres.Select(),
-			Truncate: postgres.Truncate(),
-			Insert:   postgres.Insert(),
+			ListRows:   postgres.ListRows(),
+			ClearRows:  postgres.ClearRows(),
+			CreateRows: postgres.CreateRows(),
 		}
 	case "sqlite3":
 		driver = &cmd.Driver{
-			Select:   sqlite.Select(),
-			Truncate: sqlite.Truncate(),
-			Insert:   sqlite.Insert(),
+			ListRows:   sqlite.ListRows(),
+			ClearRows:  sqlite.ClearRows(),
+			CreateRows: sqlite.Insert(),
 		}
 	case "spanner":
 		driver = &cmd.Driver{
-			Select:   spanner.Select(),
-			Truncate: spanner.Truncate(),
-			Insert:   spanner.Insert(),
+			ListRows:   spanner.ListRows(),
+			ClearRows:  spanner.ClearRows(),
+			CreateRows: spanner.CreateRows(),
 		}
 	default:
 		return nil, fmt.Errorf("invalid driver name")
@@ -164,7 +164,7 @@ func RunInit(databaseDriver string, connectionString string) (code int, err erro
 	if err != nil {
 		return 1, err
 	}
-	err = cmd.Init(context.Background(), driver.DB, tables, driver.Truncate, driver.Insert)
+	err = cmd.Init(context.Background(), driver.DB, tables, driver.ClearRows, driver.CreateRows)
 	if err != nil {
 		return 1, err
 	}
@@ -190,7 +190,7 @@ func RunDump(databaseDriver string, connectionString string) (code int, err erro
 	for tableName := range tables {
 		tableNames = append(tableNames, tableName)
 	}
-	dump, err := cmd.Dump(context.Background(), driver.DB, tableNames, driver.Select)
+	dump, err := cmd.Dump(context.Background(), driver.DB, tableNames, driver.ListRows)
 	if err != nil {
 		return 1, err
 	}
