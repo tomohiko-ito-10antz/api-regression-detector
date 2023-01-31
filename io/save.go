@@ -15,7 +15,7 @@ func Save(tables Tables, file *os.File) (err error) {
 	jsonTables := map[string][]map[string]any{}
 	for tableName, table := range tables {
 		jsonTable := []map[string]any{}
-		for _, row := range table {
+		for _, row := range table.Rows {
 			jsonRow := map[string]any{}
 			for columnName, jsonValue := range row {
 				switch jsonValue.Type {

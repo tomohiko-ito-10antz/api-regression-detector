@@ -27,7 +27,7 @@ func Load(file *os.File) (tables Tables, err error) {
 				}
 				row[column] = jsonValue
 			}
-			table = append(table, row)
+			table.Rows = append(table.Rows, row)
 		}
 		tables[tableName] = table
 	}

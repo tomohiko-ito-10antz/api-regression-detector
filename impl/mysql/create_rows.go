@@ -20,8 +20,8 @@ func CreateRows() insertOperation {
 
 var _ cmd.RowCreator = insertOperation{}
 
-func (o insertOperation) CreateRows(ctx context.Context, tx db.Transaction, table string, rows io.Table) (err error) {
-	columnTypes, err := getColumnTypes(ctx, tx, table)
+func (o insertOperation) CreateRows(ctx context.Context, tx db.Transaction, tableName string, rows []io.Row) (err error) {
+	columnTypes, err := getColumnTypes(ctx, tx, tableName)
 	if err != nil {
 		return err
 	}
@@ -30,7 +30,7 @@ func (o insertOperation) CreateRows(ctx context.Context, tx db.Transaction, tabl
 	}
 	columnNames := columnTypes.ColumnNames()
 
-	stmt := fmt.Sprintf("INSERT INTO %s (%s) VALUES", table, strings.Join(columnNames, ", "))
+	stmt := fmt.Sprintf("INSERT INTO %s (%s) VALUES", tableName, strings.Join(columnNames, ", "))
 	params := []any{}
 	for i, row := range rows {
 		if i > 0 {

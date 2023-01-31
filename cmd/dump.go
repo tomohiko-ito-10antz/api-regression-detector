@@ -28,7 +28,7 @@ func Dump(
 			if err != nil {
 				return err
 			}
-			dbTables[tableName] = rows
+			dbTables[tableName] = db.Table{Name: tableName, Schema: schema, Rows: rows}
 		}
 		tables, err = convertTablesDBToJson(dbTables)
 		if err != nil {
@@ -45,7 +45,7 @@ func Dump(
 func convertTablesDBToJson(dbTables db.Tables) (jsonTables io.Tables, err error) {
 	jsonTables = io.Tables{}
 	for dbTableName, dbTable := range dbTables {
-		jsonRows := io.Table{}
+		jsonTable := io.Table{}
 		for _, dbRow := range dbTable.Rows {
 			jsonRow := io.Row{}
 			for dbColumnName, dbColumnValue := range dbRow {
@@ -54,9 +54,9 @@ func convertTablesDBToJson(dbTables db.Tables) (jsonTables io.Tables, err error)
 					return nil, err
 				}
 			}
-			jsonRows = append(jsonRows, jsonRow)
+			jsonTable.Rows = append(jsonTable.Rows, jsonRow)
 		}
-		jsonTables[dbTableName] = jsonRows
+		jsonTables[dbTableName] = jsonTable
 	}
 	return jsonTables, nil
 }

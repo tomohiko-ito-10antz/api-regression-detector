@@ -15,7 +15,7 @@ func Init(ctx context.Context, database *sql.DB, jsonTables io.Tables, clearer R
 			if err != nil {
 				return err
 			}
-			err = creator.CreateRows(ctx, exec, tableName, table)
+			err = creator.CreateRows(ctx, exec, tableName, table.Rows)
 			if err != nil {
 				return err
 			}

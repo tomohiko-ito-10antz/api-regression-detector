@@ -10,7 +10,7 @@ import (
 )
 
 type RowLister interface {
-	ListRows(ctx context.Context, exec db.Transaction, tableName string, schema db.Schema) (db.Table, error)
+	ListRows(ctx context.Context, exec db.Transaction, tableName string, schema db.Schema) ([]db.Row, error)
 }
 
 type RowClearer interface {
@@ -18,7 +18,7 @@ type RowClearer interface {
 }
 
 type RowCreator interface {
-	CreateRows(ctx context.Context, exec db.Transaction, tableName string, table io.Table) error
+	CreateRows(ctx context.Context, exec db.Transaction, tableName string, rows []io.Row) error
 }
 
 type SchemaGetter interface {
