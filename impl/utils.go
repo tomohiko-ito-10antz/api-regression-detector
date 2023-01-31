@@ -10,7 +10,7 @@ import (
 
 func ExtractColumnValueAsDB(row io.Row, columnName string, dbType db.ColumnType) (any, error) {
 	isNull := false
-	jsonType, err := row.GetColumnType(columnName)
+	jsonType, err := row.GetJsonType(columnName)
 	if err != nil {
 		return nil, err
 	}
