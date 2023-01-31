@@ -152,6 +152,9 @@ func (v ColumnValue) AsBytes() (NullBytes, error) {
 		}
 		return NullBytes{Valid: true, Bytes: *val}, nil
 	case []byte:
+		if val == nil {
+			return NullBytes{}, nil
+		}
 		return NullBytes{Valid: true, Bytes: val}, nil
 	}
 	return NullBytes{}, fmt.Errorf("value not compatible to []byte")
@@ -191,47 +194,4 @@ func (v ColumnValue) AsBool() (NullBool, error) {
 	default:
 		return NullBool{}, fmt.Errorf("value not compatible to time.Time")
 	}
-}
-
-func (v ColumnValue) MustAsString() NullString {
-	val, err := v.AsString()
-	if err != nil {
-		panic(err)
-	}
-	return val
-}
-func (v ColumnValue) MustAsInteger() NullInteger {
-	val, err := v.AsInteger()
-	if err != nil {
-		panic(err)
-	}
-	return val
-}
-func (v ColumnValue) MustAsFloat() NullFloat {
-	val, err := v.AsFloat()
-	if err != nil {
-		panic(err)
-	}
-	return val
-}
-func (v ColumnValue) MustAsBytes() NullBytes {
-	val, err := v.AsBytes()
-	if err != nil {
-		panic(err)
-	}
-	return val
-}
-func (v ColumnValue) MustAsBool() NullBool {
-	val, err := v.AsBool()
-	if err != nil {
-		panic(err)
-	}
-	return val
-}
-func (v ColumnValue) MustAsTime() NullTime {
-	val, err := v.AsTime()
-	if err != nil {
-		panic(err)
-	}
-	return val
 }

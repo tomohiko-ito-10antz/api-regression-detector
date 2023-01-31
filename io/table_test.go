@@ -20,5 +20,4 @@ func TestGetTableNames(t *testing.T) {
 	assert.Equal(t, slices.Contains(a, "z"), true)
 	assert.Equal(t, slices.Contains(a, "b"), true)
 	assert.Equal(t, slices.Contains(a, "y"), true)
-
 }

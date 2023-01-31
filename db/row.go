@@ -20,6 +20,5 @@ func (row Row) GetColumnValue(columnName string) (*ColumnValue, error) {
 	return val, nil
 }
 func (row Row) SetColumnValue(columnName string, val any, typ ColumnType) {
-	row[columnName] = NewColumnValue(val)
-	row[columnName].Type = typ
+	row[columnName] = &ColumnValue{Type: typ, value: val}
 }
