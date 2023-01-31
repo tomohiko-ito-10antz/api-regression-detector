@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -62,6 +63,10 @@ func NewJson(valAny any) (jv *JsonValue, err error) {
 		return NewJsonNull(), nil
 	case string:
 		return NewJsonString(val), nil
+	case int64:
+		return NewJsonNumberInt64(val), nil
+	case float64:
+		return NewJsonNumberFloat64(val), nil
 	case json.Number:
 		return &JsonValue{Type: JsonTypeNumber, numberValue: JsonNumber(val)}, nil
 	case bool:
@@ -131,9 +136,9 @@ func (v *JsonValue) ToBool() (bool, error) {
 	switch v.Type {
 	case JsonTypeString:
 		switch strings.ToLower(string(v.stringValue)) {
-		case "1", "true":
+		case "true":
 			return true, nil
-		case "", "0", "null", "false":
+		case "false":
 			return false, nil
 		}
 		return false, fmt.Errorf("cannot convert string value %v to bool", v.stringValue)
@@ -142,19 +147,13 @@ func (v *JsonValue) ToBool() (bool, error) {
 	case JsonTypeNull:
 		return false, nil
 	case JsonTypeNumber:
-		switch json.Number(v.numberValue).String() {
-		case "1":
-			return true, nil
-		case "0":
-			return false, nil
+		if v, e := json.Number(v.numberValue).Int64(); e == nil {
+			return v != 0, nil
+		}
+		if v, e := json.Number(v.numberValue).Float64(); e == nil {
+			return v != 0.0, nil
 		}
 		return false, fmt.Errorf("cannot convert number value %v to bool", json.Number(v.numberValue).String())
-	case JsonTypeArray:
-		size := len([]*JsonValue(v.arrayValue))
-		if size == 0 {
-			return false, nil
-		}
-		return false, fmt.Errorf("cannot convert array value of length %d to bool", size)
 	default:
 		return false, fmt.Errorf("cannot convert value of %v to bool", v.Type)
 	}
@@ -163,11 +162,17 @@ func (v *JsonValue) ToBool() (bool, error) {
 func (v *JsonValue) ToInt64() (int64, error) {
 	switch v.Type {
 	case JsonTypeNumber:
-		i, err := json.Number(v.numberValue).Int64()
-		if err != nil {
-			return 0, fmt.Errorf("cannot convert number value %v to int64", json.Number(v.numberValue).String())
+		text := string(v.numberValue)
+		// regexr.com/776pj
+		if regexp.MustCompile(`^-?(0|([1-9][0-9]*))(\.0+)?$`).MatchString(text) {
+			text = regexp.MustCompile(`(\.0+)?$`).ReplaceAllString(text, "")
+			i, err := json.Number(text).Int64()
+			if err != nil {
+				return 0, fmt.Errorf("cannot convert number value %v to int64", v.numberValue)
+			}
+			return i, nil
 		}
-		return i, nil
+		return 0, fmt.Errorf("cannot convert number value %v to int64", v.numberValue)
 	case JsonTypeBoolean:
 		if v.booleanValue {
 			return 1, nil
@@ -182,12 +187,6 @@ func (v *JsonValue) ToInt64() (int64, error) {
 			return 0, fmt.Errorf("cannot convert string value %v to int64", v.stringValue)
 		}
 		return i, nil
-	case JsonTypeArray:
-		size := len([]*JsonValue(v.arrayValue))
-		if size == 0 {
-			return 0, nil
-		}
-		return 0, fmt.Errorf("cannot convert array value of length %d to int64", size)
 	default:
 		return 0, fmt.Errorf("cannot convert value of %v to int64", v.Type)
 	}
@@ -215,93 +214,81 @@ func (v *JsonValue) ToFloat64() (float64, error) {
 			return 0, fmt.Errorf("cannot convert string value %v to float64", v.stringValue)
 		}
 		return f, nil
-	case JsonTypeArray:
-		size := len([]*JsonValue(v.arrayValue))
-		if size == 0 {
-			return 0, nil
-		}
-		return 0, fmt.Errorf("cannot convert array value of length %d to float64", size)
 	default:
 		return 0, fmt.Errorf("cannot convert value of %v to float64", v.Type)
 	}
 }
-
-func (v *JsonValue) ObjectKeys() (keys []string, err error) {
+func (v *JsonValue) AsObject() (o JsonObject, err error) {
 	if v.Type != JsonTypeObject {
-		return nil, fmt.Errorf("ObjectKeys must be called with JsonValue of type JsonTypeObject")
+		return nil, fmt.Errorf("AsObject must be called with JsonValue of type JsonTypeObject")
 	}
-	for k := range v.objectValue {
+	return v.objectValue, nil
+}
+
+func (v *JsonValue) AsArray() (a JsonArray, err error) {
+	if v.Type != JsonTypeArray {
+		return nil, fmt.Errorf("AsArray must be called with JsonValue of type JsonTypeArray")
+	}
+	return v.arrayValue, nil
+}
+
+func (o JsonObject) Keys() (keys []string) {
+	keys = []string{}
+	for k := range o {
 		keys = append(keys, k)
 	}
-	return keys, nil
+	return keys
 }
-func (v *JsonValue) ObjectGet(key string) (*JsonValue, error) {
-	if v.Type != JsonTypeObject {
-		return nil, fmt.Errorf("ObjectGet must be called with JsonValue of type JsonTypeObject")
-	}
-	val, ok := v.objectValue[key]
+func (o JsonObject) Get(key string) (*JsonValue, error) {
+	val, ok := o[key]
 	if !ok {
 		return nil, fmt.Errorf("value not found for key %s", key)
 	}
 	return val, nil
 }
 
-func (v *JsonValue) ObjectSet(key string, val *JsonValue) (err error) {
-	if v.Type != JsonTypeObject {
-		return fmt.Errorf("ObjectSet must be called with JsonValue of type JsonTypeObject")
+func (o JsonObject) Set(key string, val *JsonValue) JsonObject {
+	if val == nil {
+		val = NewJsonNull()
+	}
+	o[key] = val
+	return o
+}
+
+func (o JsonObject) AsJsonValue() *JsonValue {
+	return &JsonValue{Type: JsonTypeObject, objectValue: o}
+}
+
+func (a JsonArray) Len() (size int) {
+	return len(a)
+}
+
+func (a JsonArray) Get(i int) (val *JsonValue, err error) {
+	if i >= len(a) {
+		return nil, fmt.Errorf("value not found for index %v (len %v)", i, len(a))
+	}
+	return a[i], nil
+}
+
+func (a JsonArray) Set(i int, val *JsonValue) (err error) {
+	if i >= len(a) {
+		return fmt.Errorf("value not found for index %v (len %v)", i, len(a))
 	}
 	if val == nil {
-		val, err = NewJson(nil)
-		if err != nil {
-			return err
-		}
+		val = NewJsonNull()
 	}
-	m := map[string]*JsonValue(v.objectValue)
-	m[key] = val
-	v.objectValue = m
+	a[i] = val
 	return nil
 }
 
-func (v *JsonValue) ArrayLen() (size int, err error) {
-	if v.Type != JsonTypeArray {
-		return 0, fmt.Errorf("ArrayLen must be called with JsonValue with type JsonTypeArray")
-	}
-	return len([]*JsonValue(v.arrayValue)), nil
-}
-
-func (v *JsonValue) ArrayGet(i int) (val *JsonValue, err error) {
-	if v.Type != JsonTypeArray {
-		return nil, fmt.Errorf("ArrayGet must be called with JsonValue with type JsonTypeArray")
-	}
-	return v.arrayValue[i], nil
-}
-
-func (v *JsonValue) ArraySet(i int, val *JsonValue) (err error) {
-	if v.Type != JsonTypeArray {
-		return fmt.Errorf("ArraySet must be called with JsonValue with type JsonTypeArray")
-	}
+func (a JsonArray) Append(val *JsonValue) JsonArray {
 	if val == nil {
-		val, err = NewJson(nil)
-		if err != nil {
-			return err
-		}
+		val = NewJsonNull()
 	}
-	v.arrayValue[i] = val
-	return nil
-}
-
-func (v *JsonValue) ArrayAppend(val *JsonValue) (err error) {
-	if v.Type != JsonTypeArray {
-		return fmt.Errorf("ArrayAppend must be called with JsonValue with type JsonTypeArray")
-	}
-	if val == nil {
-		val, err = NewJson(nil)
-		if err != nil {
-			return err
-		}
-	}
-	a := []*JsonValue(v.arrayValue)
 	a = append(a, val)
-	v.arrayValue = a
-	return nil
+	return a
+}
+
+func (o JsonArray) AsJsonValue() *JsonValue {
+	return &JsonValue{Type: JsonTypeArray, arrayValue: o}
 }

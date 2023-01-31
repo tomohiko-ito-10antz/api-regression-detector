@@ -16,8 +16,7 @@ RUN go get -u github.com/nsf/jsondiff && \
     go get -u github.com/googleapis/go-sql-spanner && \
     go get -u github.com/docopt/docopt-go &&\
     go get -u go.uber.org/multierr && \
-    go get -u github.com/cloudspannerecosystem/spanner-cli
-
-
+    go get -u github.com/cloudspannerecosystem/spanner-cli && \
+    go get -u golang.org/x/exp/slices
 
 WORKDIR /work

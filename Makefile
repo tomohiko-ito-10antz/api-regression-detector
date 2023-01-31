@@ -18,3 +18,8 @@ init-postgres:
 .PHONY: init-sqlite
 init-sqlite:
 	sqlite3 examples/sqlite/sqlite.db <examples/sqlite/create.sql
+
+
+.PHONY: test
+test:
+	go test -v ./...
