@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/Jumpaku/api-regression-detector/cmd"
@@ -38,9 +39,9 @@ func getColumnTypes(ctx context.Context, tx db.Transaction, table string) (colum
 	for _, row := range rows {
 		col := ""
 		{
-			columnName, err := row.GetColumnValue("column_name")
-			if err != nil {
-				return nil, err
+			columnName, ok := row.GetColumnValue("column_name")
+			if !ok {
+				return nil, fmt.Errorf("column %s not found", "column_name")
 			}
 			columnNameBytes, err := columnName.AsBytes()
 			if err != nil {
@@ -50,9 +51,9 @@ func getColumnTypes(ctx context.Context, tx db.Transaction, table string) (colum
 		}
 		typ := ""
 		{
-			columnType, err := row.GetColumnValue("column_type")
-			if err != nil {
-				return nil, err
+			columnType, ok := row.GetColumnValue("column_type")
+			if !ok {
+				return nil, fmt.Errorf("column %s not found", "column_type")
 			}
 			columnTypeBytes, err := columnType.AsBytes()
 			if err != nil {
@@ -104,9 +105,9 @@ ORDER BY
 		return nil, err
 	}
 	for _, row := range table {
-		columnName, err := row.GetColumnValue("column_name")
-		if err != nil {
-			return nil, err
+		columnName, ok := row.GetColumnValue("column_name")
+		if !ok {
+			return nil, fmt.Errorf("column %s not found", "column_name")
 		}
 		columnNameBytes, err := columnName.AsBytes()
 		if err != nil {

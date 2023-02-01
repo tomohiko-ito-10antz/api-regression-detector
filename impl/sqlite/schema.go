@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/Jumpaku/api-regression-detector/cmd"
@@ -38,9 +39,9 @@ func getColumnTypes(ctx context.Context, tx db.Transaction, table string) (colum
 	for _, row := range rows {
 		col := ""
 		{
-			columnName, err := row.GetColumnValue("name")
-			if err != nil {
-				return nil, err
+			columnName, ok := row.GetColumnValue("name")
+			if !ok {
+				return nil, fmt.Errorf("column %s not found", "name")
 			}
 			columnNameString, err := columnName.AsString()
 			if err != nil {
@@ -50,9 +51,9 @@ func getColumnTypes(ctx context.Context, tx db.Transaction, table string) (colum
 		}
 		typ := ""
 		{
-			columnType, err := row.GetColumnValue("type")
-			if err != nil {
-				return nil, err
+			columnType, ok := row.GetColumnValue("type")
+			if !ok {
+				return nil, fmt.Errorf("column %s not found", "type")
 			}
 			columnTypeString, err := columnType.AsString()
 			if err != nil {
@@ -90,9 +91,9 @@ func getPrimaryKeys(ctx context.Context, tx db.Transaction, table string) (prima
 		return nil, err
 	}
 	for _, row := range rows {
-		columnName, err := row.GetColumnValue("name")
-		if err != nil {
-			return nil, err
+		columnName, ok := row.GetColumnValue("name")
+		if !ok {
+			return nil, fmt.Errorf("column %s not found", "name")
 		}
 		columnNameString, err := columnName.AsString()
 		if err != nil {

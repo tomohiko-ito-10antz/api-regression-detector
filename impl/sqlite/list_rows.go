@@ -26,10 +26,10 @@ func (o selectOperation) ListRows(ctx context.Context, tx db.Transaction, tableN
 	out := db.Table{}
 	for _, row := range rows {
 		outRow := db.Row{}
-		for _, columnName := range row.GetColumnNames() {
-			col, err := row.GetColumnValue(columnName)
-			if err != nil {
-				return nil, err
+		for _, columnName := range schema.ColumnTypes.GetColumnNames() {
+			col, ok := row.GetColumnValue(columnName)
+			if !ok {
+				return nil, fmt.Errorf("column %s not found", columnName)
 			}
 			typ, exists := schema.ColumnTypes[columnName]
 			if !exists {

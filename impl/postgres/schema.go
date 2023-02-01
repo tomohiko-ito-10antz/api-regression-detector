@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/Jumpaku/api-regression-detector/cmd"
@@ -38,9 +39,9 @@ func getColumnTypes(ctx context.Context, tx db.Transaction, table string) (colum
 	for _, row := range rows {
 		col := ""
 		{
-			columnName, err := row.GetColumnValue("column_name")
-			if err != nil {
-				return nil, err
+			columnName, ok := row.GetColumnValue("column_name")
+			if !ok {
+				return nil, fmt.Errorf("column %s not found", "column_name")
 			}
 			columnNameString, err := columnName.AsString()
 			if err != nil {
@@ -50,9 +51,9 @@ func getColumnTypes(ctx context.Context, tx db.Transaction, table string) (colum
 		}
 		typ := ""
 		{
-			columnType, err := row.GetColumnValue("data_type")
-			if err != nil {
-				return nil, err
+			columnType, ok := row.GetColumnValue("data_type")
+			if !ok {
+				return nil, fmt.Errorf("column %s not found", "data_type")
 			}
 			columnTypeString, err := columnType.AsString()
 			if err != nil {
@@ -104,9 +105,9 @@ ORDER BY
 		return nil, err
 	}
 	for _, row := range rows {
-		columnName, err := row.GetColumnValue("column_name")
-		if err != nil {
-			return nil, err
+		columnName, ok := row.GetColumnValue("column_name")
+		if !ok {
+			return nil, fmt.Errorf("column %s not found", "column_name")
 		}
 		col, _ := columnName.AsString()
 		primaryKeys = append(primaryKeys, col.String)

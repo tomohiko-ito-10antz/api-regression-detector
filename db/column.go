@@ -10,7 +10,7 @@ import (
 type ColumnType string
 type ColumnTypes map[string]ColumnType
 
-func (cts ColumnTypes) ColumnNames() []string {
+func (cts ColumnTypes) GetColumnNames() []string {
 	columnNames := make([]string, 0, len(cts))
 	for columnName := range cts {
 		columnNames = append(columnNames, columnName)
@@ -42,7 +42,7 @@ type ColumnValue struct {
 	value any
 }
 
-func NewColumnValue(val any) *ColumnValue {
+func UnknownTypeColumnValue(val any) *ColumnValue {
 	return &ColumnValue{value: val, Type: ColumnTypeUnknown}
 }
 

@@ -27,7 +27,7 @@ func (o insertOperation) CreateRows(ctx context.Context, tx db.Transaction, tabl
 	if len(columnTypes) == 0 {
 		return nil
 	}
-	columnNames := columnTypes.ColumnNames()
+	columnNames := columnTypes.GetColumnNames()
 
 	stmt := fmt.Sprintf("INSERT INTO %s (%s) VALUES", tableName, strings.Join(columnNames, ", "))
 	params := []any{}

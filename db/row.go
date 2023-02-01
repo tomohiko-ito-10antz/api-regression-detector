@@ -1,23 +1,10 @@
 package db
 
-import (
-	"fmt"
-)
-
 type Row map[string]*ColumnValue
 
-func (row Row) GetColumnNames() (columns []string) {
-	for column := range row {
-		columns = append(columns, column)
-	}
-	return columns
-}
-func (row Row) GetColumnValue(columnName string) (*ColumnValue, error) {
+func (row Row) GetColumnValue(columnName string) (*ColumnValue, bool) {
 	val, exists := row[columnName]
-	if !exists {
-		return nil, fmt.Errorf("column %s not found", columnName)
-	}
-	return val, nil
+	return val, exists
 }
 func (row Row) SetColumnValue(columnName string, val any, typ ColumnType) {
 	row[columnName] = &ColumnValue{Type: typ, value: val}

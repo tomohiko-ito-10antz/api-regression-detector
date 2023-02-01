@@ -79,7 +79,7 @@ func (e *transaction) Read(ctx context.Context, stmt string, params []any) (rows
 		}
 		row := Row{}
 		for i, column := range columns {
-			row[column] = NewColumnValue(values[i])
+			row[column] = UnknownTypeColumnValue(values[i])
 		}
 		rows = append(rows, row)
 	}
