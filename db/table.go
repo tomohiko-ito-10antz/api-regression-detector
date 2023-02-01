@@ -12,3 +12,10 @@ type Table struct {
 	Schema Schema
 	Rows   []Row
 }
+
+func (schema Schema) GetColumnNames() (columnNames []string) {
+	for columnName := range schema.ColumnTypes {
+		columnNames = append(columnNames, columnName)
+	}
+	return columnNames
+}
