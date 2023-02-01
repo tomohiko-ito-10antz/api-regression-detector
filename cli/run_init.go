@@ -10,7 +10,11 @@ import (
 )
 
 func RunInit(databaseDriver string, connectionString string) (code int, err error) {
-	driver, err := Connect(databaseDriver, connectionString)
+	driver, err := NewDriver(databaseDriver)
+	if err != nil {
+		return 1, err
+	}
+	err = driver.Open(connectionString)
 	if err != nil {
 		return 1, err
 	}

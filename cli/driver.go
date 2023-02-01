@@ -10,11 +10,12 @@ import (
 	"github.com/Jumpaku/api-regression-detector/lib/impl/sqlite"
 )
 
-func Connect(name string, connectionString string) (*cmd.Driver, error) {
+func NewDriver(name string) (*cmd.Driver, error) {
 	var driver *cmd.Driver
 	switch name {
 	case "mysql":
 		driver = &cmd.Driver{
+			Name:         name,
 			ListRows:     mysql.ListRows(),
 			ClearRows:    mysql.ClearRows(),
 			CreateRows:   mysql.CreateRows(),
@@ -22,6 +23,7 @@ func Connect(name string, connectionString string) (*cmd.Driver, error) {
 		}
 	case "postgres":
 		driver = &cmd.Driver{
+			Name:         name,
 			ListRows:     postgres.ListRows(),
 			ClearRows:    postgres.ClearRows(),
 			CreateRows:   postgres.CreateRows(),
@@ -29,6 +31,7 @@ func Connect(name string, connectionString string) (*cmd.Driver, error) {
 		}
 	case "sqlite3":
 		driver = &cmd.Driver{
+			Name:         name,
 			ListRows:     sqlite.ListRows(),
 			ClearRows:    sqlite.ClearRows(),
 			CreateRows:   sqlite.Insert(),
@@ -36,6 +39,7 @@ func Connect(name string, connectionString string) (*cmd.Driver, error) {
 		}
 	case "spanner":
 		driver = &cmd.Driver{
+			Name:         name,
 			ListRows:     spanner.ListRows(),
 			ClearRows:    spanner.ClearRows(),
 			CreateRows:   spanner.CreateRows(),
@@ -43,10 +47,6 @@ func Connect(name string, connectionString string) (*cmd.Driver, error) {
 		}
 	default:
 		return nil, fmt.Errorf("invalid driver name")
-	}
-	err := driver.Open(name, connectionString)
-	if err != nil {
-		return nil, err
 	}
 	return driver, nil
 }

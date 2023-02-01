@@ -38,8 +38,8 @@ func (d *Driver) Close() error {
 	return d.DB.Close()
 }
 
-func (d *Driver) Open(name string, connectionString string) (err error) {
-	switch name {
+func (d *Driver) Open(connectionString string) (err error) {
+	switch d.Name {
 	default:
 		return fmt.Errorf("invalid driver name")
 	case "mysql":
@@ -47,10 +47,9 @@ func (d *Driver) Open(name string, connectionString string) (err error) {
 	case "sqlite3":
 	case "spanner":
 	}
-	d.DB, err = sql.Open(name, connectionString)
+	d.DB, err = sql.Open(d.Name, connectionString)
 	if err != nil {
 		return err
 	}
-	d.Name = name
 	return nil
 }
