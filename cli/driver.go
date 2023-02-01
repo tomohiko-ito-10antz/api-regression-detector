@@ -1,0 +1,52 @@
+package cli
+
+import (
+	"fmt"
+
+	"github.com/Jumpaku/api-regression-detector/lib/cmd"
+	"github.com/Jumpaku/api-regression-detector/lib/impl/mysql"
+	"github.com/Jumpaku/api-regression-detector/lib/impl/postgres"
+	"github.com/Jumpaku/api-regression-detector/lib/impl/spanner"
+	"github.com/Jumpaku/api-regression-detector/lib/impl/sqlite"
+)
+
+func Connect(name string, connectionString string) (*cmd.Driver, error) {
+	var driver *cmd.Driver
+	switch name {
+	case "mysql":
+		driver = &cmd.Driver{
+			ListRows:     mysql.ListRows(),
+			ClearRows:    mysql.ClearRows(),
+			CreateRows:   mysql.CreateRows(),
+			SchemaGetter: mysql.GetSchema(),
+		}
+	case "postgres":
+		driver = &cmd.Driver{
+			ListRows:     postgres.ListRows(),
+			ClearRows:    postgres.ClearRows(),
+			CreateRows:   postgres.CreateRows(),
+			SchemaGetter: postgres.GetSchema(),
+		}
+	case "sqlite3":
+		driver = &cmd.Driver{
+			ListRows:     sqlite.ListRows(),
+			ClearRows:    sqlite.ClearRows(),
+			CreateRows:   sqlite.Insert(),
+			SchemaGetter: sqlite.GetSchema(),
+		}
+	case "spanner":
+		driver = &cmd.Driver{
+			ListRows:     spanner.ListRows(),
+			ClearRows:    spanner.ClearRows(),
+			CreateRows:   spanner.CreateRows(),
+			SchemaGetter: spanner.GetSchema(),
+		}
+	default:
+		return nil, fmt.Errorf("invalid driver name")
+	}
+	err := driver.Open(name, connectionString)
+	if err != nil {
+		return nil, err
+	}
+	return driver, nil
+}
