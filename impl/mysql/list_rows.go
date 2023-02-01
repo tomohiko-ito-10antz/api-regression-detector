@@ -26,7 +26,7 @@ func (o selectOperation) ListRows(ctx context.Context, tx db.Transaction, tableN
 	out := db.Table{}
 	for _, row := range rows {
 		outRow := db.Row{}
-		for _, columnName := range schema.ColumnTypes.GetColumnNames() {
+		for _, columnName := range schema.GetColumnNames() {
 			col, ok := row.GetColumnValue(columnName)
 			if !ok {
 				return nil, fmt.Errorf("column %s not found", columnName)

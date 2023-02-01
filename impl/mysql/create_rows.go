@@ -20,15 +20,12 @@ func CreateRows() insertOperation {
 
 var _ cmd.RowCreator = insertOperation{}
 
-func (o insertOperation) CreateRows(ctx context.Context, tx db.Transaction, tableName string, rows []io.Row) (err error) {
-	columnTypes, err := getColumnTypes(ctx, tx, tableName)
-	if err != nil {
-		return err
-	}
+func (o insertOperation) CreateRows(ctx context.Context, tx db.Transaction, tableName string, schema db.Schema, rows []io.Row) (err error) {
+	columnTypes := schema.ColumnTypes
 	if len(columnTypes) == 0 {
 		return nil
 	}
-	columnNames := columnTypes.GetColumnNames()
+	columnNames := schema.GetColumnNames()
 
 	stmt := fmt.Sprintf("INSERT INTO %s (%s) VALUES", tableName, strings.Join(columnNames, ", "))
 	params := []any{}

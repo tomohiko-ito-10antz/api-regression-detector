@@ -14,8 +14,5 @@ type Table struct {
 }
 
 func (schema Schema) GetColumnNames() (columnNames []string) {
-	for columnName := range schema.ColumnTypes {
-		columnNames = append(columnNames, columnName)
-	}
-	return columnNames
+	return schema.ColumnTypes.GetColumnNames()
 }

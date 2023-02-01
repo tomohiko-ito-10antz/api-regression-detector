@@ -18,7 +18,7 @@ type RowClearer interface {
 }
 
 type RowCreator interface {
-	CreateRows(ctx context.Context, exec db.Transaction, tableName string, rows []io.Row) error
+	CreateRows(ctx context.Context, exec db.Transaction, tableName string, schema db.Schema, rows []io.Row) error
 }
 
 type SchemaGetter interface {

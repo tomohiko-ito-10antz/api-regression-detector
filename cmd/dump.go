@@ -13,8 +13,8 @@ func Dump(
 	ctx context.Context,
 	database *sql.DB,
 	tableNames []string,
-	rowLister RowLister,
 	schemaGetter SchemaGetter,
+	rowLister RowLister,
 ) (tables io.Tables, err error) {
 	tables = io.Tables{}
 	err = db.RunTransaction(ctx, database, func(ctx context.Context, tx db.Transaction) error {

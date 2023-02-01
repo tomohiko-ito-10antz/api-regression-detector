@@ -10,9 +10,8 @@ import (
 type ColumnType string
 type ColumnTypes map[string]ColumnType
 
-func (cts ColumnTypes) GetColumnNames() []string {
-	columnNames := make([]string, 0, len(cts))
-	for columnName := range cts {
+func (columnTypes ColumnTypes) GetColumnNames() (columnNames []string) {
+	for columnName := range columnTypes {
 		columnNames = append(columnNames, columnName)
 	}
 	return columnNames

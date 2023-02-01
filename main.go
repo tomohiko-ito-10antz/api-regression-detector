@@ -168,7 +168,7 @@ func RunInit(databaseDriver string, connectionString string) (code int, err erro
 	if err != nil {
 		return 1, err
 	}
-	err = cmd.Init(context.Background(), driver.DB, tables, driver.ClearRows, driver.CreateRows)
+	err = cmd.Init(context.Background(), driver.DB, tables, driver.SchemaGetter, driver.ClearRows, driver.CreateRows)
 	if err != nil {
 		return 1, err
 	}
@@ -194,7 +194,7 @@ func RunDump(databaseDriver string, connectionString string) (code int, err erro
 	for tableName := range tables {
 		tableNames = append(tableNames, tableName)
 	}
-	dump, err := cmd.Dump(context.Background(), driver.DB, tableNames, driver.ListRows, driver.SchemaGetter)
+	dump, err := cmd.Dump(context.Background(), driver.DB, tableNames, driver.SchemaGetter, driver.ListRows)
 	if err != nil {
 		return 1, err
 	}
