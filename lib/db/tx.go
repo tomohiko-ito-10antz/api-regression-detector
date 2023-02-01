@@ -10,7 +10,7 @@ import (
 	"go.uber.org/multierr"
 )
 
-type Transaction interface {
+type Tx interface {
 	Write(ctx context.Context, stmt string, params []any) (err error)
 	Read(ctx context.Context, stmt string, params []any) (rows []Row, err error)
 }
@@ -31,7 +31,7 @@ func commit(ctx context.Context, tx *sql.Tx) (err error) {
 	return nil
 }
 
-func RunTransaction(ctx context.Context, db *sql.DB, handler func(ctx context.Context, tx Transaction) error) error {
+func RunTransaction(ctx context.Context, db *sql.DB, handler func(ctx context.Context, tx Tx) error) error {
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return err

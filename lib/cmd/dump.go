@@ -6,19 +6,20 @@ import (
 	"time"
 
 	"github.com/Jumpaku/api-regression-detector/lib/db"
+	lib_db "github.com/Jumpaku/api-regression-detector/lib/db"
 	"github.com/Jumpaku/api-regression-detector/lib/io"
 )
 
 func Dump(
 	ctx context.Context,
-	database *sql.DB,
+	db *sql.DB,
 	tableNames []string,
 	schemaGetter SchemaGetter,
 	rowLister RowLister,
 ) (tables io.Tables, err error) {
 	tables = io.Tables{}
-	err = db.RunTransaction(ctx, database, func(ctx context.Context, tx db.Transaction) error {
-		dbTables := db.Tables{}
+	err = lib_db.RunTransaction(ctx, db, func(ctx context.Context, tx lib_db.Tx) error {
+		dbTables := lib_db.Tables{}
 		for _, tableName := range tableNames {
 			schema, err := schemaGetter.GetSchema(ctx, tx, tableName)
 			if err != nil {
@@ -28,7 +29,7 @@ func Dump(
 			if err != nil {
 				return err
 			}
-			dbTables[tableName] = db.Table{Name: tableName, Schema: schema, Rows: rows}
+			dbTables[tableName] = lib_db.Table{Name: tableName, Schema: schema, Rows: rows}
 		}
 		tables, err = convertTablesDBToJson(dbTables)
 		if err != nil {

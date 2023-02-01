@@ -20,7 +20,7 @@ func Insert() insertOperation {
 
 var _ cmd.RowCreator = insertOperation{}
 
-func (o insertOperation) CreateRows(ctx context.Context, tx db.Transaction, tableName string, schema db.Schema, rows []io.Row) (err error) {
+func (o insertOperation) CreateRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema, rows []io.Row) (err error) {
 	columnTypes := schema.ColumnTypes
 	if len(columnTypes) == 0 {
 		return nil

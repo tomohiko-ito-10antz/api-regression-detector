@@ -15,7 +15,7 @@ func GetSchema() schemaGetter { return schemaGetter{} }
 
 var _ cmd.SchemaGetter = schemaGetter{}
 
-func (o schemaGetter) GetSchema(ctx context.Context, tx db.Transaction, tableName string) (schema db.Schema, err error) {
+func (o schemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string) (schema db.Schema, err error) {
 	columnTypes, err := getColumnTypes(ctx, tx, tableName)
 	if err != nil {
 		return db.Schema{}, err
@@ -30,7 +30,7 @@ func (o schemaGetter) GetSchema(ctx context.Context, tx db.Transaction, tableNam
 	}, nil
 }
 
-func getColumnTypes(ctx context.Context, tx db.Transaction, table string) (columnTypes db.ColumnTypes, err error) {
+func getColumnTypes(ctx context.Context, tx db.Tx, table string) (columnTypes db.ColumnTypes, err error) {
 	rows, err := tx.Read(ctx, `SELECT name, type FROM pragma_table_info(?)`, []any{table})
 	if err != nil {
 		return nil, err
@@ -85,7 +85,7 @@ func getColumnTypes(ctx context.Context, tx db.Transaction, table string) (colum
 	return columnTypes, nil
 }
 
-func getPrimaryKeys(ctx context.Context, tx db.Transaction, table string) (primaryKeys []string, err error) {
+func getPrimaryKeys(ctx context.Context, tx db.Tx, table string) (primaryKeys []string, err error) {
 	rows, err := tx.Read(ctx, `SELECT name FROM pragma_table_info(?) WHERE pk > 0 ORDER BY pk`, []any{table})
 	if err != nil {
 		return nil, err

@@ -10,19 +10,19 @@ import (
 )
 
 type RowLister interface {
-	ListRows(ctx context.Context, exec db.Transaction, tableName string, schema db.Schema) ([]db.Row, error)
+	ListRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema) ([]db.Row, error)
 }
 
 type RowClearer interface {
-	ClearRows(ctx context.Context, exec db.Transaction, tableName string) error
+	ClearRows(ctx context.Context, tx db.Tx, tableName string) error
 }
 
 type RowCreator interface {
-	CreateRows(ctx context.Context, exec db.Transaction, tableName string, schema db.Schema, rows []io.Row) error
+	CreateRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema, rows []io.Row) error
 }
 
 type SchemaGetter interface {
-	GetSchema(ctx context.Context, exec db.Transaction, tableName string) (db.Schema, error)
+	GetSchema(ctx context.Context, tx db.Tx, tableName string) (db.Schema, error)
 }
 
 type Driver struct {

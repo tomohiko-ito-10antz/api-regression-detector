@@ -18,7 +18,7 @@ func ListRows() selectOperation {
 
 var _ cmd.RowLister = selectOperation{}
 
-func (o selectOperation) ListRows(ctx context.Context, tx db.Transaction, tableName string, schema db.Schema) (rows []db.Row, err error) {
+func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema) (rows []db.Row, err error) {
 	rows, err = tx.Read(ctx, fmt.Sprintf(`SELECT * FROM %s ORDER BY %s`, tableName, strings.Join(schema.PrimaryKeys, ", ")), nil)
 	if err != nil {
 		return nil, err
