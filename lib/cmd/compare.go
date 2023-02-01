@@ -10,10 +10,10 @@ import (
 type CompareResult string
 
 const (
-	CompareResult_SupersetMatch = "SupersetMatch"
-	CompareResult_FullMatch     = "FullMatch"
-	CompareResult_NoMatch       = "NoMatch"
-	CompareResult_Error         = "Error"
+	CompareResult_SupersetMatch CompareResult = "SupersetMatch"
+	CompareResult_FullMatch     CompareResult = "FullMatch"
+	CompareResult_NoMatch       CompareResult = "NoMatch"
+	CompareResult_Error         CompareResult = "Error"
 )
 
 func Compare(expectedJson io.Reader, actualJson io.Reader) (CompareResult, string, error) {
