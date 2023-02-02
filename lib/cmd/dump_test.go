@@ -4,19 +4,54 @@ import (
 	"context"
 	"testing"
 
+	"github.com/Jumpaku/api-regression-detector/lib/cmd/mock"
 	"github.com/Jumpaku/api-regression-detector/test/assert"
 )
 
 func TestDump_OK(t *testing.T) {
-	v, err := Dump(context.Background(), nil,
+	v, err := Dump(context.Background(),
+		mock.MockDB{},
 		[]string{"mock_table"},
-		MockDriver.SchemaGetter,
-		MockDriver.ListRows)
+		mock.MockSchemaGetter{},
+		mock.MockRowLister{})
 	assert.Equal(t, err, nil)
 	assert.Equal(t, len(v), 1)
 	assert.Equal(t, len(v["mock_table"].Rows), 3)
 }
-func TestDump_NG(t *testing.T) {}
+func TestDump_NG_Table(t *testing.T) {
+	_, err := Dump(context.Background(),
+		mock.MockDB{},
+		[]string{"invalid_table"},
+		mock.MockSchemaGetter{},
+		mock.MockRowLister{})
+	assert.NotEqual(t, err, nil)
+}
+
+func TestDump_NG_DB(t *testing.T) {
+	_, err := Dump(context.Background(),
+		mock.MockDBErr{},
+		[]string{"mock_table"},
+		mock.MockSchemaGetter{},
+		mock.MockRowLister{})
+	assert.NotEqual(t, err, nil)
+}
+func TestDump_NG_SchemaGetter(t *testing.T) {
+	_, err := Dump(context.Background(),
+		mock.MockDB{},
+		[]string{"mock_table"},
+		mock.MockSchemaGetterErr{},
+		mock.MockRowLister{})
+	assert.NotEqual(t, err, nil)
+}
+
+func TestDump_NG_RowLister(t *testing.T) {
+	_, err := Dump(context.Background(),
+		mock.MockDB{},
+		[]string{"mock_table"},
+		mock.MockSchemaGetter{},
+		mock.MockRowListerErr{})
+	assert.NotEqual(t, err, nil)
+}
 
 /*
 ) (tables io.Tables, err error) {

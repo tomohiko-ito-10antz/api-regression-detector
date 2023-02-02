@@ -19,19 +19,7 @@ type transaction struct {
 	tx *sql.Tx
 }
 
-func rollback(ctx context.Context, tx *sql.Tx, err error) error {
-	return multierr.Combine(err, tx.Rollback())
-}
-
-func commit(ctx context.Context, tx *sql.Tx) (err error) {
-	err = tx.Commit()
-	if err != nil {
-		return rollback(ctx, tx, err)
-	}
-	return nil
-}
-
-func RunTransaction(ctx context.Context, db *sql.DB, handler func(ctx context.Context, tx Tx) error) error {
+func runTransaction(ctx context.Context, db *sql.DB, handler func(ctx context.Context, tx Tx) error) error {
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -84,6 +72,18 @@ func (e *transaction) Read(ctx context.Context, stmt string, params []any) (rows
 		rows = append(rows, row)
 	}
 	return rows, nil
+}
+
+func rollback(ctx context.Context, tx *sql.Tx, err error) error {
+	return multierr.Combine(err, tx.Rollback())
+}
+
+func commit(ctx context.Context, tx *sql.Tx) (err error) {
+	err = tx.Commit()
+	if err != nil {
+		return rollback(ctx, tx, err)
+	}
+	return nil
 }
 
 func paramsToStrings(params []any) (strArr []string) {

@@ -22,7 +22,7 @@ type database struct {
 }
 
 func (d *database) RunTransaction(ctx context.Context, handler func(ctx context.Context, tx Tx) error) error {
-	return RunTransaction(ctx, d.db, handler)
+	return runTransaction(ctx, d.db, handler)
 }
 func (d *database) Open() (err error) {
 	if d == nil || d.db == nil {
