@@ -42,7 +42,10 @@ type ColumnValue struct {
 }
 
 func UnknownTypeColumnValue(val any) *ColumnValue {
-	return &ColumnValue{value: val, Type: ColumnTypeUnknown}
+	return NewColumnValue(val, ColumnTypeUnknown)
+}
+func NewColumnValue(val any, typ ColumnType) *ColumnValue {
+	return &ColumnValue{value: val, Type: typ}
 }
 
 func (v ColumnValue) AsString() (NullString, error) {

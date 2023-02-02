@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/Jumpaku/api-regression-detector/lib/db"
 	lib_db "github.com/Jumpaku/api-regression-detector/lib/db"
 	"github.com/Jumpaku/api-regression-detector/lib/io"
 )
@@ -43,7 +42,7 @@ func Dump(
 	return tables, nil
 }
 
-func convertTablesDBToJson(dbTables db.Tables) (jsonTables io.Tables, err error) {
+func convertTablesDBToJson(dbTables lib_db.Tables) (jsonTables io.Tables, err error) {
 	jsonTables = io.Tables{}
 	for dbTableName, dbTable := range dbTables {
 		jsonTable := io.Table{}
@@ -62,9 +61,9 @@ func convertTablesDBToJson(dbTables db.Tables) (jsonTables io.Tables, err error)
 	return jsonTables, nil
 }
 
-func convertDBColumnValueToJsonValue(dbVal *db.ColumnValue) (*io.JsonValue, error) {
+func convertDBColumnValueToJsonValue(dbVal *lib_db.ColumnValue) (*io.JsonValue, error) {
 	switch dbVal.Type {
-	case db.ColumnTypeBoolean:
+	case lib_db.ColumnTypeBoolean:
 		v, err := dbVal.AsBool()
 		if err != nil {
 			return nil, err
@@ -73,7 +72,7 @@ func convertDBColumnValueToJsonValue(dbVal *db.ColumnValue) (*io.JsonValue, erro
 			return io.NewJsonNull(), nil
 		}
 		return io.NewJsonBoolean(v.Bool), nil
-	case db.ColumnTypeInteger:
+	case lib_db.ColumnTypeInteger:
 		v, err := dbVal.AsInteger()
 		if err != nil {
 			return nil, err
@@ -82,7 +81,7 @@ func convertDBColumnValueToJsonValue(dbVal *db.ColumnValue) (*io.JsonValue, erro
 			return io.NewJsonNull(), nil
 		}
 		return io.NewJsonNumberInt64(v.Int64), nil
-	case db.ColumnTypeFloat:
+	case lib_db.ColumnTypeFloat:
 		v, err := dbVal.AsFloat()
 		if err != nil {
 			return nil, err
@@ -91,7 +90,7 @@ func convertDBColumnValueToJsonValue(dbVal *db.ColumnValue) (*io.JsonValue, erro
 			return io.NewJsonNull(), nil
 		}
 		return io.NewJsonNumberFloat64(v.Float64), nil
-	case db.ColumnTypeString:
+	case lib_db.ColumnTypeString:
 		v, err := dbVal.AsString()
 		if err != nil {
 			return nil, err
@@ -100,7 +99,7 @@ func convertDBColumnValueToJsonValue(dbVal *db.ColumnValue) (*io.JsonValue, erro
 			return io.NewJsonNull(), nil
 		}
 		return io.NewJsonString(v.String), nil
-	case db.ColumnTypeTime:
+	case lib_db.ColumnTypeTime:
 		v, err := dbVal.AsTime()
 		if err != nil {
 			return nil, err
