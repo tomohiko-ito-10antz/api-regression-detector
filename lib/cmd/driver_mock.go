@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"time"
 
@@ -12,16 +11,31 @@ import (
 
 var MockDriver = Driver{
 	Name:         "mock-driver",
-	DB:           &sql.DB{},
-	ListRows:     rowLister{},
-	ClearRows:    rowClearer{},
-	CreateRows:   rowCreator{},
-	SchemaGetter: schemaGetter{},
+	DB:           mockDB{},
+	ListRows:     mockRowLister{},
+	ClearRows:    mockRowClearer{},
+	CreateRows:   mockRowCreator{},
+	SchemaGetter: mockSchemaGetter{},
 }
 
-type rowLister struct{}
+type mockDB struct {
+}
 
-func (rowLister) ListRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema) ([]db.Row, error) {
+func (mockDB) Open() error {
+	return nil
+}
+
+func (mockDB) Close() error {
+	return nil
+}
+
+func (mockDB) RunTransaction(ctx context.Context, handler func(ctx context.Context, tx db.Tx) error) error {
+	return handler(ctx, nil)
+}
+
+type mockRowLister struct{}
+
+func (mockRowLister) ListRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema) ([]db.Row, error) {
 	if tableName != "mock_table" {
 		return nil, fmt.Errorf("table %s not found", tableName)
 	}
@@ -50,27 +64,27 @@ func (rowLister) ListRows(ctx context.Context, tx db.Tx, tableName string, schem
 	}, nil
 }
 
-type rowClearer struct{}
+type mockRowClearer struct{}
 
-func (rowClearer) ClearRows(ctx context.Context, tx db.Tx, tableName string) error {
+func (mockRowClearer) ClearRows(ctx context.Context, tx db.Tx, tableName string) error {
 	if tableName != "mock_table" {
 		return fmt.Errorf("table %s not found", tableName)
 	}
 	return nil
 }
 
-type rowCreator struct{}
+type mockRowCreator struct{}
 
-func (rowCreator) CreateRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema, rows []io.Row) error {
+func (mockRowCreator) CreateRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema, rows []io.Row) error {
 	if tableName != "mock_table" {
 		return fmt.Errorf("table %s not found", tableName)
 	}
 	return nil
 }
 
-type schemaGetter struct{}
+type mockSchemaGetter struct{}
 
-func (schemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string) (db.Schema, error) {
+func (mockSchemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string) (db.Schema, error) {
 	if tableName != "mock_table" {
 		return db.Schema{}, fmt.Errorf("table %s not found", tableName)
 	}

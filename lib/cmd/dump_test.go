@@ -2,21 +2,26 @@ package cmd
 
 import (
 	"context"
-	"time"
+	"testing"
 
-	lib_db "github.com/Jumpaku/api-regression-detector/lib/db"
-	"github.com/Jumpaku/api-regression-detector/lib/io"
+	"github.com/Jumpaku/api-regression-detector/test/assert"
 )
 
-func Dump(
-	ctx context.Context,
-	db lib_db.DB,
-	tableNames []string,
-	schemaGetter SchemaGetter,
-	rowLister RowLister,
+func TestDump_OK(t *testing.T) {
+	v, err := Dump(context.Background(), nil,
+		[]string{"mock_table"},
+		MockDriver.SchemaGetter,
+		MockDriver.ListRows)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, len(v), 1)
+	assert.Equal(t, len(v["mock_table"].Rows), 3)
+}
+func TestDump_NG(t *testing.T) {}
+
+/*
 ) (tables io.Tables, err error) {
 	tables = io.Tables{}
-	err = db.RunTransaction(ctx, func(ctx context.Context, tx lib_db.Tx) error {
+	err = lib_db.RunTransaction(ctx, db, func(ctx context.Context, tx lib_db.Tx) error {
 		dbTables := lib_db.Tables{}
 		for _, tableName := range tableNames {
 			schema, err := schemaGetter.GetSchema(ctx, tx, tableName)
@@ -118,3 +123,4 @@ func convertDBColumnValueToJsonValue(dbVal *lib_db.ColumnValue) (*io.JsonValue, 
 		return io.NewJsonString(string(v.Bytes)), nil
 	}
 }
+*/

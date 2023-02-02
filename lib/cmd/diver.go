@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
 	"github.com/Jumpaku/api-regression-detector/lib/db"
@@ -27,7 +26,7 @@ type SchemaGetter interface {
 
 type Driver struct {
 	Name         string
-	DB           *sql.DB
+	DB           db.DB
 	ListRows     RowLister
 	ClearRows    RowClearer
 	CreateRows   RowCreator
@@ -42,14 +41,8 @@ func (d *Driver) Open(connectionString string) (err error) {
 	switch d.Name {
 	default:
 		return fmt.Errorf("invalid driver name")
-	case "mysql":
-	case "postgres":
-	case "sqlite3":
-	case "spanner":
+	case "mysql", "postgres", "sqlite3", "spanner":
 	}
-	d.DB, err = sql.Open(d.Name, connectionString)
-	if err != nil {
-		return err
-	}
-	return nil
+	d.DB = db.NewDB(d.Name, connectionString)
+	return d.DB.Open()
 }

@@ -2,20 +2,19 @@ package cmd
 
 import (
 	"context"
-	"database/sql"
 
 	lib_db "github.com/Jumpaku/api-regression-detector/lib/db"
 	"github.com/Jumpaku/api-regression-detector/lib/io"
 )
 
 func Init(ctx context.Context,
-	db *sql.DB,
+	db lib_db.DB,
 	jsonTables io.Tables,
 	schemaGetter SchemaGetter,
 	clearer RowClearer,
 	creator RowCreator,
 ) (err error) {
-	return lib_db.RunTransaction(ctx, db, func(ctx context.Context, tx lib_db.Tx) error {
+	return db.RunTransaction(ctx, func(ctx context.Context, tx lib_db.Tx) error {
 		for tableName, table := range jsonTables {
 			schema, err := schemaGetter.GetSchema(ctx, tx, tableName)
 			if err != nil {
