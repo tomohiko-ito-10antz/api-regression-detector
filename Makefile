@@ -23,3 +23,12 @@ init-sqlite:
 .PHONY: test
 test:
 	go test -v ./...
+
+.PHONY: build
+build:
+	env GOOS=windows GOARCH=arm64 go build -ldflags '-s -w' -trimpath -o bin/windows/arm64/jrd main.go
+	env GOOS=windows GOARCH=amd64 go build -ldflags '-s -w' -trimpath -o bin/windows/amd64/jrd main.go
+	env GOOS=linux   GOARCH=arm64 go build -ldflags '-s -w' -trimpath -o bin/linux/arm64/jrd main.go
+	env GOOS=linux   GOARCH=amd64 go build -ldflags '-s -w' -trimpath -o bin/linux/amd64/jrd main.go
+	env GOOS=darwin  GOARCH=arm64 go build -ldflags '-s -w' -trimpath -o bin/darwin/arm64/jrd main.go
+	env GOOS=darwin  GOARCH=amd64 go build -ldflags '-s -w' -trimpath -o bin/darwin/amd64/jrd main.go
