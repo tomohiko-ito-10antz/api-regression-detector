@@ -24,7 +24,11 @@ func RunInit(databaseDriver string, connectionString string) (code int, err erro
 			code = 1
 		}
 	}()
-	tables, err := io.Load(os.Stdin)
+	json, err := io.LoadJson[map[string][]map[string]any](os.Stdin)
+	if err != nil {
+		return 1, err
+	}
+	tables, err := io.TableFromJson(json)
 	if err != nil {
 		return 1, err
 	}

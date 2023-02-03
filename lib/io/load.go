@@ -7,29 +7,12 @@ import (
 	"github.com/Jumpaku/api-regression-detector/lib/log"
 )
 
-func Load(file *os.File) (tables Tables, err error) {
+func LoadJson[T any](file *os.File) (jsonValue T, err error) {
+	log.Stderr("INPUT JSON FROM %s", file.Name())
 	decoder := json.NewDecoder(file)
 	decoder.UseNumber()
-	var jsonTables map[string][]map[string]any
-	if err := decoder.Decode(&jsonTables); err != nil {
-		return nil, err
+	if err := decoder.Decode(&jsonValue); err != nil {
+		return jsonValue, err
 	}
-	log.Stderr("INPUT FROM %s\n\tcontent: %v", file.Name(), jsonTables)
-	tables = Tables{}
-	for tableName, jsonTable := range jsonTables {
-		table := Table{}
-		for _, jsonRow := range jsonTable {
-			row := Row{}
-			for column, jsonColumnValue := range jsonRow {
-				jsonValue, err := NewJson(jsonColumnValue)
-				if err != nil {
-					return nil, err
-				}
-				row[column] = jsonValue
-			}
-			table.Rows = append(table.Rows, row)
-		}
-		tables[tableName] = table
-	}
-	return tables, nil
+	return jsonValue, nil
 }

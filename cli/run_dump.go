@@ -24,19 +24,19 @@ func RunDump(databaseDriver string, connectionString string) (code int, err erro
 			code = 1
 		}
 	}()
-	tables, err := io.Load(os.Stdin)
+	tableNames, err := io.LoadJson[[]string](os.Stdin)
 	if err != nil {
 		return 1, err
-	}
-	tableNames := []string{}
-	for tableName := range tables {
-		tableNames = append(tableNames, tableName)
 	}
 	dump, err := cmd.Dump(context.Background(), driver.DB, tableNames, driver.SchemaGetter, driver.ListRows)
 	if err != nil {
 		return 1, err
 	}
-	err = io.Save(dump, os.Stdout)
+	json, err := io.TableToJson(dump)
+	if err != nil {
+		return 1, err
+	}
+	err = io.Save(json, os.Stdout)
 	if err != nil {
 		return 1, err
 	}
