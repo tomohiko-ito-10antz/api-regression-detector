@@ -5,10 +5,12 @@ go 1.19
 require (
 	github.com/docopt/docopt-go v0.0.0-20180111231733-ee0de3bc6815
 	github.com/go-sql-driver/mysql v1.7.0
+	github.com/googleapis/go-sql-spanner v1.0.0
 	github.com/lib/pq v1.10.7
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249
 	go.uber.org/multierr v1.9.0
+	golang.org/x/exp v0.0.0-20230130200758-8bd7c9d05862
 )
 
 require (
@@ -29,10 +31,8 @@ require (
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.1 // indirect
 	github.com/googleapis/gax-go/v2 v2.7.0 // indirect
-	github.com/googleapis/go-sql-spanner v1.0.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
-	golang.org/x/exp v0.0.0-20230130200758-8bd7c9d05862 // indirect
 	golang.org/x/net v0.5.0 // indirect
 	golang.org/x/oauth2 v0.4.0 // indirect
 	golang.org/x/sys v0.4.0 // indirect
