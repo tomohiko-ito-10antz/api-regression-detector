@@ -13,6 +13,7 @@ var (
 	BadArgs        error = errors.New("BadArgs")
 	BadState       error = errors.New("BadState")
 	IOFailure      error = errors.New("IOFailure")
+	DBFailure      error = errors.New("DBFailure")
 	BadJSON        error = errors.New("BadJSON")
 )
 

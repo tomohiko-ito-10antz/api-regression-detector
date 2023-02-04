@@ -3,6 +3,8 @@ package db
 import (
 	"context"
 	"database/sql"
+
+	"github.com/Jumpaku/api-regression-detector/lib/errors"
 )
 
 type DB interface {
@@ -22,13 +24,18 @@ type database struct {
 }
 
 func (d *database) RunTransaction(ctx context.Context, handler func(ctx context.Context, tx Tx) error) error {
-	return runTransaction(ctx, d.db, handler)
+	err := runTransaction(ctx, d.db, handler)
+	if err != nil {
+		return errors.Wrap(err, "transaction failed")
+	}
+
+	return nil
 }
 
 func (d *database) Open() error {
 	db, err := sql.Open(d.driver, d.connection)
 	if err != nil {
-		return err
+		return errors.Wrap(errors.Join(err, errors.IOFailure), "fail to open database (driver=%s,connection=%s)", d.driver, d.connection)
 	}
 
 	d.db = db
@@ -37,5 +44,10 @@ func (d *database) Open() error {
 }
 
 func (d *database) Close() error {
-	return d.db.Close()
+	err := d.db.Close()
+	if err != nil {
+		return errors.Wrap(errors.Join(err, errors.IOFailure), "fail to close database (driver=%s)", d.driver)
+	}
+
+	return nil
 }

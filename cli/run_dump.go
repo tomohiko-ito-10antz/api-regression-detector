@@ -12,16 +12,16 @@ import (
 func RunDump(databaseDriver string, connectionString string) (code int, err error) {
 	driver, err := NewDriver(databaseDriver)
 	if err != nil {
-		return 1, err
+		return 1, errors.Wrap(errors.Join(err, errors.BadArgs), "fail RunDump")
 	}
 
 	err = driver.Open(connectionString)
 	if err != nil {
-		return 1, err
+		return 1, errors.Wrap(errors.Join(err, errors.IOFailure), "fail RunDump")
 	}
 
 	defer func() {
-		err = errors.Wrap(errors.Join(err, driver.Close()), "fail RunDump")
+		err = errors.Wrap(errors.Join(err, driver.Close(), errors.IOFailure), "fail RunDump")
 		if err != nil {
 			code = 1
 		}

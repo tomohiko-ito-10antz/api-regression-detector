@@ -212,7 +212,6 @@ func TestCompare_Error(t *testing.T) {
 		{}
 	]
 }`)
-	aResult, _, err := cmd.Compare(expectedJson, actualJson)
-	assert.Equal(t, err, nil)
-	assert.Equal(t, aResult, cmd.CompareResultError)
+	_, _, err := cmd.Compare(expectedJson, actualJson)
+	assert.NotEqual(t, err, nil)
 }

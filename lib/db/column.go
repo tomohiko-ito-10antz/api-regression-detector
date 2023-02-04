@@ -2,9 +2,10 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	"reflect"
 	"time"
+
+	"github.com/Jumpaku/api-regression-detector/lib/errors"
 )
 
 type (
@@ -35,12 +36,12 @@ type (
 	NullInteger sql.NullInt64
 	NullFloat   sql.NullFloat64
 	NullBool    sql.NullBool
+	NullTime    sql.NullTime
 	NullBytes   struct {
 		Bytes []byte
 		Valid bool
 	}
 )
-type NullTime sql.NullTime
 
 type ColumnValue struct {
 	Type  ColumnType
@@ -77,7 +78,7 @@ func (v ColumnValue) AsString() (NullString, error) {
 		return NullString(val), nil
 	}
 
-	return NullString{}, fmt.Errorf("value %v:%T not compatible to string", v.value, v.value)
+	return NullString{}, errors.Wrap(errors.BadConversion, "value %v:%T not compatible to string", v.value, v.value)
 }
 
 func (v ColumnValue) AsInteger() (NullInteger, error) {
@@ -91,7 +92,7 @@ func (v ColumnValue) AsInteger() (NullInteger, error) {
 	if rv.Kind() == reflect.Pointer {
 		switch rv.Type().Elem().Kind() {
 		default:
-			return NullInteger{}, fmt.Errorf("value %v:%T not compatible to int64", v.value, v.value)
+			return NullInteger{}, errors.Wrap(errors.BadConversion, "value %v:%T not compatible to int64", v.value, v.value)
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		}
@@ -134,7 +135,7 @@ func (v ColumnValue) AsInteger() (NullInteger, error) {
 		return NullInteger(val), nil
 	}
 
-	return NullInteger{}, fmt.Errorf("value %v:%T not compatible to int64", v.value, v.value)
+	return NullInteger{}, errors.Wrap(errors.BadConversion, "value %v:%T not compatible to int64", v.value, v.value)
 }
 
 func (v ColumnValue) AsFloat() (NullFloat, error) {
@@ -148,7 +149,7 @@ func (v ColumnValue) AsFloat() (NullFloat, error) {
 	if rv.Kind() == reflect.Pointer {
 		switch rv.Type().Elem().Kind() {
 		default:
-			return NullFloat{}, fmt.Errorf("value %v:%T not compatible to float64", v.value, v.value)
+			return NullFloat{}, errors.Wrap(errors.BadConversion, "value %v:%T not compatible to float64", v.value, v.value)
 		case reflect.Float32, reflect.Float64:
 		}
 
@@ -168,7 +169,7 @@ func (v ColumnValue) AsFloat() (NullFloat, error) {
 		return NullFloat(val), nil
 	}
 
-	return NullFloat{}, fmt.Errorf("value %v:%T not compatible to float64", v.value, v.value)
+	return NullFloat{}, errors.Wrap(errors.BadConversion, "value %v:%T not compatible to float64", v.value, v.value)
 }
 
 func (v ColumnValue) AsBytes() (NullBytes, error) {
@@ -189,7 +190,7 @@ func (v ColumnValue) AsBytes() (NullBytes, error) {
 		return NullBytes{Valid: true, Bytes: val}, nil
 	}
 
-	return NullBytes{}, fmt.Errorf("value %v:%T not compatible to []byte", v.value, v.value)
+	return NullBytes{}, errors.Wrap(errors.BadConversion, "value %v:%T not compatible to []byte", v.value, v.value)
 }
 
 func (v ColumnValue) AsTime() (NullTime, error) {
@@ -207,7 +208,7 @@ func (v ColumnValue) AsTime() (NullTime, error) {
 	case sql.NullTime:
 		return NullTime(val), nil
 	default:
-		return NullTime{}, fmt.Errorf("value %v:%T not compatible to time.Time", v.value, v.value)
+		return NullTime{}, errors.Wrap(errors.BadConversion, "value %v:%T not compatible to time.Time", v.value, v.value)
 	}
 }
 
@@ -226,6 +227,6 @@ func (v ColumnValue) AsBool() (NullBool, error) {
 	case sql.NullBool:
 		return NullBool(val), nil
 	default:
-		return NullBool{}, fmt.Errorf("value %v:%T not compatible to bool", v.value, v.value)
+		return NullBool{}, errors.Wrap(errors.BadConversion, "value %v:%T not compatible to bool", v.value, v.value)
 	}
 }
