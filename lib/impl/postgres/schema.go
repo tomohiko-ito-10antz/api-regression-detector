@@ -32,14 +32,11 @@ func (o schemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string)
 
 func getColumnTypes(ctx context.Context, tx db.Tx, table string) (columnTypes db.ColumnTypes, err error) {
 	rows, err := tx.Read(ctx, `SELECT column_name, data_type FROM information_schema.columns WHERE table_name = $1`, []any{table})
-	fmt.Println("1")
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("2")
 	columnTypes = db.ColumnTypes{}
 	for _, row := range rows {
-		fmt.Printf("row %v", row)
 		columnName, ok := row.GetColumnValue("column_name")
 		if !ok {
 			return nil, fmt.Errorf("column %s not found", "column_name")

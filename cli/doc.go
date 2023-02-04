@@ -3,9 +3,9 @@ package cli
 func GetDoc() string {
 	return `Regression detector.
 The following commands are available:
-* init: It initializes database according to json provided by stdin.
-* dump: It outputs database according to json provided by stdin.
-* compare: It compares two JSON files and outputs the comparison result to stdout.
+* init: It initializes tables according to JSON data.
+* dump: It outputs data within tables in JSON format.
+* compare: It compares two JSON files.
 
 Usage:
 	program init <database-driver> <connection-string>

@@ -45,11 +45,11 @@ go run main.go init spanner "projects/regression-detector/instances/example/data
 ### Dump
 
 ```sh
-go run main.go dump mysql "root:password@(mysql)/main" <examples/init.json
+jq '. | keys' <examples/init.json | go run main.go dump mysql "root:password@(mysql)/main"
 ```
 
 ```sh
-go run main.go dump postgres "user=root password=password host=postgres dbname=main sslmode=disable" <examples/init.json
+jq '. | keys' <examples/init.json | go run main.go dump postgres "user=root password=password host=postgres dbname=main sslmode=disable" <examples/init.json
 ```
 
 ```sh

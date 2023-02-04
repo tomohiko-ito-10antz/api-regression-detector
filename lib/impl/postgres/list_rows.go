@@ -21,7 +21,7 @@ var _ cmd.RowLister = selectOperation{}
 func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema) (table []db.Row, err error) {
 	var rows []db.Row
 	if len(schema.PrimaryKeys) == 0 {
-		rows, err = tx.Read(ctx, fmt.Sprintf(`SELECT * FROM %s ORDER BY ?::regclass::oid`, tableName), []any{table})
+		rows, err = tx.Read(ctx, fmt.Sprintf(`SELECT * FROM %s ORDER BY $1::regclass::oid`, tableName), []any{tableName})
 		if err != nil {
 			return nil, err
 		}
