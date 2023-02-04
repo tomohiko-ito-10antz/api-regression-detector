@@ -19,7 +19,8 @@ func ListRows() selectOperation {
 var _ cmd.RowLister = selectOperation{}
 
 func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema) (rows []db.Row, err error) {
-	rows, err = tx.Read(ctx, fmt.Sprintf(`SELECT * FROM %s ORDER BY %s`, tableName, strings.Join(schema.PrimaryKeys, ", ")), nil)
+	stmt := fmt.Sprintf(`SELECT * FROM %s ORDER BY %s`, tableName, strings.Join(schema.PrimaryKeys, ", "))
+	rows, err = tx.Read(ctx, stmt, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +40,7 @@ func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName strin
 			if !exists {
 				return nil, fmt.Errorf("column %s not found", columnName)
 			}
-			var val any = nil
+			var val any
 			switch typ {
 			case db.ColumnTypeBoolean:
 				if colBytes.Valid {

@@ -22,9 +22,9 @@ func (o selectOperation) ListRows(
 	tx db.Tx,
 	tableName string,
 	schema db.Schema,
-) (rows []db.Row, err error) {
+) ([]db.Row, error) {
 	stmt := fmt.Sprintf(`SELECT * FROM %s ORDER BY %s`, tableName, strings.Join(schema.PrimaryKeys, ", "))
-	rows, err = tx.Read(ctx, stmt, nil)
+	rows, err := tx.Read(ctx, stmt, nil)
 	if err != nil {
 		return nil, err
 	}

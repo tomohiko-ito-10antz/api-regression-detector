@@ -14,9 +14,10 @@ func Dump(
 	tableNames []string,
 	schemaGetter SchemaGetter,
 	rowLister RowLister,
-) (tables jsonio.Tables, err error) {
-	tables = jsonio.Tables{}
-	err = db.RunTransaction(ctx, func(ctx context.Context, tx libdb.Tx) error {
+) (jsonio.Tables, error) {
+	tables := jsonio.Tables{}
+	err := db.RunTransaction(ctx, func(ctx context.Context, tx libdb.Tx) error {
+		var err error
 		dbTables := libdb.Tables{}
 		for _, tableName := range tableNames {
 			schema, err := schemaGetter.GetSchema(ctx, tx, tableName)
@@ -38,6 +39,7 @@ func Dump(
 	if err != nil {
 		return nil, err
 	}
+
 	return tables, nil
 }
 

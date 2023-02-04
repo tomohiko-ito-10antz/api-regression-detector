@@ -31,7 +31,7 @@ func TestDump_NG_Table(t *testing.T) {
 
 func TestDump_NG_DB(t *testing.T) {
 	_, err := cmd.Dump(context.Background(),
-		mock.MockDBErr{},
+		mock.ErrDB{},
 		[]string{"mock_table"},
 		mock.SchemaGetter{},
 		mock.RowLister{})

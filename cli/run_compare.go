@@ -35,9 +35,9 @@ func RunCompare(expectedJson string, actualJson string, verbose bool, strict boo
 		fmt.Println(detail)
 	}
 	switch match {
-	case cmd.CompareResult_FullMatch:
+	case cmd.CompareResultFullMatch:
 		return 0, nil
-	case cmd.CompareResult_SupersetMatch:
+	case cmd.CompareResultSupersetMatch:
 		if strict {
 			return 1, nil
 		}

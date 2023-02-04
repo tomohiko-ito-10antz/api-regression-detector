@@ -7,7 +7,8 @@ type Table struct {
 }
 type Tables map[string]Table
 
-func (tables Tables) GetTableNames() (tableNames []string) {
+func (tables Tables) GetTableNames() []string {
+	tableNames := []string{}
 	for tableName := range tables {
 		tableNames = append(tableNames, tableName)
 	}

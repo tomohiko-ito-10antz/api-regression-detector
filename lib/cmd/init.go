@@ -13,7 +13,7 @@ func Init(ctx context.Context,
 	schemaGetter SchemaGetter,
 	clearer RowClearer,
 	creator RowCreator,
-) (err error) {
+) error {
 	return db.RunTransaction(ctx, func(ctx context.Context, tx libdb.Tx) error {
 		for tableName, table := range jsonTables {
 			schema, err := schemaGetter.GetSchema(ctx, tx, tableName)

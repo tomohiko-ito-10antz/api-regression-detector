@@ -114,7 +114,7 @@ func TestNewJson_Int(t *testing.T) {
 }
 
 func TestNewJson_Float(t *testing.T) {
-	var f = -123.45
+	f := -123.45
 	v, err := jsonio.NewJson(f)
 	assert.Equal(t, err, nil)
 	assert.Equal(t, v.Type, jsonio.JsonTypeNumber)

@@ -106,7 +106,10 @@ func NewJson(valAny any) (jv *JsonValue, err error) {
 		objectValue := JsonObject{}
 		for _, rvKey := range rv.MapKeys() {
 			rvVal := rv.MapIndex(rvKey)
-			key := rvKey.Interface().(string)
+			key, ok := rvKey.Interface().(string)
+			if !ok {
+				return nil, fmt.Errorf("cannot new JsonValue %v:%T", valAny, valAny)
+			}
 			var val *JsonValue
 			if !rvVal.IsValid() {
 				val, err = NewJson(nil)
@@ -185,9 +188,8 @@ func (v *JsonValue) ToInt64() (int64, error) {
 	case JsonTypeBoolean:
 		if v.booleanValue {
 			return 1, nil
-		} else {
-			return 0, nil
 		}
+		return 0, nil
 	case JsonTypeNull:
 		return 0, nil
 	case JsonTypeString:
@@ -212,9 +214,8 @@ func (v *JsonValue) ToFloat64() (float64, error) {
 	case JsonTypeBoolean:
 		if v.booleanValue {
 			return 1, nil
-		} else {
-			return 0, nil
 		}
+		return 0, nil
 	case JsonTypeNull:
 		return 0, nil
 	case JsonTypeString:
@@ -228,22 +229,22 @@ func (v *JsonValue) ToFloat64() (float64, error) {
 	}
 }
 
-func (v *JsonValue) AsObject() (o JsonObject, err error) {
+func (v *JsonValue) AsObject() (JsonObject, error) {
 	if v.Type != JsonTypeObject {
 		return nil, fmt.Errorf("AsObject must be called with JsonValue of type JsonTypeObject")
 	}
 	return v.objectValue, nil
 }
 
-func (v *JsonValue) AsArray() (a JsonArray, err error) {
+func (v *JsonValue) AsArray() (JsonArray, error) {
 	if v.Type != JsonTypeArray {
 		return nil, fmt.Errorf("AsArray must be called with JsonValue of type JsonTypeArray")
 	}
 	return v.arrayValue, nil
 }
 
-func (o JsonObject) Keys() (keys []string) {
-	keys = []string{}
+func (o JsonObject) Keys() []string {
+	keys := []string{}
 	for k := range o {
 		keys = append(keys, k)
 	}
@@ -270,11 +271,11 @@ func (o JsonObject) AsJsonValue() *JsonValue {
 	return &JsonValue{Type: JsonTypeObject, objectValue: o}
 }
 
-func (a JsonArray) Len() (size int) {
+func (a JsonArray) Len() int {
 	return len(a)
 }
 
-func (a JsonArray) Get(i int) (val *JsonValue, err error) {
+func (a JsonArray) Get(i int) (*JsonValue, error) {
 	if i >= len(a) {
 		return nil, fmt.Errorf("value not found for index %v (len %v)", i, len(a))
 	}

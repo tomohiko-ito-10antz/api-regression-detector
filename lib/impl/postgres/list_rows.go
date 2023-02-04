@@ -21,7 +21,8 @@ func (o selectOperation) ListRows(
 	ctx context.Context,
 	tx db.Tx,
 	tableName string,
-	schema db.Schema) ([]db.Row, error) {
+	schema db.Schema,
+) ([]db.Row, error) {
 	var rows []db.Row
 	var err error
 	if len(schema.PrimaryKeys) == 0 {

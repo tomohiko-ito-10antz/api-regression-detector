@@ -37,12 +37,13 @@ func (d *Driver) Close() error {
 	return d.DB.Close()
 }
 
-func (d *Driver) Open(connectionString string) (err error) {
+func (d *Driver) Open(connectionString string) error {
 	switch d.Name {
 	default:
 		return fmt.Errorf("invalid driver name")
 	case "mysql", "postgres", "sqlite3", "spanner":
 	}
 	d.DB = db.NewDB(d.Name, connectionString)
+
 	return d.DB.Open()
 }

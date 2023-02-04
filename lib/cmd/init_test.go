@@ -48,7 +48,7 @@ func TestInit_NG_Table(t *testing.T) {
 
 func TestInit_NG_DB(t *testing.T) {
 	err := cmd.Init(context.Background(),
-		mock.MockDBErr{},
+		mock.ErrDB{},
 		jsonio.Tables{
 			"mock_table": jsonio.Table{Rows: []jsonio.Row{
 				{"a": jsonio.NewJsonNull()},

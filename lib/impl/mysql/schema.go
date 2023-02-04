@@ -90,7 +90,7 @@ WHERE table_name = ?`, []any{table})
 	return columnTypes, nil
 }
 
-func getPrimaryKeys(ctx context.Context, tx db.Tx, tableName string) (primaryKeys []string, err error) {
+func getPrimaryKeys(ctx context.Context, tx db.Tx, tableName string) ([]string, error) {
 	table, err := tx.Read(ctx, `
 SELECT 
     column_name AS column_name
@@ -108,6 +108,7 @@ ORDER BY
 	if err != nil {
 		return nil, err
 	}
+	primaryKeys := []string{}
 	for _, row := range table {
 		columnName, ok := row["column_name"]
 		if !ok {

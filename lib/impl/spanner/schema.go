@@ -15,7 +15,7 @@ func GetSchema() schemaGetter { return schemaGetter{} }
 
 var _ cmd.SchemaGetter = schemaGetter{}
 
-func (o schemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string) (schema db.Schema, err error) {
+func (o schemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string) (db.Schema, error) {
 	columnTypes, err := getColumnTypes(ctx, tx, tableName)
 	if err != nil {
 		return db.Schema{}, err
@@ -31,7 +31,8 @@ func (o schemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string)
 }
 
 func getColumnTypes(ctx context.Context, tx db.Tx, table string) (columnTypes db.ColumnTypes, err error) {
-	rows, err := tx.Read(ctx, `SELECT column_name, spanner_type FROM information_schema.columns WHERE table_name = ?`, []any{table})
+	stmt := `SELECT column_name, spanner_type FROM information_schema.columns WHERE table_name = ?`
+	rows, err := tx.Read(ctx, stmt, []any{table})
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +72,7 @@ func getColumnTypes(ctx context.Context, tx db.Tx, table string) (columnTypes db
 	return columnTypes, nil
 }
 
-func getPrimaryKeys(ctx context.Context, tx db.Tx, table string) (primaryKeys []string, err error) {
+func getPrimaryKeys(ctx context.Context, tx db.Tx, table string) ([]string, error) {
 	rows, err := tx.Read(ctx, `
 SELECT 
     column_name
@@ -89,6 +90,7 @@ ORDER BY
 	if err != nil {
 		return nil, err
 	}
+	primaryKeys := []string{}
 	for _, row := range rows {
 		columnName, ok := row["column_name"]
 		if !ok {

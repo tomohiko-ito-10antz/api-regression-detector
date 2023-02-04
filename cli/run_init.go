@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"
-	"github.com/Jumpaku/api-regression-detector/lib/io_json"
+	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
 	"go.uber.org/multierr"
 )
 
@@ -24,11 +24,11 @@ func RunInit(databaseDriver string, connectionString string) (code int, err erro
 			code = 1
 		}
 	}()
-	json, err := io_json.LoadJson[map[string][]map[string]any](os.Stdin)
+	json, err := jsonio.LoadJson[map[string][]map[string]any](os.Stdin)
 	if err != nil {
 		return 1, err
 	}
-	tables, err := io_json.TableFromJson(json)
+	tables, err := jsonio.TableFromJson(json)
 	if err != nil {
 		return 1, err
 	}

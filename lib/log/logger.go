@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-var logger *log.Logger = log.New(os.Stderr, "",
+var logger = log.New(os.Stderr, "",
 	log.Lmsgprefix|
 		log.Ldate|
 		log.Ltime|

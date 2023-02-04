@@ -61,16 +61,17 @@ func describe(diff string) string {
 		trim := strings.Trim(line, " \t\n")
 		if prefix := string((trim + "  ")[:2]); prefix == "@+" {
 			line = addBegin + "+|" + strings.Replace(line, prefix, "", 1) + addEnd
-		} else if prefix := string((trim + "  ")[:2]); prefix == "@-" {
+		} else if prefix := ((trim + "  ")[:2]); prefix == "@-" {
 			line = removeBegin + "-|" + strings.Replace(line, prefix, "", 1) + removeEnd
-		} else if suffix2 := string(("  " + trim)[len("  "+trim)-2:]); suffix2 == "@~" {
+		} else if suffix2 := (("  " + trim)[len("  "+trim)-2:]); suffix2 == "@~" {
 			line = changeBegin + "~|" + line[:len(line)-2] + changeEnd
-		} else if suffix3 := string(("   " + trim)[len("   "+trim)-3:]); suffix3 == "@~," {
+		} else if suffix3 := (("   " + trim)[len("   "+trim)-3:]); suffix3 == "@~," {
 			line = changeBegin + "~|" + line[:len(line)-3] + "," + changeEnd
 		} else {
 			line = " |" + line
 		}
 		lines = append(lines, line)
 	}
+
 	return strings.Join(lines, "\n")
 }

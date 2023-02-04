@@ -21,16 +21,16 @@ func (DB) RunTransaction(ctx context.Context, handler func(ctx context.Context, 
 	return handler(ctx, nil)
 }
 
-type MockDBErr struct{}
+type ErrDB struct{}
 
-func (MockDBErr) Open() error {
+func (ErrDB) Open() error {
 	return nil
 }
 
-func (MockDBErr) Close() error {
+func (ErrDB) Close() error {
 	return nil
 }
 
-func (MockDBErr) RunTransaction(ctx context.Context, handler func(ctx context.Context, tx db.Tx) error) error {
+func (ErrDB) RunTransaction(ctx context.Context, handler func(ctx context.Context, tx db.Tx) error) error {
 	return fmt.Errorf("error with database")
 }
