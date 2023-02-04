@@ -4,12 +4,12 @@ import (
 	"context"
 
 	lib_db "github.com/Jumpaku/api-regression-detector/lib/db"
-	"github.com/Jumpaku/api-regression-detector/lib/io"
+	"github.com/Jumpaku/api-regression-detector/lib/io_json"
 )
 
 func Init(ctx context.Context,
 	db lib_db.DB,
-	jsonTables io.Tables,
+	jsonTables io_json.Tables,
 	schemaGetter SchemaGetter,
 	clearer RowClearer,
 	creator RowCreator,
@@ -34,7 +34,7 @@ func Init(ctx context.Context,
 }
 
 /*
-func convertTablesJsonToDB(jsonTables io.JsonTables) (dbTables db.Tables) {
+func convertTablesJsonToDB(jsonTables io_json.JsonTables) (dbTables db.Tables) {
 	dbTables = db.Tables{}
 	for jsonTableName, jsonRows := range jsonTables {
 		dbRows := db.Table{}

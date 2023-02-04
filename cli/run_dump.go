@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"
-	"github.com/Jumpaku/api-regression-detector/lib/io"
+	"github.com/Jumpaku/api-regression-detector/lib/io_json"
 	"go.uber.org/multierr"
 )
 
@@ -24,7 +24,7 @@ func RunDump(databaseDriver string, connectionString string) (code int, err erro
 			code = 1
 		}
 	}()
-	tableNames, err := io.LoadJson[[]string](os.Stdin)
+	tableNames, err := io_json.LoadJson[[]string](os.Stdin)
 	if err != nil {
 		return 1, err
 	}
@@ -32,11 +32,11 @@ func RunDump(databaseDriver string, connectionString string) (code int, err erro
 	if err != nil {
 		return 1, err
 	}
-	json, err := io.TableToJson(dump)
+	json, err := io_json.TableToJson(dump)
 	if err != nil {
 		return 1, err
 	}
-	err = io.SaveJson(json, os.Stdout)
+	err = io_json.SaveJson(json, os.Stdout)
 	if err != nil {
 		return 1, err
 	}

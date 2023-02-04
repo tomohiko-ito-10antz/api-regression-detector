@@ -5,12 +5,12 @@ import (
 	"fmt"
 
 	"github.com/Jumpaku/api-regression-detector/lib/db"
-	"github.com/Jumpaku/api-regression-detector/lib/io"
+	"github.com/Jumpaku/api-regression-detector/lib/io_json"
 )
 
 type MockRowCreator struct{}
 
-func (MockRowCreator) CreateRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema, rows []io.Row) error {
+func (MockRowCreator) CreateRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema, rows []io_json.Row) error {
 	if tableName != "mock_table" {
 		return fmt.Errorf("table %s not found", tableName)
 	}
@@ -19,6 +19,6 @@ func (MockRowCreator) CreateRows(ctx context.Context, tx db.Tx, tableName string
 
 type MockRowCreatorErr struct{}
 
-func (MockRowCreatorErr) CreateRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema, rows []io.Row) error {
+func (MockRowCreatorErr) CreateRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema, rows []io_json.Row) error {
 	return fmt.Errorf("error with table %s", tableName)
 }

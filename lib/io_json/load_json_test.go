@@ -1,11 +1,11 @@
-package io
+package io_json
 
 import (
 	"bytes"
 	"encoding/json"
 	"testing"
 
-	"github.com/Jumpaku/api-regression-detector/lib/io/mock"
+	"github.com/Jumpaku/api-regression-detector/lib/io_json/mock"
 	"github.com/Jumpaku/api-regression-detector/test/assert"
 )
 

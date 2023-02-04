@@ -5,20 +5,20 @@ import (
 	"testing"
 
 	"github.com/Jumpaku/api-regression-detector/lib/cmd/mock"
-	"github.com/Jumpaku/api-regression-detector/lib/io"
+	"github.com/Jumpaku/api-regression-detector/lib/io_json"
 	"github.com/Jumpaku/api-regression-detector/test/assert"
 )
 
 func TestInit_OK(t *testing.T) {
 	err := Init(context.Background(),
 		mock.MockDB{},
-		io.Tables{
-			"mock_table": io.Table{Rows: []io.Row{
-				{"a": io.NewJsonNull()},
-				{"b": io.NewJsonBoolean(true)},
-				{"c": io.NewJsonNumberInt64(123)},
-				{"x": io.NewJsonNumberFloat64(-123.45)},
-				{"y": io.NewJsonString("abc")},
+		io_json.Tables{
+			"mock_table": io_json.Table{Rows: []io_json.Row{
+				{"a": io_json.NewJsonNull()},
+				{"b": io_json.NewJsonBoolean(true)},
+				{"c": io_json.NewJsonNumberInt64(123)},
+				{"x": io_json.NewJsonNumberFloat64(-123.45)},
+				{"y": io_json.NewJsonString("abc")},
 			}},
 		},
 		mock.MockSchemaGetter{},
@@ -29,13 +29,13 @@ func TestInit_OK(t *testing.T) {
 func TestInit_NG_Table(t *testing.T) {
 	err := Init(context.Background(),
 		mock.MockDB{},
-		io.Tables{
-			"invalid_table": io.Table{Rows: []io.Row{
-				{"a": io.NewJsonNull()},
-				{"b": io.NewJsonBoolean(true)},
-				{"c": io.NewJsonNumberInt64(123)},
-				{"x": io.NewJsonNumberFloat64(-123.45)},
-				{"y": io.NewJsonString("abc")},
+		io_json.Tables{
+			"invalid_table": io_json.Table{Rows: []io_json.Row{
+				{"a": io_json.NewJsonNull()},
+				{"b": io_json.NewJsonBoolean(true)},
+				{"c": io_json.NewJsonNumberInt64(123)},
+				{"x": io_json.NewJsonNumberFloat64(-123.45)},
+				{"y": io_json.NewJsonString("abc")},
 			}},
 		},
 		mock.MockSchemaGetter{},
@@ -47,13 +47,13 @@ func TestInit_NG_Table(t *testing.T) {
 func TestInit_NG_DB(t *testing.T) {
 	err := Init(context.Background(),
 		mock.MockDBErr{},
-		io.Tables{
-			"mock_table": io.Table{Rows: []io.Row{
-				{"a": io.NewJsonNull()},
-				{"b": io.NewJsonBoolean(true)},
-				{"c": io.NewJsonNumberInt64(123)},
-				{"x": io.NewJsonNumberFloat64(-123.45)},
-				{"y": io.NewJsonString("abc")},
+		io_json.Tables{
+			"mock_table": io_json.Table{Rows: []io_json.Row{
+				{"a": io_json.NewJsonNull()},
+				{"b": io_json.NewJsonBoolean(true)},
+				{"c": io_json.NewJsonNumberInt64(123)},
+				{"x": io_json.NewJsonNumberFloat64(-123.45)},
+				{"y": io_json.NewJsonString("abc")},
 			}},
 		},
 		mock.MockSchemaGetter{},
@@ -64,13 +64,13 @@ func TestInit_NG_DB(t *testing.T) {
 func TestInit_NG_SchemaGetter(t *testing.T) {
 	err := Init(context.Background(),
 		mock.MockDB{},
-		io.Tables{
-			"mock_table": io.Table{Rows: []io.Row{
-				{"a": io.NewJsonNull()},
-				{"b": io.NewJsonBoolean(true)},
-				{"c": io.NewJsonNumberInt64(123)},
-				{"x": io.NewJsonNumberFloat64(-123.45)},
-				{"y": io.NewJsonString("abc")},
+		io_json.Tables{
+			"mock_table": io_json.Table{Rows: []io_json.Row{
+				{"a": io_json.NewJsonNull()},
+				{"b": io_json.NewJsonBoolean(true)},
+				{"c": io_json.NewJsonNumberInt64(123)},
+				{"x": io_json.NewJsonNumberFloat64(-123.45)},
+				{"y": io_json.NewJsonString("abc")},
 			}},
 		},
 		mock.MockSchemaGetterErr{},
@@ -82,13 +82,13 @@ func TestInit_NG_SchemaGetter(t *testing.T) {
 func TestInit_NG_RowClearer(t *testing.T) {
 	err := Init(context.Background(),
 		mock.MockDB{},
-		io.Tables{
-			"mock_table": io.Table{Rows: []io.Row{
-				{"a": io.NewJsonNull()},
-				{"b": io.NewJsonBoolean(true)},
-				{"c": io.NewJsonNumberInt64(123)},
-				{"x": io.NewJsonNumberFloat64(-123.45)},
-				{"y": io.NewJsonString("abc")},
+		io_json.Tables{
+			"mock_table": io_json.Table{Rows: []io_json.Row{
+				{"a": io_json.NewJsonNull()},
+				{"b": io_json.NewJsonBoolean(true)},
+				{"c": io_json.NewJsonNumberInt64(123)},
+				{"x": io_json.NewJsonNumberFloat64(-123.45)},
+				{"y": io_json.NewJsonString("abc")},
 			}},
 		},
 		mock.MockSchemaGetter{},
@@ -100,13 +100,13 @@ func TestInit_NG_RowClearer(t *testing.T) {
 func TestInit_NG_RowCreator(t *testing.T) {
 	err := Init(context.Background(),
 		mock.MockDB{},
-		io.Tables{
-			"mock_table": io.Table{Rows: []io.Row{
-				{"a": io.NewJsonNull()},
-				{"b": io.NewJsonBoolean(true)},
-				{"c": io.NewJsonNumberInt64(123)},
-				{"x": io.NewJsonNumberFloat64(-123.45)},
-				{"y": io.NewJsonString("abc")},
+		io_json.Tables{
+			"mock_table": io_json.Table{Rows: []io_json.Row{
+				{"a": io_json.NewJsonNull()},
+				{"b": io_json.NewJsonBoolean(true)},
+				{"c": io_json.NewJsonNumberInt64(123)},
+				{"x": io_json.NewJsonNumberFloat64(-123.45)},
+				{"y": io_json.NewJsonString("abc")},
 			}},
 		},
 		mock.MockSchemaGetter{},
@@ -118,7 +118,7 @@ func TestInit_NG_RowCreator(t *testing.T) {
 /*
 func Init(ctx context.Context,
 	db lib_db.DB,
-	jsonTables io.Tables,
+	jsonTables io_json.Tables,
 	schemaGetter SchemaGetter,
 	clearer RowClearer,
 	creator RowCreator,
@@ -143,7 +143,7 @@ func Init(ctx context.Context,
 }
 
 /*
-func convertTablesJsonToDB(jsonTables io.JsonTables) (dbTables db.Tables) {
+func convertTablesJsonToDB(jsonTables io_json.JsonTables) (dbTables db.Tables) {
 	dbTables = db.Tables{}
 	for jsonTableName, jsonRows := range jsonTables {
 		dbRows := db.Table{}
