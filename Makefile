@@ -32,3 +32,8 @@ build:
 	env GOOS=linux   GOARCH=amd64 go build -ldflags '-s -w' -trimpath -o bin/linux/amd64/jrd main.go
 	env GOOS=darwin  GOARCH=arm64 go build -ldflags '-s -w' -trimpath -o bin/darwin/arm64/jrd main.go
 	env GOOS=darwin  GOARCH=amd64 go build -ldflags '-s -w' -trimpath -o bin/darwin/amd64/jrd main.go
+
+.PHONY: lint
+lint:
+	find . -print | grep --regex '.*\.go' | xargs goimports -w
+	golangci-lint run ./...

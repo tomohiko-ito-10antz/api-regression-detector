@@ -11,7 +11,9 @@ RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.c
 WORKDIR /work
 
 # go tools
-RUN go install github.com/cloudspannerecosystem/spanner-cli@latest
+RUN go install github.com/cloudspannerecosystem/spanner-cli@latest && \
+    go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest && \
+    go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
 # go modules
 COPY go.mod /work/go.mod

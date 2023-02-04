@@ -296,7 +296,6 @@ func TestRow_ToInt64_String(t *testing.T) {
 	t.Run("cannot parse as integer", func(t *testing.T) {
 		v := Row{"a": NewJsonString("abc")}
 		_, err := v.ToInt64("a")
-		v["a"].ToInt64()
 		assert.NotEqual(t, err, nil)
 	})
 	t.Run("parse as integer", func(t *testing.T) {
