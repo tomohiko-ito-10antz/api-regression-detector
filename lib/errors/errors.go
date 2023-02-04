@@ -1,9 +1,8 @@
 package errors
 
 import (
-	stderrors "errors"
-
 	"github.com/pkg/errors"
+	"go.uber.org/multierr"
 )
 
 var (
@@ -21,5 +20,5 @@ var (
 
 var (
 	Wrap = errors.Wrapf
-	Join = stderrors.Join
+	Join = multierr.Combine // stderrors.Join
 )

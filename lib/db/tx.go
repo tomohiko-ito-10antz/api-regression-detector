@@ -29,7 +29,7 @@ func runTransaction(ctx context.Context, db *sql.DB, handler func(ctx context.Co
 
 	err = handler(ctx, &transaction{tx: tx})
 	if err != nil {
-		return errors.Wrap(err, "fail to run transaction handler")
+		return errors.Wrap(err, "transaction handler failed")
 	}
 
 	err = commit(tx)

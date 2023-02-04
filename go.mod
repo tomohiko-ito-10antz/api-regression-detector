@@ -9,6 +9,7 @@ require (
 	github.com/lib/pq v1.10.7
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249
+	github.com/pkg/errors v0.9.1
 	go.uber.org/multierr v1.9.0
 	golang.org/x/exp v0.0.0-20230130200758-8bd7c9d05862
 )
@@ -31,7 +32,6 @@ require (
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.1 // indirect
 	github.com/googleapis/gax-go/v2 v2.7.0 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	golang.org/x/net v0.5.0 // indirect
