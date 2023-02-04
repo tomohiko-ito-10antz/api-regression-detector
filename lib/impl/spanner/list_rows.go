@@ -37,10 +37,12 @@ func (o selectOperation) ListRows(
 			if !ok {
 				return nil, fmt.Errorf("column %s not found", columnName)
 			}
+
 			typ, exists := schema.ColumnTypes[columnName]
 			if !exists {
 				return nil, fmt.Errorf("column %s not found", columnName)
 			}
+
 			outRow[columnName] = col.WithType(typ)
 		}
 

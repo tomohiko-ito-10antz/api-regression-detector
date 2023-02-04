@@ -21,7 +21,7 @@ func RunDump(databaseDriver string, connectionString string) (code int, err erro
 	}
 
 	defer func() {
-		err = errors.Wrap(errors.Join(err, driver.Close(), errors.IOFailure), "fail RunDump")
+		err = errors.Wrap(errors.Join(err, driver.Close()), "fail RunDump")
 		if err != nil {
 			code = 1
 		}

@@ -46,6 +46,6 @@ func main() {
 }
 
 func fail(err error) {
-	log.Stderr("Error\n%v", err)
+	log.Stderr("Error\n%+v", err)
 	panic(err)
 }

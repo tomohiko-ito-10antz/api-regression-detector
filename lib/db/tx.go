@@ -60,7 +60,9 @@ func (e *transaction) Read(ctx context.Context, stmt string, params []any) ([]Ro
 	}
 
 	defer func() {
-		err = errors.Wrap(errors.Join(err, itr.Close(), errors.DBFailure), "fail Read")
+		if errs := errors.Join(err, itr.Close()); err != nil {
+			err = errors.Wrap(errors.Join(errs, errors.DBFailure), "fail Read")
+		}
 	}()
 
 	rows := []Row{}

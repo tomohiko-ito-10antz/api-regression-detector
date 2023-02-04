@@ -44,7 +44,7 @@ func (o selectOperation) ListRows(
 				return nil, fmt.Errorf("column %s not found", columnName)
 			}
 
-			outRow[columnName] = db.NewColumnValue(col, typ)
+			outRow[columnName] = col.WithType(typ)
 		}
 
 		out.Rows = append(out.Rows, outRow)

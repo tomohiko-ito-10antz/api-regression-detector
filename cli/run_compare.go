@@ -15,8 +15,8 @@ func RunCompare(expectedJson string, actualJson string, verbose bool, strict boo
 	}
 
 	defer func() {
-		err = errors.Wrap(errors.Join(err, expectedJsonFile.Close()), "fail RunCompare")
-		if err != nil {
+		if errs := errors.Join(err, expectedJsonFile.Close()); err != nil {
+			err = errors.Wrap(errors.Join(errs, errors.IOFailure), "fail RunCompare")
 			code = 1
 		}
 	}()
@@ -27,8 +27,8 @@ func RunCompare(expectedJson string, actualJson string, verbose bool, strict boo
 	}
 
 	defer func() {
-		err = errors.Wrap(errors.Join(err, actualJsonFile.Close()), "fail RunCompare")
-		if err != nil {
+		if errs := errors.Join(err, actualJsonFile.Close()); err != nil {
+			err = errors.Wrap(errors.Join(errs, errors.IOFailure), "fail RunCompare")
 			code = 1
 		}
 	}()

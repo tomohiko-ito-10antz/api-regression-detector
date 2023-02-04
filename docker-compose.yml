@@ -34,12 +34,4 @@ services:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: main
 
-  sqlite:
-    build: 
-      context: .
-      dockerfile: Dockerfile-sqlite
-    command: [ "sleep", "infinity" ]
-    volumes:
-      - ./examples/sqlite:/work
-  #run:
   
