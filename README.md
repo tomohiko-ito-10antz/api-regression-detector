@@ -57,7 +57,7 @@ go run main.go dump sqlite3 "file:examples/sqlite/sqlite.db" <examples/init.json
 ```
 
 ```sh
-go run main.go dump spanner "projects/regression-detector/instances/example/databases/main" <examples/init.json
+jq '. | keys' <examples/init.json | go run main.go dump spanner "projects/regression-detector/instances/example/databases/main" <examples/init.json
 ```
 
 ### Compare

@@ -1,3 +1,11 @@
+.PHONY: init-mysql
+init-mysql:
+	mysql --host=mysql --password=password main < examples/mysql/create.sql
+
+.PHONY: init-postgres
+init-postgres:
+	psql --host=postgres --username=root --dbname=main < examples/postgres/create.sql
+
 .PHONY: init-spanner
 init-spanner:
 	gcloud config set project regression-detector
@@ -6,14 +14,6 @@ init-spanner:
 	gcloud spanner instances describe example || gcloud spanner instances create example --config=emulator-config --description="Instance for example using spanner"
 	gcloud spanner databases describe main --instance=example || gcloud spanner databases create main --instance=example
 	spanner-cli -p regression-detector -i example -d main --file=examples/spanner/create.sql
-
-.PHONY: init-mysql
-init-mysql:
-	mysql --host=mysql --password=password main < examples/mysql/create.sql
-
-.PHONY: init-postgres
-init-postgres:
-	psql --host=postgres --username=root --dbname=main < examples/postgres/create.sql
 
 .PHONY: init-sqlite
 init-sqlite:
