@@ -19,5 +19,7 @@ func init() {
 
 func Stderr(format string, args ...any) {
 	err := logger.Output(3, fmt.Sprintf(format, args...))
-	logger.Fatalln(err)
+	if err != nil {
+		logger.Fatalln(err)
+	}
 }

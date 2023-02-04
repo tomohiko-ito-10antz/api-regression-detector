@@ -1,24 +1,25 @@
-package io_json
+package io_json_test
 
 import (
 	"fmt"
 	"strings"
 	"testing"
 
+	"github.com/Jumpaku/api-regression-detector/lib/io_json"
 	"github.com/Jumpaku/api-regression-detector/test/assert"
 	"golang.org/x/exp/slices"
 )
 
-func mustNewJson(val any) *JsonValue {
-	v, err := NewJson(val)
+func mustNewJson(val any) *io_json.JsonValue {
+	v, err := io_json.NewJson(val)
 	if err != nil {
-		panic(fmt.Sprintf("cannot create JsonValue of %v:%T", val, val))
+		panic(fmt.Sprintf("cannot create io_json.JsonValue of %v:%T", val, val))
 	}
 	return v
 }
 
 func TestRow_GetColumnNames(t *testing.T) {
-	var v = Row{
+	var v = io_json.Row{
 		"a": mustNewJson(int64(123)),
 		"b": mustNewJson(float64(-123.45)),
 		"c": mustNewJson("abc"),
@@ -41,7 +42,7 @@ func TestRow_GetColumnNames(t *testing.T) {
 }
 
 func TestRow_Has(t *testing.T) {
-	var v = Row{
+	var v = io_json.Row{
 		"a": mustNewJson(int64(123)),
 		"b": mustNewJson(float64(-123.45)),
 		"c": mustNewJson("abc"),
@@ -65,7 +66,7 @@ func TestRow_Has(t *testing.T) {
 }
 
 func TestRow_GetColumnTypes(t *testing.T) {
-	var v = Row{
+	var v = io_json.Row{
 		"a": mustNewJson(int64(123)),
 		"b": mustNewJson(float64(-123.45)),
 		"c": mustNewJson("abc"),
@@ -77,48 +78,48 @@ func TestRow_GetColumnTypes(t *testing.T) {
 	}
 	aA, err := v.GetJsonType("a")
 	assert.Equal(t, err, nil)
-	assert.Equal(t, aA, JsonTypeNumber)
+	assert.Equal(t, aA, io_json.JsonTypeNumber)
 	aB, err := v.GetJsonType("b")
 	assert.Equal(t, err, nil)
-	assert.Equal(t, aB, JsonTypeNumber)
+	assert.Equal(t, aB, io_json.JsonTypeNumber)
 	aC, err := v.GetJsonType("c")
 	assert.Equal(t, err, nil)
-	assert.Equal(t, aC, JsonTypeString)
+	assert.Equal(t, aC, io_json.JsonTypeString)
 	aD, err := v.GetJsonType("d")
 	assert.Equal(t, err, nil)
-	assert.Equal(t, aD, JsonTypeNull)
+	assert.Equal(t, aD, io_json.JsonTypeNull)
 	aE, err := v.GetJsonType("e")
 	assert.Equal(t, err, nil)
-	assert.Equal(t, aE, JsonTypeBoolean)
+	assert.Equal(t, aE, io_json.JsonTypeBoolean)
 	aF, err := v.GetJsonType("f")
 	assert.Equal(t, err, nil)
-	assert.Equal(t, aF, JsonTypeBoolean)
+	assert.Equal(t, aF, io_json.JsonTypeBoolean)
 	aG, err := v.GetJsonType("g")
 	assert.Equal(t, err, nil)
-	assert.Equal(t, aG, JsonTypeObject)
+	assert.Equal(t, aG, io_json.JsonTypeObject)
 	aH, err := v.GetJsonType("h")
 	assert.Equal(t, err, nil)
-	assert.Equal(t, aH, JsonTypeArray)
+	assert.Equal(t, aH, io_json.JsonTypeArray)
 	_, err = v.GetJsonType("z")
 	assert.NotEqual(t, err, nil)
 }
 
 func TestRow_ToString_Null(t *testing.T) {
-	v := Row{"a": NewJsonNull()}
+	v := io_json.Row{"a": io_json.NewJsonNull()}
 	a, err := v.ToString("a")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, a, "null")
 }
 
 func TestRow_ToString_Int64(t *testing.T) {
-	v := Row{"a": NewJsonNumberInt64(123)}
+	v := io_json.Row{"a": io_json.NewJsonNumberInt64(123)}
 	a, err := v.ToString("a")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, a, "123")
 }
 
 func TestRow_ToString_Float64(t *testing.T) {
-	v := Row{"a": NewJsonNumberFloat64(-123.45)}
+	v := io_json.Row{"a": io_json.NewJsonNumberFloat64(-123.45)}
 	a, err := v.ToString("a")
 	assert.Equal(t, err, nil)
 	if !strings.HasPrefix(a, "-123.45") {
@@ -127,40 +128,40 @@ func TestRow_ToString_Float64(t *testing.T) {
 }
 
 func TestRow_ToString_String(t *testing.T) {
-	v := Row{"a": NewJsonString("abc")}
+	v := io_json.Row{"a": io_json.NewJsonString("abc")}
 	a, err := v.ToString("a")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, a, "abc")
 }
 
 func TestRow_ToString_True(t *testing.T) {
-	v := Row{"a": NewJsonBoolean(true)}
+	v := io_json.Row{"a": io_json.NewJsonBoolean(true)}
 	a, err := v.ToString("a")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, a, "true")
 }
 
 func TestRow_ToString_False(t *testing.T) {
-	v := Row{"a": NewJsonBoolean(false)}
+	v := io_json.Row{"a": io_json.NewJsonBoolean(false)}
 	a, err := v.ToString("a")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, a, "false")
 }
 
 func TestRow_ToString_Object(t *testing.T) {
-	v := Row{"a": NewJsonObjectEmpty()}
+	v := io_json.Row{"a": io_json.NewJsonObjectEmpty()}
 	_, err := v.ToString("a")
 	assert.NotEqual(t, err, nil)
 }
 
 func TestRow_ToString_Array(t *testing.T) {
-	v := Row{"a": NewJsonArrayEmpty()}
+	v := io_json.Row{"a": io_json.NewJsonArrayEmpty()}
 	_, err := v.ToString("a")
 	assert.NotEqual(t, err, nil)
 }
 
 func TestRow_ToBool_Null(t *testing.T) {
-	v := Row{"a": NewJsonNull()}
+	v := io_json.Row{"a": io_json.NewJsonNull()}
 	a, err := v.ToBool("a")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, a, false)
@@ -168,19 +169,19 @@ func TestRow_ToBool_Null(t *testing.T) {
 
 func TestRow_ToBool_Int64(t *testing.T) {
 	t.Run("parse 123 as true", func(t *testing.T) {
-		v := Row{"a": NewJsonNumberInt64(123)}
+		v := io_json.Row{"a": io_json.NewJsonNumberInt64(123)}
 		a, err := v.ToBool("a")
 		assert.Equal(t, err, nil)
 		assert.Equal(t, a, true)
 	})
 	t.Run("parse 1 as true", func(t *testing.T) {
-		v := Row{"a": NewJsonNumberInt64(1)}
+		v := io_json.Row{"a": io_json.NewJsonNumberInt64(1)}
 		a, err := v.ToBool("a")
 		assert.Equal(t, err, nil)
 		assert.Equal(t, a, true)
 	})
 	t.Run("parse 0 as false", func(t *testing.T) {
-		v := Row{"a": NewJsonNumberInt64(0)}
+		v := io_json.Row{"a": io_json.NewJsonNumberInt64(0)}
 		a, err := v.ToBool("a")
 		assert.Equal(t, err, nil)
 		assert.Equal(t, a, false)
@@ -189,19 +190,19 @@ func TestRow_ToBool_Int64(t *testing.T) {
 
 func TestRow_ToBool_Float64(t *testing.T) {
 	t.Run("parse -123.45 as true", func(t *testing.T) {
-		v := Row{"a": NewJsonNumberFloat64(-123.45)}
+		v := io_json.Row{"a": io_json.NewJsonNumberFloat64(-123.45)}
 		a, err := v.ToBool("a")
 		assert.Equal(t, err, nil)
 		assert.Equal(t, a, true)
 	})
 	t.Run("parse 1 as true", func(t *testing.T) {
-		v := Row{"a": NewJsonNumberFloat64(1)}
+		v := io_json.Row{"a": io_json.NewJsonNumberFloat64(1)}
 		a, err := v.ToBool("a")
 		assert.Equal(t, err, nil)
 		assert.Equal(t, a, true)
 	})
 	t.Run("parse 0 as false", func(t *testing.T) {
-		v := Row{"a": NewJsonNumberFloat64(0)}
+		v := io_json.Row{"a": io_json.NewJsonNumberFloat64(0)}
 		a, err := v.ToBool("a")
 		assert.Equal(t, err, nil)
 		assert.Equal(t, a, false)
@@ -210,28 +211,28 @@ func TestRow_ToBool_Float64(t *testing.T) {
 
 func TestRow_ToBool_String(t *testing.T) {
 	t.Run(`cannot parse "abc"`, func(t *testing.T) {
-		v := Row{"a": NewJsonString("abc")}
+		v := io_json.Row{"a": io_json.NewJsonString("abc")}
 		_, err := v.ToBool("a")
 		assert.NotEqual(t, err, nil)
 	})
 	t.Run(`cannot parse "null"`, func(t *testing.T) {
-		v := Row{"a": NewJsonString("null")}
+		v := io_json.Row{"a": io_json.NewJsonString("null")}
 		_, err := v.ToBool("a")
 		assert.NotEqual(t, err, nil)
 	})
 	t.Run(`cannot parse ""`, func(t *testing.T) {
-		v := Row{"a": NewJsonString("")}
+		v := io_json.Row{"a": io_json.NewJsonString("")}
 		_, err := v.ToBool("a")
 		assert.NotEqual(t, err, nil)
 	})
 	t.Run(`parse "true" as true`, func(t *testing.T) {
-		v := Row{"a": NewJsonString("true")}
+		v := io_json.Row{"a": io_json.NewJsonString("true")}
 		a, err := v.ToBool("a")
 		assert.Equal(t, err, nil)
 		assert.Equal(t, a, true)
 	})
 	t.Run(`parse "false" as false`, func(t *testing.T) {
-		v := Row{"a": NewJsonString("false")}
+		v := io_json.Row{"a": io_json.NewJsonString("false")}
 		a, err := v.ToBool("a")
 		assert.Equal(t, err, nil)
 		assert.Equal(t, a, false)
@@ -239,40 +240,40 @@ func TestRow_ToBool_String(t *testing.T) {
 }
 
 func TestRow_ToBool_True(t *testing.T) {
-	v := Row{"a": NewJsonBoolean(true)}
+	v := io_json.Row{"a": io_json.NewJsonBoolean(true)}
 	a, err := v.ToBool("a")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, a, true)
 }
 
 func TestRow_ToBool_False(t *testing.T) {
-	v := Row{"a": NewJsonBoolean(false)}
+	v := io_json.Row{"a": io_json.NewJsonBoolean(false)}
 	a, err := v.ToBool("a")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, a, false)
 }
 
 func TestRow_ToBool_Object(t *testing.T) {
-	v := Row{"a": NewJsonObjectEmpty()}
+	v := io_json.Row{"a": io_json.NewJsonObjectEmpty()}
 	_, err := v.ToBool("a")
 	assert.NotEqual(t, err, nil)
 }
 
 func TestRow_ToBool_Array(t *testing.T) {
-	v := Row{"a": NewJsonArrayEmpty()}
+	v := io_json.Row{"a": io_json.NewJsonArrayEmpty()}
 	_, err := v.ToBool("a")
 	assert.NotEqual(t, err, nil)
 }
 
 func TestRow_ToInt64_Null(t *testing.T) {
-	v := Row{"a": NewJsonNull()}
+	v := io_json.Row{"a": io_json.NewJsonNull()}
 	a, err := v.ToInt64("a")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, a, int64(0))
 }
 
 func TestRow_ToInt64_Int64(t *testing.T) {
-	v := Row{"a": NewJsonNumberInt64(123)}
+	v := io_json.Row{"a": io_json.NewJsonNumberInt64(123)}
 	a, err := v.ToInt64("a")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, a, int64(123))
@@ -280,12 +281,12 @@ func TestRow_ToInt64_Int64(t *testing.T) {
 
 func TestRow_ToInt64_Float64(t *testing.T) {
 	t.Run("cannot parse as integer", func(t *testing.T) {
-		v := Row{"a": NewJsonNumberFloat64(-123.45)}
+		v := io_json.Row{"a": io_json.NewJsonNumberFloat64(-123.45)}
 		_, err := v.ToInt64("a")
 		assert.NotEqual(t, err, nil)
 	})
 	t.Run("integer", func(t *testing.T) {
-		v := Row{"a": NewJsonNumberFloat64(123)}
+		v := io_json.Row{"a": io_json.NewJsonNumberFloat64(123)}
 		a, err := v.ToInt64("a")
 		assert.Equal(t, err, nil)
 		assert.Equal(t, a, int64(123))
@@ -294,12 +295,12 @@ func TestRow_ToInt64_Float64(t *testing.T) {
 
 func TestRow_ToInt64_String(t *testing.T) {
 	t.Run("cannot parse as integer", func(t *testing.T) {
-		v := Row{"a": NewJsonString("abc")}
+		v := io_json.Row{"a": io_json.NewJsonString("abc")}
 		_, err := v.ToInt64("a")
 		assert.NotEqual(t, err, nil)
 	})
 	t.Run("parse as integer", func(t *testing.T) {
-		v := Row{"a": NewJsonString("123")}
+		v := io_json.Row{"a": io_json.NewJsonString("123")}
 		a, err := v.ToInt64("a")
 		assert.Equal(t, err, nil)
 		assert.Equal(t, a, int64(123))
@@ -308,14 +309,14 @@ func TestRow_ToInt64_String(t *testing.T) {
 
 func TestRow_ToInt64_Boolean(t *testing.T) {
 	t.Run("true", func(t *testing.T) {
-		v := Row{"a": NewJsonBoolean(true)}
+		v := io_json.Row{"a": io_json.NewJsonBoolean(true)}
 		a, err := v.ToInt64("a")
 		assert.Equal(t, err, nil)
 		assert.Equal(t, a, int64(1))
 
 	})
 	t.Run("false", func(t *testing.T) {
-		v := Row{"a": NewJsonBoolean(false)}
+		v := io_json.Row{"a": io_json.NewJsonBoolean(false)}
 		a, err := v.ToInt64("a")
 		assert.Equal(t, err, nil)
 		assert.Equal(t, a, int64(0))
@@ -323,33 +324,33 @@ func TestRow_ToInt64_Boolean(t *testing.T) {
 }
 
 func TestRow_ToInt64_Object(t *testing.T) {
-	v := Row{"a": NewJsonObjectEmpty()}
+	v := io_json.Row{"a": io_json.NewJsonObjectEmpty()}
 	_, err := v.ToInt64("a")
 	assert.NotEqual(t, err, nil)
 }
 
 func TestRow_ToInt64_Array(t *testing.T) {
-	v := Row{"a": NewJsonArrayEmpty()}
+	v := io_json.Row{"a": io_json.NewJsonArrayEmpty()}
 	_, err := v.ToInt64("a")
 	assert.NotEqual(t, err, nil)
 }
 
 func TestRow_ToFloat64_Null(t *testing.T) {
-	v := Row{"a": NewJsonNull()}
+	v := io_json.Row{"a": io_json.NewJsonNull()}
 	a, err := v.ToFloat64("a")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, a, float64(0))
 }
 
 func TestRow_ToFloat64_Int64(t *testing.T) {
-	v := Row{"a": NewJsonNumberInt64(123)}
+	v := io_json.Row{"a": io_json.NewJsonNumberInt64(123)}
 	a, err := v.ToFloat64("a")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, a, float64(123.0))
 }
 
 func TestRow_ToFloat64_Float64(t *testing.T) {
-	v := Row{"a": NewJsonNumberFloat64(-123.45)}
+	v := io_json.Row{"a": io_json.NewJsonNumberFloat64(-123.45)}
 	a, err := v.ToFloat64("a")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, a, float64(-123.45))
@@ -357,12 +358,12 @@ func TestRow_ToFloat64_Float64(t *testing.T) {
 
 func TestRow_ToFloat64_String(t *testing.T) {
 	t.Run("cannot parse as float", func(t *testing.T) {
-		v := Row{"a": NewJsonString("abc")}
+		v := io_json.Row{"a": io_json.NewJsonString("abc")}
 		_, err := v.ToFloat64("a")
 		assert.NotEqual(t, err, nil)
 	})
 	t.Run("parse as float", func(t *testing.T) {
-		v := Row{"a": NewJsonString("-123.45")}
+		v := io_json.Row{"a": io_json.NewJsonString("-123.45")}
 		a, err := v.ToFloat64("a")
 		assert.Equal(t, err, nil)
 		assert.Equal(t, a, float64(-123.45))
@@ -371,13 +372,13 @@ func TestRow_ToFloat64_String(t *testing.T) {
 
 func TestRow_ToFloat64_Boolean(t *testing.T) {
 	t.Run("true", func(t *testing.T) {
-		v := Row{"a": NewJsonBoolean(true)}
+		v := io_json.Row{"a": io_json.NewJsonBoolean(true)}
 		a, err := v.ToFloat64("a")
 		assert.Equal(t, err, nil)
 		assert.Equal(t, a, float64(1.0))
 	})
 	t.Run("false", func(t *testing.T) {
-		v := Row{"a": NewJsonBoolean(false)}
+		v := io_json.Row{"a": io_json.NewJsonBoolean(false)}
 		a, err := v.ToFloat64("a")
 		assert.Equal(t, err, nil)
 		assert.Equal(t, a, float64(0.0))
@@ -385,33 +386,33 @@ func TestRow_ToFloat64_Boolean(t *testing.T) {
 }
 
 func TestRow_ToFloat64_Object(t *testing.T) {
-	v := Row{"a": NewJsonObjectEmpty()}
+	v := io_json.Row{"a": io_json.NewJsonObjectEmpty()}
 	_, err := v.ToFloat64("a")
 	assert.NotEqual(t, err, nil)
 }
 
 func TestRow_ToFloat64_Array(t *testing.T) {
-	v := Row{"a": NewJsonArrayEmpty()}
+	v := io_json.Row{"a": io_json.NewJsonArrayEmpty()}
 	_, err := v.ToFloat64("a")
 	assert.NotEqual(t, err, nil)
 }
 
 func TestRow_SetString(t *testing.T) {
-	v := Row{}
+	v := io_json.Row{}
 	v.SetString("a", "abc")
 	a, _ := v.ToString("a")
 	assert.Equal(t, a, "abc")
 }
 
 func TestRow_SetInt64(t *testing.T) {
-	v := Row{}
+	v := io_json.Row{}
 	v.SetInt64("a", int64(123))
 	a, _ := v.ToInt64("a")
 	assert.Equal(t, a, int64(123))
 }
 
 func TestRow_SetFloat64(t *testing.T) {
-	v := Row{}
+	v := io_json.Row{}
 	v.SetFloat64("a", float64(-123.45))
 	a, _ := v.ToFloat64("a")
 	assert.Equal(t, a, float64(-123.45))
@@ -419,13 +420,13 @@ func TestRow_SetFloat64(t *testing.T) {
 
 func TestRow_SetBool(t *testing.T) {
 	t.Run("true", func(t *testing.T) {
-		v := Row{}
+		v := io_json.Row{}
 		v.SetBool("a", true)
 		a, _ := v.ToBool("a")
 		assert.Equal(t, a, true)
 	})
 	t.Run("false", func(t *testing.T) {
-		v := Row{}
+		v := io_json.Row{}
 		v.SetBool("a", false)
 		a, _ := v.ToBool("a")
 		assert.Equal(t, a, false)
@@ -433,8 +434,8 @@ func TestRow_SetBool(t *testing.T) {
 }
 
 func TestRow_SetNil(t *testing.T) {
-	v := Row{}
+	v := io_json.Row{}
 	v.SetNil("a")
 	a, _ := v.GetJsonType("a")
-	assert.Equal(t, a, JsonTypeNull)
+	assert.Equal(t, a, io_json.JsonTypeNull)
 }

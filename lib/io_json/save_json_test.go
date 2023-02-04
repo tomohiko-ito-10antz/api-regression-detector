@@ -1,4 +1,4 @@
-package io_json
+package io_json_test
 
 import (
 	"bytes"
@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/Jumpaku/api-regression-detector/lib/io_json"
 	"github.com/Jumpaku/api-regression-detector/lib/io_json/mock"
 	"github.com/Jumpaku/api-regression-detector/test/assert"
 )
@@ -76,7 +77,7 @@ func TestSaveJson_Tables(t *testing.T) {
 		},
 	}
 	writer := mock.MockNamedBuffer{Buffer: bytes.NewBuffer(nil)}
-	err := SaveJson(v, writer)
+	err := io_json.SaveJson(v, writer)
 	assert.Equal(t, err, nil)
 	a := writer.Buffer.String()
 	eCompact := regexp.MustCompile(`\s`).ReplaceAllString(e, "")

@@ -1,22 +1,23 @@
-package db
+package db_test
 
 import (
 	"testing"
 
+	"github.com/Jumpaku/api-regression-detector/lib/db"
 	"github.com/Jumpaku/api-regression-detector/test/assert"
 	"golang.org/x/exp/slices"
 )
 
 func TestSchema_GetColumnNames(t *testing.T) {
-	v := Schema{
+	v := db.Schema{
 		PrimaryKeys: []string{"a", "b", "c"},
-		ColumnTypes: ColumnTypes{
-			"a": ColumnTypeBoolean,
-			"b": ColumnTypeFloat,
-			"c": ColumnTypeInteger,
-			"x": ColumnTypeString,
-			"y": ColumnTypeTime,
-			"z": ColumnTypeUnknown,
+		ColumnTypes: db.ColumnTypes{
+			"a": db.ColumnTypeBoolean,
+			"b": db.ColumnTypeFloat,
+			"c": db.ColumnTypeInteger,
+			"x": db.ColumnTypeString,
+			"y": db.ColumnTypeTime,
+			"z": db.ColumnTypeUnknown,
 		},
 	}
 	a := v.GetColumnNames()

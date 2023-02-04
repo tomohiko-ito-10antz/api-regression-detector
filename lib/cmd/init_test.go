@@ -1,16 +1,17 @@
-package cmd
+package cmd_test
 
 import (
 	"context"
 	"testing"
 
+	"github.com/Jumpaku/api-regression-detector/lib/cmd"
 	"github.com/Jumpaku/api-regression-detector/lib/cmd/mock"
 	"github.com/Jumpaku/api-regression-detector/lib/io_json"
 	"github.com/Jumpaku/api-regression-detector/test/assert"
 )
 
 func TestInit_OK(t *testing.T) {
-	err := Init(context.Background(),
+	err := cmd.Init(context.Background(),
 		mock.MockDB{},
 		io_json.Tables{
 			"mock_table": io_json.Table{Rows: []io_json.Row{
@@ -27,7 +28,7 @@ func TestInit_OK(t *testing.T) {
 	assert.Equal(t, err, nil)
 }
 func TestInit_NG_Table(t *testing.T) {
-	err := Init(context.Background(),
+	err := cmd.Init(context.Background(),
 		mock.MockDB{},
 		io_json.Tables{
 			"invalid_table": io_json.Table{Rows: []io_json.Row{
@@ -45,7 +46,7 @@ func TestInit_NG_Table(t *testing.T) {
 }
 
 func TestInit_NG_DB(t *testing.T) {
-	err := Init(context.Background(),
+	err := cmd.Init(context.Background(),
 		mock.MockDBErr{},
 		io_json.Tables{
 			"mock_table": io_json.Table{Rows: []io_json.Row{
@@ -62,7 +63,7 @@ func TestInit_NG_DB(t *testing.T) {
 	assert.NotEqual(t, err, nil)
 }
 func TestInit_NG_SchemaGetter(t *testing.T) {
-	err := Init(context.Background(),
+	err := cmd.Init(context.Background(),
 		mock.MockDB{},
 		io_json.Tables{
 			"mock_table": io_json.Table{Rows: []io_json.Row{
@@ -80,7 +81,7 @@ func TestInit_NG_SchemaGetter(t *testing.T) {
 }
 
 func TestInit_NG_RowClearer(t *testing.T) {
-	err := Init(context.Background(),
+	err := cmd.Init(context.Background(),
 		mock.MockDB{},
 		io_json.Tables{
 			"mock_table": io_json.Table{Rows: []io_json.Row{
@@ -98,7 +99,7 @@ func TestInit_NG_RowClearer(t *testing.T) {
 }
 
 func TestInit_NG_RowCreator(t *testing.T) {
-	err := Init(context.Background(),
+	err := cmd.Init(context.Background(),
 		mock.MockDB{},
 		io_json.Tables{
 			"mock_table": io_json.Table{Rows: []io_json.Row{

@@ -1,10 +1,11 @@
-package io_json
+package io_json_test
 
 import (
 	"bytes"
 	"encoding/json"
 	"testing"
 
+	"github.com/Jumpaku/api-regression-detector/lib/io_json"
 	"github.com/Jumpaku/api-regression-detector/lib/io_json/mock"
 	"github.com/Jumpaku/api-regression-detector/test/assert"
 )
@@ -43,7 +44,7 @@ func TestLoadJson_Tables(t *testing.T) {
 	]
 }`
 	reader := mock.MockNamedBuffer{Buffer: bytes.NewBufferString(v)}
-	a, err := LoadJson[map[string][]map[string]any](reader)
+	a, err := io_json.LoadJson[map[string][]map[string]any](reader)
 	assert.Equal(t, err, nil)
 	assert.Equal(t, len(a), 2)
 
@@ -89,7 +90,7 @@ func TestLoadJson_Tables(t *testing.T) {
 func TestLoadJson_TableNames(t *testing.T) {
 	v := `["t1", "t2"]`
 	reader := mock.MockNamedBuffer{Buffer: bytes.NewBufferString(v)}
-	a, err := LoadJson[[]any](reader)
+	a, err := io_json.LoadJson[[]any](reader)
 	assert.Equal(t, err, nil)
 	assert.Equal(t, len(a), 2)
 

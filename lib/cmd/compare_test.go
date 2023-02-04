@@ -1,9 +1,10 @@
-package cmd
+package cmd_test
 
 import (
 	"strings"
 	"testing"
 
+	"github.com/Jumpaku/api-regression-detector/lib/cmd"
 	"github.com/Jumpaku/api-regression-detector/test/assert"
 )
 
@@ -52,9 +53,9 @@ func TestCompare_FullMatch(t *testing.T) {
 		{}
 	]
 }`)
-	aResult, _, err := Compare(expectedJson, actualJson)
+	aResult, _, err := cmd.Compare(expectedJson, actualJson)
 	assert.Equal(t, err, nil)
-	assert.Equal(t, aResult, CompareResult_FullMatch)
+	assert.Equal(t, aResult, cmd.CompareResult_FullMatch)
 }
 
 func TestCompare_SupersetMatch(t *testing.T) {
@@ -105,9 +106,9 @@ func TestCompare_SupersetMatch(t *testing.T) {
 	],
 	"z": "extended"
 }`)
-	aResult, _, err := Compare(expectedJson, actualJson)
+	aResult, _, err := cmd.Compare(expectedJson, actualJson)
 	assert.Equal(t, err, nil)
-	assert.Equal(t, aResult, CompareResult_SupersetMatch)
+	assert.Equal(t, aResult, cmd.CompareResult_SupersetMatch)
 }
 
 func TestCompare_NoMatch(t *testing.T) {
@@ -156,9 +157,9 @@ func TestCompare_NoMatch(t *testing.T) {
 		{}
 	]
 }`)
-	aResult, _, err := Compare(expectedJson, actualJson)
+	aResult, _, err := cmd.Compare(expectedJson, actualJson)
 	assert.Equal(t, err, nil)
-	assert.Equal(t, aResult, CompareResult_NoMatch)
+	assert.Equal(t, aResult, cmd.CompareResult_NoMatch)
 }
 
 func TestCompare_Error(t *testing.T) {
@@ -209,7 +210,7 @@ func TestCompare_Error(t *testing.T) {
 		{}
 	]
 }`)
-	aResult, _, err := Compare(expectedJson, actualJson)
+	aResult, _, err := cmd.Compare(expectedJson, actualJson)
 	assert.Equal(t, err, nil)
-	assert.Equal(t, aResult, CompareResult_Error)
+	assert.Equal(t, aResult, cmd.CompareResult_Error)
 }
