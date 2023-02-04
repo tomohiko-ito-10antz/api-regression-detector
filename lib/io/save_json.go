@@ -2,12 +2,11 @@ package io
 
 import (
 	"encoding/json"
-	"os"
 
 	"github.com/Jumpaku/api-regression-detector/lib/log"
 )
 
-func SaveJson(jsonValue any, file *os.File) (err error) {
+func SaveJson[T any](jsonValue T, file NamedWriter) (err error) {
 	log.Stderr("OUTPUT JSON TO %s", file.Name())
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "    ")
