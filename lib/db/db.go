@@ -44,8 +44,7 @@ func (d *database) Open() error {
 }
 
 func (d *database) Close() error {
-	err := d.db.Close()
-	if err != nil {
+	if err := d.db.Close(); err != nil {
 		return errors.Wrap(errors.Join(err, errors.IOFailure), "fail to close database (driver=%s)", d.driver)
 	}
 

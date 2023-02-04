@@ -20,10 +20,12 @@ func (o schemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string)
 	if err != nil {
 		return db.Schema{}, err
 	}
+
 	primaryKeys, err := getPrimaryKeys(ctx, tx, tableName)
 	if err != nil {
 		return db.Schema{}, err
 	}
+
 	return db.Schema{
 		PrimaryKeys: primaryKeys,
 		ColumnTypes: columnTypes,

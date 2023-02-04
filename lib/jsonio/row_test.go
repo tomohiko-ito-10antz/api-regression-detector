@@ -77,40 +77,40 @@ func TestRow_GetColumnTypes(t *testing.T) {
 		"g": mustNewJson(map[string]any{}),
 		"h": mustNewJson([]any{}),
 	}
-	aA, err := v.GetJsonType("a")
-	assert.Equal(t, err, nil)
+	aA, ok := v.GetJsonType("a")
+	assert.Equal(t, ok, true)
 	assert.Equal(t, aA, jsonio.JsonTypeNumber)
 
-	aB, err := v.GetJsonType("b")
-	assert.Equal(t, err, nil)
+	aB, ok := v.GetJsonType("b")
+	assert.Equal(t, ok, true)
 	assert.Equal(t, aB, jsonio.JsonTypeNumber)
 
-	aC, err := v.GetJsonType("c")
-	assert.Equal(t, err, nil)
+	aC, ok := v.GetJsonType("c")
+	assert.Equal(t, ok, true)
 	assert.Equal(t, aC, jsonio.JsonTypeString)
 
-	aD, err := v.GetJsonType("d")
-	assert.Equal(t, err, nil)
+	aD, ok := v.GetJsonType("d")
+	assert.Equal(t, ok, true)
 	assert.Equal(t, aD, jsonio.JsonTypeNull)
 
-	aE, err := v.GetJsonType("e")
-	assert.Equal(t, err, nil)
+	aE, ok := v.GetJsonType("e")
+	assert.Equal(t, ok, true)
 	assert.Equal(t, aE, jsonio.JsonTypeBoolean)
 
-	aF, err := v.GetJsonType("f")
-	assert.Equal(t, err, nil)
+	aF, ok := v.GetJsonType("f")
+	assert.Equal(t, ok, true)
 	assert.Equal(t, aF, jsonio.JsonTypeBoolean)
 
-	aG, err := v.GetJsonType("g")
-	assert.Equal(t, err, nil)
+	aG, ok := v.GetJsonType("g")
+	assert.Equal(t, ok, true)
 	assert.Equal(t, aG, jsonio.JsonTypeObject)
 
-	aH, err := v.GetJsonType("h")
-	assert.Equal(t, err, nil)
+	aH, ok := v.GetJsonType("h")
+	assert.Equal(t, ok, true)
 	assert.Equal(t, aH, jsonio.JsonTypeArray)
 
-	_, err = v.GetJsonType("z")
-	assert.NotEqual(t, err, nil)
+	_, ok = v.GetJsonType("z")
+	assert.Equal(t, ok, false)
 }
 
 func TestRow_ToString_Null(t *testing.T) {

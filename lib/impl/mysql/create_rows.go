@@ -65,9 +65,9 @@ func (o insertOperation) CreateRows(
 		stmt += ")"
 	}
 
-	err := tx.Write(ctx, stmt, params)
-	if err != nil {
+	if err := tx.Write(ctx, stmt, params); err != nil {
 		return err
 	}
+
 	return nil
 }

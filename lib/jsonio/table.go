@@ -1,6 +1,8 @@
 package jsonio
 
-import "fmt"
+import (
+	"github.com/Jumpaku/api-regression-detector/lib/errors"
+)
 
 type Table struct {
 	Rows []Row
@@ -25,7 +27,9 @@ func TableFromJson(json map[string][]map[string]any) (Tables, error) {
 			for columnName, columnValue := range rowObj {
 				jsonVal, err := NewJson(columnValue)
 				if err != nil {
-					return nil, err
+					return nil, errors.Wrap(
+						errors.Join(err, errors.BadConversion),
+						"fail to parse JSON primitive %v:%T of column %s", columnName, columnValue, columnValue)
 				}
 
 				row[columnName] = jsonVal
@@ -53,23 +57,31 @@ func TableToJson(tables Tables) (json map[string][]map[string]any, err error) {
 				case JsonTypeBoolean:
 					rowObj[columnName], err = columnValue.ToBool()
 					if err != nil {
-						return nil, err
+						return nil, errors.Wrap(
+							errors.Join(err, errors.BadConversion),
+							"fail to parse %v column value %v:%T of %s as JSON primitive", columnValue.Type, columnValue, columnValue, columnName)
 					}
 				case JsonTypeNumber:
 					rowObj[columnName], err = columnValue.ToInt64()
 					if err != nil {
 						rowObj[columnName], err = columnValue.ToFloat64()
 						if err != nil {
-							return nil, err
+							return nil, errors.Wrap(
+								errors.Join(err, errors.BadConversion),
+								"fail to parse %v column value %v:%T of %s as JSON primitive", columnValue.Type, columnValue, columnValue, columnName)
 						}
 					}
 				case JsonTypeString:
 					rowObj[columnName], err = columnValue.ToString()
 					if err != nil {
-						return nil, err
+						return nil, errors.Wrap(
+							errors.Join(err, errors.BadConversion),
+							"fail to parse %v column value %v:%T of %s as JSON primitive", columnValue.Type, columnValue, columnValue, columnName)
 					}
 				default:
-					return nil, fmt.Errorf("unsupported value %v of type %v", columnValue, columnValue.Type)
+					return nil, errors.Wrap(
+						errors.Join(err, errors.BadConversion, errors.Unsupported),
+						"unsupported conversion for column %s of type %v to JSON primitive", columnValue, columnValue.Type)
 				}
 			}
 

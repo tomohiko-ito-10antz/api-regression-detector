@@ -1,27 +1,16 @@
 package impl
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/Jumpaku/api-regression-detector/lib/db"
+	"github.com/Jumpaku/api-regression-detector/lib/errors"
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
 )
 
 func ExtractColumnValueAsDB(row jsonio.Row, columnName string, dbType db.ColumnType) (any, error) {
-	isNull := false
-	if !row.Has(columnName) {
-		isNull = true
-	} else {
-		jsonType, err := row.GetJsonType(columnName)
-		if err != nil {
-			return nil, err
-		}
-
-		if jsonType == jsonio.JsonTypeNull {
-			isNull = true
-		}
-	}
+	jsonType, ok := row.GetJsonType(columnName)
+	isNull := !ok || jsonType == jsonio.JsonTypeNull
 
 	switch dbType {
 	case db.ColumnTypeBoolean:
@@ -31,7 +20,9 @@ func ExtractColumnValueAsDB(row jsonio.Row, columnName string, dbType db.ColumnT
 
 		val, err := row.ToBool(columnName)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(
+				errors.Join(err, errors.BadConversion),
+				"fail to convert value of column %s to bool (json type=%v,db type=%v)", columnName, jsonType, dbType)
 		}
 
 		return val, nil
@@ -42,7 +33,9 @@ func ExtractColumnValueAsDB(row jsonio.Row, columnName string, dbType db.ColumnT
 
 		val, err := row.ToInt64(columnName)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(
+				errors.Join(err, errors.BadConversion),
+				"fail to convert value of column %s to int64 (json type=%v,db type=%v)", columnName, jsonType, dbType)
 		}
 
 		return val, nil
@@ -53,7 +46,9 @@ func ExtractColumnValueAsDB(row jsonio.Row, columnName string, dbType db.ColumnT
 
 		val, err := row.ToFloat64(columnName)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(
+				errors.Join(err, errors.BadConversion),
+				"fail to convert value of column %s to float64 (json type=%v,db type=%v)", columnName, jsonType, dbType)
 		}
 
 		return val, nil
@@ -64,7 +59,9 @@ func ExtractColumnValueAsDB(row jsonio.Row, columnName string, dbType db.ColumnT
 
 		val, err := row.ToString(columnName)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(
+				errors.Join(err, errors.BadConversion),
+				"fail to convert value of column %s to string (json type=%v,db type=%v)", columnName, jsonType, dbType)
 		}
 
 		return val, nil
@@ -75,16 +72,20 @@ func ExtractColumnValueAsDB(row jsonio.Row, columnName string, dbType db.ColumnT
 
 		val, err := row.ToString(columnName)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(
+				errors.Join(err, errors.BadConversion),
+				"fail to convert value of column %s to time.Time (json type=%v,db type=%v)", columnName, jsonType, dbType)
 		}
 
 		t, err := time.Parse(time.RFC3339, val)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(
+				errors.Join(err, errors.BadConversion),
+				"fail to convert value of column %s to time.Time (json type=%v,db type=%v)", columnName, jsonType, dbType)
 		}
 
 		return t, nil
 	default:
-		return nil, fmt.Errorf("unexpected database column type %s", dbType)
+		return nil, errors.Wrap(errors.Join(errors.BadArgs), "unexpected DB column type %v of column %s", dbType, columnName)
 	}
 }

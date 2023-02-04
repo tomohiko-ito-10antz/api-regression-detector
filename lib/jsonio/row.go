@@ -1,7 +1,7 @@
 package jsonio
 
 import (
-	"fmt"
+	"github.com/Jumpaku/api-regression-detector/lib/errors"
 )
 
 type Row map[string]*JsonValue
@@ -21,49 +21,85 @@ func (row Row) Has(columnName string) bool {
 	return exists
 }
 
-func (row Row) GetJsonType(columnName string) (jsonType jsonType, err error) {
+func (row Row) GetJsonType(columnName string) (jsonType, bool) {
 	val, exists := row[columnName]
 	if !exists {
-		return "", fmt.Errorf("column %s not found in JsonRow", columnName)
+		return JsonTypeUnknown, false
 	}
 
-	return val.Type, nil
+	return val.Type, true
 }
 
 func (row Row) ToString(columnName string) (string, error) {
 	val, ok := row[columnName]
 	if !ok {
-		return "", fmt.Errorf("column %s not found in JsonRow", columnName)
+		return "", errors.Wrap(
+			errors.BadKeyAccess,
+			"column %s not found in JsonRow", columnName)
 	}
 
-	return val.ToString()
+	v, err := val.ToString()
+	if err != nil {
+		return "", errors.Wrap(
+			errors.BadConversion,
+			"fail to convert value %v:%T of column %s to string", val, val, columnName)
+	}
+
+	return v, nil
 }
 
 func (row Row) ToBool(columnName string) (bool, error) {
 	val, ok := row[columnName]
 	if !ok {
-		return false, fmt.Errorf("column %s not found in JsonRow", columnName)
+		return false, errors.Wrap(
+			errors.BadKeyAccess,
+			"column %s not found in JsonRow", columnName)
 	}
 
-	return val.ToBool()
+	v, err := val.ToBool()
+	if err != nil {
+		return false, errors.Wrap(
+			errors.BadConversion,
+			"fail to convert value %v:%T of column %s to bool", val, val, columnName)
+	}
+
+	return v, nil
 }
 
 func (row Row) ToInt64(columnName string) (int64, error) {
 	val, ok := row[columnName]
 	if !ok {
-		return 0, fmt.Errorf("column %s not found in JsonRow", columnName)
+		return 0, errors.Wrap(
+			errors.BadKeyAccess,
+			"column %s not found in JsonRow", columnName)
 	}
 
-	return val.ToInt64()
+	v, err := val.ToInt64()
+	if err != nil {
+		return 0, errors.Wrap(
+			errors.BadConversion,
+			"fail to convert value %v:%T of column %s to int64", val, val, columnName)
+	}
+
+	return v, nil
 }
 
 func (row Row) ToFloat64(columnName string) (float64, error) {
 	val, ok := row[columnName]
 	if !ok {
-		return 0, fmt.Errorf("column %s not found in JsonRow", columnName)
+		return 0, errors.Wrap(
+			errors.BadKeyAccess,
+			"column %s not found in JsonRow", columnName)
 	}
 
-	return val.ToFloat64()
+	v, err := val.ToFloat64()
+	if err != nil {
+		return 0, errors.Wrap(
+			errors.BadConversion,
+			"fail to convert value %v:%T of column %s to float64", val, val, columnName)
+	}
+
+	return v, nil
 }
 
 func (row Row) SetString(columnName string, val string) {

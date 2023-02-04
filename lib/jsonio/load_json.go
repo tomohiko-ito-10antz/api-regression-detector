@@ -3,6 +3,7 @@ package jsonio
 import (
 	"encoding/json"
 
+	"github.com/Jumpaku/api-regression-detector/lib/errors"
 	"github.com/Jumpaku/api-regression-detector/lib/log"
 )
 
@@ -13,7 +14,7 @@ func LoadJson[T any](file NamedReader) (T, error) {
 
 	var jsonValue T
 	if err := decoder.Decode(&jsonValue); err != nil {
-		return jsonValue, err
+		return jsonValue, errors.Wrap(errors.Join(err, errors.BadJSON), "fail to decode JSON from %s", file.Name())
 	}
 
 	return jsonValue, nil

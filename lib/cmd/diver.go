@@ -34,8 +34,7 @@ type Driver struct {
 }
 
 func (d *Driver) Close() error {
-	err := d.DB.Close()
-	if err != nil {
+	if err := d.DB.Close(); err != nil {
 		return errors.Wrap(errors.Join(err, errors.IOFailure), "fail to close database")
 	}
 
@@ -51,8 +50,7 @@ func (d *Driver) Open(connectionString string) error {
 
 	d.DB = db.NewDB(d.Name, connectionString)
 
-	err := d.DB.Open()
-	if err != nil {
+	if err := d.DB.Open(); err != nil {
 		return errors.Wrap(err, "fail to open database")
 	}
 
