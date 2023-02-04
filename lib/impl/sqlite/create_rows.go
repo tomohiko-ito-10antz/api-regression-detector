@@ -25,7 +25,7 @@ func (o insertOperation) CreateRows(
 	tableName string,
 	schema db.Schema,
 	rows []jsonio.Row,
-) (err error) {
+) error {
 	columnTypes := schema.ColumnTypes
 	if len(columnTypes) == 0 {
 		return nil
@@ -55,7 +55,7 @@ func (o insertOperation) CreateRows(
 		}
 		stmt += ")"
 	}
-	err = tx.Write(ctx, stmt, params)
+	err := tx.Write(ctx, stmt, params)
 	if err != nil {
 		return err
 	}

@@ -203,6 +203,7 @@ func (v *JsonValue) ToInt64() (int64, error) {
 		if v.booleanValue {
 			return 1, nil
 		}
+
 		return 0, nil
 	case JsonTypeNull:
 		return 0, nil
@@ -211,6 +212,7 @@ func (v *JsonValue) ToInt64() (int64, error) {
 		if err != nil {
 			return 0, fmt.Errorf("cannot convert string value %v to int64", v.stringValue)
 		}
+
 		return i, nil
 	default:
 		return 0, fmt.Errorf("cannot convert value of %v to int64", v.Type)
@@ -224,6 +226,7 @@ func (v *JsonValue) ToFloat64() (float64, error) {
 		if err != nil {
 			return 0, fmt.Errorf("cannot convert number value %v to float64", json.Number(v.numberValue).String())
 		}
+
 		return f, nil
 	case JsonTypeBoolean:
 		if v.booleanValue {
