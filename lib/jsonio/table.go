@@ -12,11 +12,12 @@ func (tables Tables) GetTableNames() []string {
 	for tableName := range tables {
 		tableNames = append(tableNames, tableName)
 	}
+
 	return tableNames
 }
 
-func TableFromJson(json map[string][]map[string]any) (tables Tables, err error) {
-	tables = Tables{}
+func TableFromJson(json map[string][]map[string]any) (Tables, error) {
+	tables := Tables{}
 	for tableName, rowsArr := range json {
 		rows := []Row{}
 		for _, rowObj := range rowsArr {
@@ -26,12 +27,16 @@ func TableFromJson(json map[string][]map[string]any) (tables Tables, err error) 
 				if err != nil {
 					return nil, err
 				}
+
 				row[columnName] = jsonVal
 			}
+
 			rows = append(rows, row)
 		}
+
 		tables[tableName] = Table{Rows: rows}
 	}
+
 	return tables, nil
 }
 
@@ -67,9 +72,12 @@ func TableToJson(tables Tables) (json map[string][]map[string]any, err error) {
 					return nil, fmt.Errorf("unsupported value %v of type %v", columnValue, columnValue.Type)
 				}
 			}
+
 			rowArr = append(rowArr, rowObj)
 		}
+
 		json[tableName] = rowArr
 	}
+
 	return json, nil
 }

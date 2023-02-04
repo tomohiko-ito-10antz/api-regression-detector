@@ -20,10 +20,12 @@ func (o schemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string)
 	if err != nil {
 		return db.Schema{}, err
 	}
+
 	primaryKeys, err := getPrimaryKeys(ctx, tx, tableName)
 	if err != nil {
 		return db.Schema{}, err
 	}
+
 	return db.Schema{
 		ColumnTypes: columnTypes,
 		PrimaryKeys: primaryKeys,
@@ -35,6 +37,7 @@ func getColumnTypes(ctx context.Context, tx db.Tx, table string) (db.ColumnTypes
 	if err != nil {
 		return nil, err
 	}
+
 	columnTypes := db.ColumnTypes{}
 	for _, row := range rows {
 		columnName, ok := row["name"]
@@ -63,6 +66,7 @@ func getColumnTypes(ctx context.Context, tx db.Tx, table string) (db.ColumnTypes
 			}
 			return false
 		}
+
 		switch {
 		case startsWithAny("BOOL", "TINYINT(1)"):
 			columnTypes[col] = db.ColumnTypeBoolean
@@ -76,6 +80,7 @@ func getColumnTypes(ctx context.Context, tx db.Tx, table string) (db.ColumnTypes
 			columnTypes[col] = db.ColumnTypeString
 		}
 	}
+
 	return columnTypes, nil
 }
 
@@ -84,17 +89,21 @@ func getPrimaryKeys(ctx context.Context, tx db.Tx, table string) ([]string, erro
 	if err != nil {
 		return nil, err
 	}
+
 	primaryKeys := []string{}
 	for _, row := range rows {
 		columnName, ok := row["name"]
 		if !ok {
 			return nil, fmt.Errorf("column %s not found", "name")
 		}
+
 		columnNameString, err := columnName.AsString()
 		if err != nil {
 			return nil, err
 		}
+
 		primaryKeys = append(primaryKeys, columnNameString.String)
 	}
+
 	return primaryKeys, nil
 }

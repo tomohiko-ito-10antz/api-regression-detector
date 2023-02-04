@@ -214,6 +214,7 @@ func TestToString_Float64(t *testing.T) {
 	v := jsonio.NewJsonNumberFloat64(-123.45)
 	a, err := v.ToString()
 	assert.Equal(t, err, nil)
+
 	if !strings.HasPrefix(a, "-123.45") {
 		t.Errorf("expect: %v, actual: %v", "-123.45", a)
 	}
@@ -500,6 +501,7 @@ func TestJsonObject(t *testing.T) {
 		a := o.Keys()
 		assert.Equal(t, len(a), 0)
 	})
+
 	v, _ := jsonio.NewJson(map[string]any{
 		"x": map[string]any{
 			"a": int64(123),
@@ -656,6 +658,7 @@ func TestJsonArray(t *testing.T) {
 		arr, _ := v.AsArray()
 		assert.Equal(t, arr.Len(), 0)
 	})
+
 	v, _ := jsonio.NewJson([]any{
 		map[string]any{
 			"a": int64(123),

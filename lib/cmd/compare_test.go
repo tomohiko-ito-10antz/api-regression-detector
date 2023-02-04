@@ -31,6 +31,7 @@ func TestCompare_FullMatch(t *testing.T) {
 		{}
 	]
 }`)
+
 	actualJson := strings.NewReader(`{
 	"x": {
 		"a": "abc",
@@ -81,6 +82,7 @@ func TestCompare_SupersetMatch(t *testing.T) {
 		{}
 	]
 }`)
+
 	actualJson := strings.NewReader(`{
 	"x": {
 		"a": "abc",

@@ -85,7 +85,9 @@ func (v ColumnValue) AsInteger() (NullInteger, error) {
 	if !rv.IsValid() {
 		return NullInteger{}, nil
 	}
+
 	val := v.value
+
 	if rv.Kind() == reflect.Pointer {
 		switch rv.Type().Elem().Kind() {
 		default:
@@ -93,9 +95,11 @@ func (v ColumnValue) AsInteger() (NullInteger, error) {
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		}
+
 		if rv.IsNil() {
 			return NullInteger{}, nil
 		}
+
 		val = rv.Elem().Interface()
 	}
 
@@ -138,16 +142,20 @@ func (v ColumnValue) AsFloat() (NullFloat, error) {
 	if !rv.IsValid() {
 		return NullFloat{}, nil
 	}
+
 	val := v.value
+
 	if rv.Kind() == reflect.Pointer {
 		switch rv.Type().Elem().Kind() {
 		default:
 			return NullFloat{}, fmt.Errorf("value %v:%T not compatible to float64", v.value, v.value)
 		case reflect.Float32, reflect.Float64:
 		}
+
 		if rv.IsNil() {
 			return NullFloat{}, nil
 		}
+
 		val = rv.Elem().Interface()
 	}
 

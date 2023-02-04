@@ -18,6 +18,7 @@ func RunInit(databaseDriver string, connectionString string) (code int, err erro
 	if err != nil {
 		return 1, err
 	}
+
 	defer func() {
 		err = multierr.Combine(err, driver.Close())
 		if err != nil {

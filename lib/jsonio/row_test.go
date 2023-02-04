@@ -15,6 +15,7 @@ func mustNewJson(val any) *jsonio.JsonValue {
 	if err != nil {
 		panic(fmt.Sprintf("cannot create jsonio.JsonValue of %v:%T", val, val))
 	}
+
 	return v
 }
 
@@ -79,27 +80,35 @@ func TestRow_GetColumnTypes(t *testing.T) {
 	aA, err := v.GetJsonType("a")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, aA, jsonio.JsonTypeNumber)
+
 	aB, err := v.GetJsonType("b")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, aB, jsonio.JsonTypeNumber)
+
 	aC, err := v.GetJsonType("c")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, aC, jsonio.JsonTypeString)
+
 	aD, err := v.GetJsonType("d")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, aD, jsonio.JsonTypeNull)
+
 	aE, err := v.GetJsonType("e")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, aE, jsonio.JsonTypeBoolean)
+
 	aF, err := v.GetJsonType("f")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, aF, jsonio.JsonTypeBoolean)
+
 	aG, err := v.GetJsonType("g")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, aG, jsonio.JsonTypeObject)
+
 	aH, err := v.GetJsonType("h")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, aH, jsonio.JsonTypeArray)
+
 	_, err = v.GetJsonType("z")
 	assert.NotEqual(t, err, nil)
 }
@@ -122,6 +131,7 @@ func TestRow_ToString_Float64(t *testing.T) {
 	v := jsonio.Row{"a": jsonio.NewJsonNumberFloat64(-123.45)}
 	a, err := v.ToString("a")
 	assert.Equal(t, err, nil)
+
 	if !strings.HasPrefix(a, "-123.45") {
 		t.Errorf("expect: %v, actual: %v", "-123.45", a)
 	}

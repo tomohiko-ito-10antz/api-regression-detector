@@ -21,9 +21,11 @@ func (o truncateOperation) ClearRows(ctx context.Context, tx db.Tx, table string
 	if err != nil {
 		return err
 	}
+
 	err = tx.Write(ctx, fmt.Sprintf(`ALTER TABLE %s AUTO_INCREMENT = 1`, table), nil)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

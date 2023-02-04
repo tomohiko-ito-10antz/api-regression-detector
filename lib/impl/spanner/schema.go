@@ -36,6 +36,7 @@ func getColumnTypes(ctx context.Context, tx db.Tx, table string) (columnTypes db
 	if err != nil {
 		return nil, err
 	}
+
 	columnTypes = db.ColumnTypes{}
 	for _, row := range rows {
 		columnName, ok := row["column_name"]
@@ -56,6 +57,7 @@ func getColumnTypes(ctx context.Context, tx db.Tx, table string) (columnTypes db
 			}
 			return false
 		}
+
 		switch {
 		case startsWithAny("BOOL"):
 			columnTypes[col.String] = db.ColumnTypeBoolean
@@ -90,6 +92,7 @@ ORDER BY
 	if err != nil {
 		return nil, err
 	}
+
 	primaryKeys := []string{}
 	for _, row := range rows {
 		columnName, ok := row["column_name"]

@@ -24,7 +24,9 @@ func runTransaction(ctx context.Context, db *sql.DB, handler func(ctx context.Co
 	if err != nil {
 		return err
 	}
+
 	defer func() { err = rollback(ctx, tx, err) }()
+
 	err = handler(ctx, &transaction{tx: tx})
 	if err != nil {
 		return err
@@ -35,6 +37,7 @@ func runTransaction(ctx context.Context, db *sql.DB, handler func(ctx context.Co
 
 func (e *transaction) Write(ctx context.Context, stmt string, params []any) error {
 	log.Stderr("SQL\n\tstatement: %v\n\tparams   : %v", stmt, paramsToStrings(params))
+
 	_, err := e.tx.Exec(stmt, params...)
 	if err != nil {
 		return err
@@ -45,6 +48,7 @@ func (e *transaction) Write(ctx context.Context, stmt string, params []any) erro
 
 func (e *transaction) Read(ctx context.Context, stmt string, params []any) ([]Row, error) {
 	log.Stderr("SQL\n\tstatement: %v\n\tparams   : %v", stmt, paramsToStrings(params))
+
 	itr, err := e.tx.Query(stmt, params...)
 	if err != nil {
 		return nil, err
@@ -53,6 +57,7 @@ func (e *transaction) Read(ctx context.Context, stmt string, params []any) ([]Ro
 	defer func() {
 		err = multierr.Combine(err, itr.Close())
 	}()
+
 	rows := []Row{}
 
 	for itr.Next() {
@@ -60,6 +65,7 @@ func (e *transaction) Read(ctx context.Context, stmt string, params []any) ([]Ro
 		if err != nil {
 			return nil, err
 		}
+
 		columnCount := len(columns)
 		pointers := make([]any, columnCount)
 		values := make([]any, columnCount)
@@ -67,15 +73,17 @@ func (e *transaction) Read(ctx context.Context, stmt string, params []any) ([]Ro
 		for i := 0; i < columnCount; i++ {
 			pointers[i] = &values[i]
 		}
+
 		err = itr.Scan(pointers...)
 		if err != nil {
 			return nil, err
 		}
-		row := Row{}
 
+		row := Row{}
 		for i, column := range columns {
 			row[column] = UnknownTypeColumnValue(values[i])
 		}
+
 		rows = append(rows, row)
 	}
 
@@ -96,6 +104,7 @@ func commit(ctx context.Context, tx *sql.Tx) error {
 
 func paramsToStrings(params []any) []string {
 	strArr := []string{}
+
 	for _, param := range params {
 		rv := reflect.ValueOf(param)
 

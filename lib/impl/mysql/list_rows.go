@@ -20,10 +20,12 @@ var _ cmd.RowLister = selectOperation{}
 
 func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema) (rows []db.Row, err error) {
 	stmt := fmt.Sprintf(`SELECT * FROM %s ORDER BY %s`, tableName, strings.Join(schema.PrimaryKeys, ", "))
+
 	rows, err = tx.Read(ctx, stmt, nil)
 	if err != nil {
 		return nil, err
 	}
+
 	out := db.Table{}
 	for _, row := range rows {
 		outRow := db.Row{}
@@ -32,14 +34,17 @@ func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName strin
 			if !ok {
 				return nil, fmt.Errorf("column %s not found", columnName)
 			}
+
 			colBytes, err := col.AsBytes()
 			if err != nil {
 				return nil, err
 			}
+
 			typ, exists := schema.ColumnTypes[columnName]
 			if !exists {
 				return nil, fmt.Errorf("column %s not found", columnName)
 			}
+
 			var val any
 
 			switch typ {
@@ -49,6 +54,7 @@ func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName strin
 					if err != nil {
 						return nil, err
 					}
+
 					val = v
 				}
 			case db.ColumnTypeInteger:
@@ -57,6 +63,7 @@ func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName strin
 					if err != nil {
 						return nil, err
 					}
+
 					val = v
 				}
 			case db.ColumnTypeFloat:
@@ -65,6 +72,7 @@ func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName strin
 					if err != nil {
 						return nil, err
 					}
+
 					val = v
 				}
 			case db.ColumnTypeTime, db.ColumnTypeString:
@@ -75,9 +83,12 @@ func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName strin
 			default:
 				return nil, fmt.Errorf("unexpected type %v of column %s not found", typ, columnName)
 			}
+
 			outRow[columnName] = db.NewColumnValue(val, typ)
 		}
+
 		out.Rows = append(out.Rows, outRow)
 	}
+
 	return out.Rows, nil
 }

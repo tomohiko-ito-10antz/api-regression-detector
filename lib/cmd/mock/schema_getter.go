@@ -13,6 +13,7 @@ func (SchemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string) (
 	if tableName != "mock_table" {
 		return db.Schema{}, fmt.Errorf("table %s not found", tableName)
 	}
+
 	return db.Schema{
 		PrimaryKeys: []string{"column_a", "column_b", "column_c"},
 		ColumnTypes: db.ColumnTypes{

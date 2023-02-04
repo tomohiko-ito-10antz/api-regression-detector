@@ -20,23 +20,27 @@ func (o schemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string)
 	if err != nil {
 		return db.Schema{}, err
 	}
+
 	primaryKeys, err := getPrimaryKeys(ctx, tx, tableName)
 	if err != nil {
 		return db.Schema{}, err
 	}
+
 	return db.Schema{
 		ColumnTypes: columnTypes,
 		PrimaryKeys: primaryKeys,
 	}, nil
 }
 
-func getColumnTypes(ctx context.Context, tx db.Tx, table string) (columnTypes db.ColumnTypes, err error) {
+func getColumnTypes(ctx context.Context, tx db.Tx, table string) (db.ColumnTypes, error) {
 	stmt := `SELECT column_name, data_type FROM information_schema.columns WHERE table_name = $1`
+
 	rows, err := tx.Read(ctx, stmt, []any{table})
 	if err != nil {
 		return nil, err
 	}
-	columnTypes = db.ColumnTypes{}
+
+	columnTypes := db.ColumnTypes{}
 	for _, row := range rows {
 		columnName, ok := row["column_name"]
 		if !ok {
@@ -65,8 +69,10 @@ func getColumnTypes(ctx context.Context, tx db.Tx, table string) (columnTypes db
 					return true
 				}
 			}
+
 			return false
 		}
+
 		switch {
 		case startsWithAny("bool"):
 			columnTypes[col] = db.ColumnTypeBoolean
@@ -80,6 +86,7 @@ func getColumnTypes(ctx context.Context, tx db.Tx, table string) (columnTypes db
 			columnTypes[col] = db.ColumnTypeString
 		}
 	}
+
 	return columnTypes, nil
 }
 
@@ -101,14 +108,17 @@ ORDER BY
 	if err != nil {
 		return nil, err
 	}
+
 	primaryKeys := []string{}
 	for _, row := range rows {
 		columnName, ok := row["column_name"]
 		if !ok {
 			return nil, fmt.Errorf("column %s not found", "column_name")
 		}
+
 		col, _ := columnName.AsString()
 		primaryKeys = append(primaryKeys, col.String)
 	}
+
 	return primaryKeys, nil
 }

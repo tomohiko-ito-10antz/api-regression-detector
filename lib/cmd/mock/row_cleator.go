@@ -20,6 +20,7 @@ func (RowCreator) CreateRows(
 	if tableName != "mock_table" {
 		return fmt.Errorf("table %s not found", tableName)
 	}
+
 	return nil
 }
 

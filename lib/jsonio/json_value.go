@@ -81,13 +81,16 @@ func NewJson(valAny any) (jv *JsonValue, err error) {
 	case bool:
 		return NewJsonBoolean(val), nil
 	}
+
 	rv := reflect.ValueOf(valAny)
 
 	switch rv.Kind() {
 	case reflect.Slice:
 		arrayValue := JsonArray{}
+
 		for i := 0; i < rv.Len(); i++ {
 			rvi := rv.Index(i)
+
 			var vi *JsonValue
 
 			if !rvi.IsValid() {
@@ -108,6 +111,7 @@ func NewJson(valAny any) (jv *JsonValue, err error) {
 		return &JsonValue{Type: JsonTypeArray, arrayValue: arrayValue}, nil
 	case reflect.Map:
 		objectValue := JsonObject{}
+
 		for _, rvKey := range rv.MapKeys() {
 			rvVal := rv.MapIndex(rvKey)
 
@@ -173,6 +177,7 @@ func (v *JsonValue) ToBool() (bool, error) {
 		if v, e := json.Number(v.numberValue).Int64(); e == nil {
 			return v != 0, nil
 		}
+
 		if v, e := json.Number(v.numberValue).Float64(); e == nil {
 			return v != 0.0, nil
 		}
@@ -190,6 +195,7 @@ func (v *JsonValue) ToInt64() (int64, error) {
 		// regexr.com/776pj
 		if regexp.MustCompile(`^-?(0|([1-9][0-9]*))(\.0+)?$`).MatchString(text) {
 			text = regexp.MustCompile(`(\.0+)?$`).ReplaceAllString(text, "")
+
 			i, err := json.Number(text).Int64()
 			if err != nil {
 				return 0, fmt.Errorf("cannot convert number value %v to int64", v.numberValue)
@@ -232,6 +238,7 @@ func (v *JsonValue) ToFloat64() (float64, error) {
 		if v.booleanValue {
 			return 1, nil
 		}
+
 		return 0, nil
 	case JsonTypeNull:
 		return 0, nil
@@ -240,6 +247,7 @@ func (v *JsonValue) ToFloat64() (float64, error) {
 		if err != nil {
 			return 0, fmt.Errorf("cannot convert string value %v to float64", v.stringValue)
 		}
+
 		return f, nil
 	default:
 		return 0, fmt.Errorf("cannot convert value of %v to float64", v.Type)
@@ -250,6 +258,7 @@ func (v *JsonValue) AsObject() (JsonObject, error) {
 	if v.Type != JsonTypeObject {
 		return nil, fmt.Errorf("AsObject must be called with JsonValue of type JsonTypeObject")
 	}
+
 	return v.objectValue, nil
 }
 
@@ -257,6 +266,7 @@ func (v *JsonValue) AsArray() (JsonArray, error) {
 	if v.Type != JsonTypeArray {
 		return nil, fmt.Errorf("AsArray must be called with JsonValue of type JsonTypeArray")
 	}
+
 	return v.arrayValue, nil
 }
 
@@ -265,6 +275,7 @@ func (o JsonObject) Keys() []string {
 	for k := range o {
 		keys = append(keys, k)
 	}
+
 	return keys
 }
 
@@ -273,6 +284,7 @@ func (o JsonObject) Get(key string) (*JsonValue, error) {
 	if !ok {
 		return nil, fmt.Errorf("value not found for key %s", key)
 	}
+
 	return val, nil
 }
 
@@ -298,6 +310,7 @@ func (a JsonArray) Get(i int) (*JsonValue, error) {
 	if i >= len(a) {
 		return nil, fmt.Errorf("value not found for index %v (len %v)", i, len(a))
 	}
+
 	return a[i], nil
 }
 
@@ -305,10 +318,13 @@ func (a JsonArray) Set(i int, val *JsonValue) error {
 	if i >= len(a) {
 		return fmt.Errorf("value not found for index %v (len %v)", i, len(a))
 	}
+
 	if val == nil {
 		val = NewJsonNull()
 	}
+
 	a[i] = val
+
 	return nil
 }
 

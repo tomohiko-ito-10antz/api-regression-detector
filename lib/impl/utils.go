@@ -17,6 +17,7 @@ func ExtractColumnValueAsDB(row jsonio.Row, columnName string, dbType db.ColumnT
 		if err != nil {
 			return nil, err
 		}
+
 		if jsonType == jsonio.JsonTypeNull {
 			isNull = true
 		}
@@ -27,50 +28,61 @@ func ExtractColumnValueAsDB(row jsonio.Row, columnName string, dbType db.ColumnT
 		if isNull {
 			return (*bool)(nil), nil
 		}
+
 		val, err := row.ToBool(columnName)
 		if err != nil {
 			return nil, err
 		}
+
 		return val, nil
 	case db.ColumnTypeInteger:
 		if isNull {
 			return (*int64)(nil), nil
 		}
+
 		val, err := row.ToInt64(columnName)
 		if err != nil {
 			return nil, err
 		}
+
 		return val, nil
 	case db.ColumnTypeFloat:
 		if isNull {
 			return (*float64)(nil), nil
 		}
+
 		val, err := row.ToFloat64(columnName)
 		if err != nil {
 			return nil, err
 		}
+
 		return val, nil
 	case db.ColumnTypeString:
 		if isNull {
 			return (*string)(nil), nil
 		}
+
 		val, err := row.ToString(columnName)
 		if err != nil {
 			return nil, err
 		}
+
 		return val, nil
 	case db.ColumnTypeTime:
 		if isNull {
 			return (*time.Time)(nil), nil
 		}
+
 		val, err := row.ToString(columnName)
 		if err != nil {
 			return nil, err
 		}
+
 		t, err := time.Parse(time.RFC3339, val)
 		if err != nil {
 			return nil, err
 		}
+
 		return t, nil
 	default:
 		return nil, fmt.Errorf("unexpected database column type %s", dbType)

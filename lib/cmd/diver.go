@@ -43,6 +43,7 @@ func (d *Driver) Open(connectionString string) error {
 		return fmt.Errorf("invalid driver name")
 	case "mysql", "postgres", "sqlite3", "spanner":
 	}
+
 	d.DB = db.NewDB(d.Name, connectionString)
 
 	return d.DB.Open()

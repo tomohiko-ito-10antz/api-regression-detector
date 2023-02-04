@@ -21,5 +21,6 @@ func (o truncateOperation) ClearRows(ctx context.Context, tx db.Tx, table string
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

@@ -39,32 +39,32 @@ WHERE table_name = ?`, []any{table})
 	if err != nil {
 		return nil, err
 	}
+
 	columnTypes = db.ColumnTypes{}
 	for _, row := range rows {
-		col := ""
-		{
-			columnName, ok := row["column_name"]
-			if !ok {
-				return nil, fmt.Errorf("column %s not found", "column_name")
-			}
-			columnNameBytes, err := columnName.AsBytes()
-			if err != nil {
-				return nil, err
-			}
-			col = string(columnNameBytes.Bytes)
+		columnName, ok := row["column_name"]
+		if !ok {
+			return nil, fmt.Errorf("column %s not found", "column_name")
 		}
-		typ := ""
-		{
-			columnType, ok := row["column_type"]
-			if !ok {
-				return nil, fmt.Errorf("column %s not found", "column_type")
-			}
-			columnTypeBytes, err := columnType.AsBytes()
-			if err != nil {
-				return nil, err
-			}
-			typ = string(columnTypeBytes.Bytes)
+
+		columnNameBytes, err := columnName.AsBytes()
+		if err != nil {
+			return nil, err
 		}
+
+		col := string(columnNameBytes.Bytes)
+
+		columnType, ok := row["column_type"]
+		if !ok {
+			return nil, fmt.Errorf("column %s not found", "column_type")
+		}
+
+		columnTypeBytes, err := columnType.AsBytes()
+		if err != nil {
+			return nil, err
+		}
+
+		typ := string(columnTypeBytes.Bytes)
 		lowerTyp := strings.ToLower(typ)
 		startsWithAny := func(prefixes ...string) bool {
 			for _, prefix := range prefixes {
@@ -72,8 +72,10 @@ WHERE table_name = ?`, []any{table})
 					return true
 				}
 			}
+
 			return false
 		}
+
 		switch {
 		case startsWithAny("BOOL", "TINYINT(1)"):
 			columnTypes[col] = db.ColumnTypeBoolean
@@ -87,6 +89,7 @@ WHERE table_name = ?`, []any{table})
 			columnTypes[col] = db.ColumnTypeString
 		}
 	}
+
 	return columnTypes, nil
 }
 
@@ -108,17 +111,21 @@ ORDER BY
 	if err != nil {
 		return nil, err
 	}
+
 	primaryKeys := []string{}
 	for _, row := range table {
 		columnName, ok := row["column_name"]
 		if !ok {
 			return nil, fmt.Errorf("column %s not found", "column_name")
 		}
+
 		columnNameBytes, err := columnName.AsBytes()
 		if err != nil {
 			return nil, err
 		}
+
 		primaryKeys = append(primaryKeys, string(columnNameBytes.Bytes))
 	}
+
 	return primaryKeys, nil
 }

@@ -30,21 +30,25 @@ func (o insertOperation) CreateRows(
 	if len(columnTypes) == 0 {
 		return nil
 	}
-	columnNames := schema.GetColumnNames()
 
+	columnNames := schema.GetColumnNames()
 	stmt := fmt.Sprintf("INSERT INTO %s (%s) VALUES", tableName, strings.Join(columnNames, ", "))
 	params := []any{}
+
 	for i, row := range rows {
 		if i > 0 {
 			stmt += ","
 		}
+
 		stmt += "("
 
 		for j, columnName := range columnNames {
 			if j > 0 {
 				stmt += ","
 			}
+
 			stmt += "?"
+
 			dbType, exists := columnTypes[columnName]
 			if !exists {
 				return fmt.Errorf("column %s not found", columnName)
@@ -54,10 +58,13 @@ func (o insertOperation) CreateRows(
 			if err != nil {
 				return err
 			}
+
 			params = append(params, param)
 		}
+
 		stmt += ")"
 	}
+
 	err := tx.Write(ctx, stmt, params)
 	if err != nil {
 		return err

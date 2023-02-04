@@ -28,6 +28,7 @@ func (o selectOperation) ListRows(
 	if err != nil {
 		return nil, err
 	}
+
 	out := db.Table{}
 	for _, row := range rows {
 		outRow := db.Row{}
@@ -42,6 +43,7 @@ func (o selectOperation) ListRows(
 			}
 			outRow[columnName] = col.WithType(typ)
 		}
+
 		out.Rows = append(out.Rows, outRow)
 	}
 	return out.Rows, nil

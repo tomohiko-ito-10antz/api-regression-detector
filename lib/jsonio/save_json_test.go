@@ -79,9 +79,11 @@ func TestSaveJson_Tables(t *testing.T) {
 	writer := mock.NamedBuffer{Buffer: bytes.NewBuffer(nil)}
 	err := jsonio.SaveJson(v, writer)
 	assert.Equal(t, err, nil)
+
 	a := writer.Buffer.String()
 	eCompact := regexp.MustCompile(`\s`).ReplaceAllString(e, "")
 	aCompact := regexp.MustCompile(`\s`).ReplaceAllString(a, "")
+
 	assert.Equal(t, eCompact, aCompact)
 }
 

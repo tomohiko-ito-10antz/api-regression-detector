@@ -14,6 +14,7 @@ var logger = log.New(os.Stderr, "",
 
 func Stderr(format string, args ...any) {
 	callPath := 3
+
 	err := logger.Output(callPath, fmt.Sprintf(format, args...))
 	if err != nil {
 		logger.Fatalln(err)

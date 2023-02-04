@@ -23,21 +23,27 @@ func (o selectOperation) ListRows(
 	tableName string,
 	schema db.Schema,
 ) ([]db.Row, error) {
-	var rows []db.Row
-	var err error
+	var (
+		rows []db.Row
+		err  error
+	)
+
 	if len(schema.PrimaryKeys) == 0 {
 		stmt := fmt.Sprintf(`SELECT * FROM %s ORDER BY $1::regclass::oid`, tableName)
+
 		rows, err = tx.Read(ctx, stmt, []any{tableName})
 		if err != nil {
 			return nil, err
 		}
 	} else {
 		stmt := fmt.Sprintf(`SELECT * FROM %s ORDER BY %s`, tableName, strings.Join(schema.PrimaryKeys, ", "))
+
 		rows, err = tx.Read(ctx, stmt, nil)
 		if err != nil {
 			return nil, err
 		}
 	}
+
 	out := db.Table{}
 	for _, row := range rows {
 		outRow := db.Row{}
@@ -46,13 +52,17 @@ func (o selectOperation) ListRows(
 			if !ok {
 				return nil, fmt.Errorf("column %s not found", columnName)
 			}
+
 			typ, exists := schema.ColumnTypes[columnName]
 			if !exists {
 				return nil, fmt.Errorf("column %s not found", columnName)
 			}
+
 			outRow[columnName] = col.WithType(typ)
 		}
+
 		out.Rows = append(out.Rows, outRow)
 	}
+
 	return out.Rows, nil
 }

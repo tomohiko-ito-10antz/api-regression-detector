@@ -21,9 +21,11 @@ func (o truncateOperation) ClearRows(ctx context.Context, tx db.Tx, table string
 	if err != nil {
 		return err
 	}
+
 	err = tx.Write(ctx, `DELETE FROM sqlite_sequence WHERE name = ?`, []any{table})
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

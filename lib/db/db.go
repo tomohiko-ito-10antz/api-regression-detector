@@ -30,6 +30,7 @@ func (d *database) Open() error {
 	if err != nil {
 		return err
 	}
+
 	d.db = db
 
 	return nil

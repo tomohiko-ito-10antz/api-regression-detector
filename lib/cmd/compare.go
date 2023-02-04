@@ -21,16 +21,19 @@ func Compare(expectedJson io.Reader, actualJson io.Reader) (CompareResult, strin
 	if err != nil {
 		return CompareResultError, "", err
 	}
+
 	actual, err := io.ReadAll(actualJson)
 	if err != nil {
 		return CompareResultError, "", err
 	}
+
 	opt := jsondiff.DefaultConsoleOptions()
 	opt.SkipMatches = true
 	opt.Removed.Begin = "@-"
 	opt.Added.Begin = "@+"
 	opt.Changed.Begin = ""
 	opt.Changed.End = "@~"
+
 	// Check actual value matches or is a superset of expected value
 	match, _ := jsondiff.Compare(actual, expected, &opt)
 	// Describe how actual value is different from expected value
@@ -57,8 +60,8 @@ func describe(diff string) string {
 		changeBegin = "\033[0;33m"
 		changeEnd   = "\033[0m"
 	)
-	lines := []string{}
 
+	lines := []string{}
 	for _, line := range strings.Split(diff, "\n") {
 		trim := strings.Trim(line, " \t\n")
 		if prefix := ((trim + "  ")[:2]); prefix == "@+" {
@@ -72,6 +75,7 @@ func describe(diff string) string {
 		} else {
 			line = " |" + line
 		}
+
 		lines = append(lines, line)
 	}
 

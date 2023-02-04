@@ -16,6 +16,7 @@ func Dump(
 	rowLister RowLister,
 ) (jsonio.Tables, error) {
 	tables := jsonio.Tables{}
+
 	err := db.RunTransaction(ctx, func(ctx context.Context, tx libdb.Tx) error {
 		var err error
 		dbTables := libdb.Tables{}
@@ -56,10 +57,13 @@ func convertTablesDBToJson(dbTables libdb.Tables) (jsonTables jsonio.Tables, err
 					return nil, err
 				}
 			}
+
 			jsonTable.Rows = append(jsonTable.Rows, jsonRow)
 		}
+
 		jsonTables[dbTableName] = jsonTable
 	}
+
 	return jsonTables, nil
 }
 
@@ -70,54 +74,66 @@ func convertDBColumnValueToJsonValue(dbVal *libdb.ColumnValue) (*jsonio.JsonValu
 		if err != nil {
 			return nil, err
 		}
+
 		if !v.Valid {
 			return jsonio.NewJsonNull(), nil
 		}
+
 		return jsonio.NewJsonBoolean(v.Bool), nil
 	case libdb.ColumnTypeInteger:
 		v, err := dbVal.AsInteger()
 		if err != nil {
 			return nil, err
 		}
+
 		if !v.Valid {
 			return jsonio.NewJsonNull(), nil
 		}
+
 		return jsonio.NewJsonNumberInt64(v.Int64), nil
 	case libdb.ColumnTypeFloat:
 		v, err := dbVal.AsFloat()
 		if err != nil {
 			return nil, err
 		}
+
 		if !v.Valid {
 			return jsonio.NewJsonNull(), nil
 		}
+
 		return jsonio.NewJsonNumberFloat64(v.Float64), nil
 	case libdb.ColumnTypeString:
 		v, err := dbVal.AsString()
 		if err != nil {
 			return nil, err
 		}
+
 		if !v.Valid {
 			return jsonio.NewJsonNull(), nil
 		}
+
 		return jsonio.NewJsonString(v.String), nil
 	case libdb.ColumnTypeTime:
 		v, err := dbVal.AsTime()
 		if err != nil {
 			return nil, err
 		}
+
 		if !v.Valid {
 			return jsonio.NewJsonNull(), nil
 		}
+
 		return jsonio.NewJsonString(v.Time.Format(time.RFC3339)), nil
 	default:
 		v, err := dbVal.AsBytes()
 		if err != nil {
 			return nil, err
 		}
+
 		if !v.Valid {
 			return jsonio.NewJsonNull(), nil
 		}
+
 		return jsonio.NewJsonString(string(v.Bytes)), nil
 	}
 }

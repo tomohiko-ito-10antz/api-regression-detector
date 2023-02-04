@@ -14,6 +14,7 @@ func (RowLister) ListRows(ctx context.Context, tx db.Tx, tableName string, schem
 	if tableName != "mock_table" {
 		return nil, fmt.Errorf("table %s not found", tableName)
 	}
+
 	return []db.Row{
 		{
 			"column_a": db.NewColumnValue(true, db.ColumnTypeBoolean),

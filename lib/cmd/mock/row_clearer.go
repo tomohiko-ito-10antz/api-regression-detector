@@ -13,6 +13,7 @@ func (RowClearer) ClearRows(ctx context.Context, tx db.Tx, tableName string) err
 	if tableName != "mock_table" {
 		return fmt.Errorf("table %s not found", tableName)
 	}
+
 	return nil
 }
 

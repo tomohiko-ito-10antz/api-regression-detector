@@ -14,10 +14,12 @@ import (
 
 func main() {
 	args, _ := docopt.ParseArgs(cli.GetDoc(), os.Args[1:], "1.0.0")
+
 	var (
 		code int
 		err  error
 	)
+
 	switch {
 	case args["compare"]:
 		code, err = cli.RunCompare(

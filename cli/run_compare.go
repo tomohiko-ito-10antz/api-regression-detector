@@ -20,6 +20,7 @@ func RunCompare(expectedJson string, actualJson string, verbose bool, strict boo
 			code = 1
 		}
 	}()
+
 	actualJsonFile, err := os.Open(actualJson)
 	defer func() {
 		err = multierr.Combine(err, actualJsonFile.Close())
@@ -27,14 +28,18 @@ func RunCompare(expectedJson string, actualJson string, verbose bool, strict boo
 			code = 1
 		}
 	}()
+
 	match, detail, err := cmd.Compare(expectedJsonFile, actualJsonFile)
 	if err != nil {
 		return 1, err
 	}
+
 	fmt.Println(match)
+
 	if verbose {
 		fmt.Println(detail)
 	}
+
 	switch match {
 	case cmd.CompareResultFullMatch:
 		return 0, nil

@@ -11,6 +11,7 @@ func (row Row) GetColumnNames() []string {
 	for columnName := range row {
 		columnNames = append(columnNames, columnName)
 	}
+
 	return columnNames
 }
 
@@ -25,6 +26,7 @@ func (row Row) GetJsonType(columnName string) (jsonType jsonType, err error) {
 	if !exists {
 		return "", fmt.Errorf("column %s not found in JsonRow", columnName)
 	}
+
 	return val.Type, nil
 }
 
@@ -33,6 +35,7 @@ func (row Row) ToString(columnName string) (string, error) {
 	if !ok {
 		return "", fmt.Errorf("column %s not found in JsonRow", columnName)
 	}
+
 	return val.ToString()
 }
 
@@ -41,6 +44,7 @@ func (row Row) ToBool(columnName string) (bool, error) {
 	if !ok {
 		return false, fmt.Errorf("column %s not found in JsonRow", columnName)
 	}
+
 	return val.ToBool()
 }
 
@@ -49,6 +53,7 @@ func (row Row) ToInt64(columnName string) (int64, error) {
 	if !ok {
 		return 0, fmt.Errorf("column %s not found in JsonRow", columnName)
 	}
+
 	return val.ToInt64()
 }
 
@@ -57,6 +62,7 @@ func (row Row) ToFloat64(columnName string) (float64, error) {
 	if !ok {
 		return 0, fmt.Errorf("column %s not found in JsonRow", columnName)
 	}
+
 	return val.ToFloat64()
 }
 
