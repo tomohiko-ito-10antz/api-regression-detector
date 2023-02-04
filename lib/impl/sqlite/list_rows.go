@@ -7,6 +7,7 @@ import (
 
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"
 	"github.com/Jumpaku/api-regression-detector/lib/db"
+	"github.com/Jumpaku/api-regression-detector/lib/errors"
 )
 
 type selectOperation struct{}
@@ -27,21 +28,27 @@ func (o selectOperation) ListRows(
 
 	rows, err := tx.Read(ctx, stmt, nil)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(
+			errors.DBFailure,
+			"fail to select all rows (stmt=%v)", stmt)
 	}
 
 	out := db.Table{}
 	for _, row := range rows {
 		outRow := db.Row{}
-		for _, columnName := range schema.ColumnTypes.GetColumnNames() {
+		for _, columnName := range schema.GetColumnNames() {
 			col, ok := row[columnName]
 			if !ok {
-				return nil, fmt.Errorf("column %s not found", columnName)
+				return nil, errors.Wrap(
+					errors.BadKeyAccess,
+					"column %s not found in schema of table %s", columnName, tableName)
 			}
 
 			typ, exists := schema.ColumnTypes[columnName]
 			if !exists {
-				return nil, fmt.Errorf("column %s not found", columnName)
+				return nil, errors.Wrap(
+					errors.BadKeyAccess,
+					"column %s not found in schema of table %s", columnName, tableName)
 			}
 
 			outRow[columnName] = col.WithType(typ)

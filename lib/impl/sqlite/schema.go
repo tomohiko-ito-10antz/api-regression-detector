@@ -2,11 +2,11 @@ package sqlite
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"
 	"github.com/Jumpaku/api-regression-detector/lib/db"
+	"github.com/Jumpaku/api-regression-detector/lib/errors"
 )
 
 type schemaGetter struct{}
@@ -18,12 +18,16 @@ var _ cmd.SchemaGetter = schemaGetter{}
 func (o schemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string) (db.Schema, error) {
 	columnTypes, err := getColumnTypes(ctx, tx, tableName)
 	if err != nil {
-		return db.Schema{}, err
+		return db.Schema{}, errors.Wrap(
+			errors.DBFailure,
+			"fail to get column types in table %s", tableName)
 	}
 
 	primaryKeys, err := getPrimaryKeys(ctx, tx, tableName)
 	if err != nil {
-		return db.Schema{}, err
+		return db.Schema{}, errors.Wrap(
+			errors.DBFailure,
+			"fail to get primary keys in table %s", tableName)
 	}
 
 	return db.Schema{
@@ -32,31 +36,49 @@ func (o schemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string)
 	}, nil
 }
 
-func getColumnTypes(ctx context.Context, tx db.Tx, table string) (db.ColumnTypes, error) {
-	rows, err := tx.Read(ctx, `SELECT name, type FROM pragma_table_info(?)`, []any{table})
+func getColumnTypes(ctx context.Context, tx db.Tx, tableName string) (db.ColumnTypes, error) {
+	stmt := `SELECT name, type FROM pragma_table_info(?)`
+	params := []any{tableName}
+
+	rows, err := tx.Read(ctx, stmt, params)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(
+			errors.Join(err, errors.DBFailure),
+			"fail to select column types in table %s (stmt=%v)", tableName, stmt, params)
 	}
 
 	columnTypes := db.ColumnTypes{}
 	for _, row := range rows {
 		columnName, ok := row["name"]
 		if !ok {
-			return nil, fmt.Errorf("column %s not found", "name")
+			return nil, errors.Wrap(
+				errors.BadKeyAccess,
+				"key %s not find in table %s", "name", tableName)
 		}
+
 		columnNameString, err := columnName.AsString()
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(
+				err,
+				"fail to parse value of column %s as string", columnName)
 		}
+
 		col := columnNameString.String
+
 		columnType, ok := row["type"]
 		if !ok {
-			return nil, fmt.Errorf("column %s not found", "type")
+			return nil, errors.Wrap(
+				errors.BadKeyAccess,
+				"key %s not find in table %s", "type", tableName)
 		}
+
 		columnTypeString, err := columnType.AsString()
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(
+				err,
+				"fail to parse value of column %s as string", columnName)
 		}
+
 		typ := columnTypeString.String
 		startsWithAny := func(prefixes ...string) bool {
 			for _, prefix := range prefixes {
@@ -64,6 +86,7 @@ func getColumnTypes(ctx context.Context, tx db.Tx, table string) (db.ColumnTypes
 					return true
 				}
 			}
+
 			return false
 		}
 
@@ -84,22 +107,31 @@ func getColumnTypes(ctx context.Context, tx db.Tx, table string) (db.ColumnTypes
 	return columnTypes, nil
 }
 
-func getPrimaryKeys(ctx context.Context, tx db.Tx, table string) ([]string, error) {
-	rows, err := tx.Read(ctx, `SELECT name FROM pragma_table_info(?) WHERE pk > 0 ORDER BY pk`, []any{table})
+func getPrimaryKeys(ctx context.Context, tx db.Tx, tableName string) ([]string, error) {
+	stmt := `SELECT name FROM pragma_table_info(?) WHERE pk > 0 ORDER BY pk`
+	params := []any{tableName}
+
+	rows, err := tx.Read(ctx, stmt, params)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(
+			errors.Join(err, errors.DBFailure),
+			"fail to select primary keys in table %s (stmt=%v,params=%v)", tableName, stmt, params)
 	}
 
 	primaryKeys := []string{}
 	for _, row := range rows {
 		columnName, ok := row["name"]
 		if !ok {
-			return nil, fmt.Errorf("column %s not found", "name")
+			return nil, errors.Wrap(
+				errors.BadKeyAccess,
+				"key %s not find in table %s", "name", tableName)
 		}
 
 		columnNameString, err := columnName.AsString()
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(
+				err,
+				"fail to parse value of column %s as string", columnName)
 		}
 
 		primaryKeys = append(primaryKeys, columnNameString.String)

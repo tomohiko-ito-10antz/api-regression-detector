@@ -42,7 +42,7 @@ func Dump(
 		return nil
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, "transaction failed")
+		return nil, errors.Wrap(err, "transaction for Dump failed")
 	}
 
 	return tables, nil

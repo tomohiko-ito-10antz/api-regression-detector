@@ -7,6 +7,7 @@ import (
 
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"
 	"github.com/Jumpaku/api-regression-detector/lib/db"
+	"github.com/Jumpaku/api-regression-detector/lib/errors"
 	"github.com/Jumpaku/api-regression-detector/lib/impl"
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
 )
@@ -53,12 +54,16 @@ func (o insertOperation) CreateRows(
 
 			dbType, exists := columnTypes[columnName]
 			if !exists {
-				return fmt.Errorf("column %s not found", columnName)
+				return errors.Wrap(
+					errors.BadKeyAccess,
+					"column %s not found in table", columnName, tableName)
 			}
 
 			param, err := impl.ExtractColumnValueAsDB(row, columnName, dbType)
 			if err != nil {
-				return err
+				return errors.Wrap(
+					errors.BadConversion,
+					"fail to convert value of column %s to type %v", columnName, dbType)
 			}
 
 			params = append(params, param)
@@ -67,9 +72,10 @@ func (o insertOperation) CreateRows(
 		stmt += ")"
 	}
 
-	err := tx.Write(ctx, stmt, params)
-	if err != nil {
-		return err
+	if err := tx.Write(ctx, stmt, params); err != nil {
+		return errors.Wrap(
+			errors.BadConversion,
+			"fail to insert rows (stmt=%v,params=%v)", stmt, params)
 	}
 
 	return nil

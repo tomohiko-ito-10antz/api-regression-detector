@@ -781,6 +781,54 @@ func TestJsonArray(t *testing.T) {
 			assert.Equal(t, aArr07.Type, jsonio.JsonTypeArray)
 		})
 	})
+
+	t.Run("Set", func(t *testing.T) {
+		arr, _ := jsonio.NewJsonArrayEmpty().AsArray()
+		a, _ := arr.
+			Append(jsonio.NewJsonNumberInt64(123)).
+			Append(jsonio.NewJsonNumberFloat64(-123.45)).
+			Append(jsonio.NewJsonString("abc")).
+			Append(jsonio.NewJsonNull()).
+			Append(jsonio.NewJsonBoolean(true)).
+			Append(jsonio.NewJsonBoolean(false)).
+			Append(jsonio.NewJsonObjectEmpty()).
+			Append(jsonio.NewJsonArrayEmpty()).
+			AsJsonValue().
+			AsArray()
+		aOk0 := a.Set(0, jsonio.NewJsonString("update"))
+		aOk1 := a.Set(1, jsonio.NewJsonString("update"))
+		aOk2 := a.Set(2, jsonio.NewJsonString("update"))
+		aOk3 := a.Set(3, jsonio.NewJsonString("update"))
+		aOk4 := a.Set(4, jsonio.NewJsonString("update"))
+		aOk5 := a.Set(5, jsonio.NewJsonString("update"))
+		aOk6 := a.Set(6, jsonio.NewJsonString("update"))
+		aOk7 := a.Set(7, jsonio.NewJsonString("update"))
+		assert.Equal(t, aOk0, true)
+		assert.Equal(t, aOk1, true)
+		assert.Equal(t, aOk2, true)
+		assert.Equal(t, aOk3, true)
+		assert.Equal(t, aOk4, true)
+		assert.Equal(t, aOk5, true)
+		assert.Equal(t, aOk6, true)
+		assert.Equal(t, aOk7, true)
+
+		aVal0, _ := a.Get(0)
+		aVal1, _ := a.Get(1)
+		aVal2, _ := a.Get(2)
+		aVal3, _ := a.Get(3)
+		aVal4, _ := a.Get(4)
+		aVal5, _ := a.Get(5)
+		aVal6, _ := a.Get(6)
+		aVal7, _ := a.Get(7)
+		assert.Equal(t, aVal0.Type, jsonio.JsonTypeString)
+		assert.Equal(t, aVal1.Type, jsonio.JsonTypeString)
+		assert.Equal(t, aVal2.Type, jsonio.JsonTypeString)
+		assert.Equal(t, aVal3.Type, jsonio.JsonTypeString)
+		assert.Equal(t, aVal4.Type, jsonio.JsonTypeString)
+		assert.Equal(t, aVal5.Type, jsonio.JsonTypeString)
+		assert.Equal(t, aVal6.Type, jsonio.JsonTypeString)
+		assert.Equal(t, aVal7.Type, jsonio.JsonTypeString)
+	})
 }
 
 /*

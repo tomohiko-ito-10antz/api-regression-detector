@@ -36,7 +36,7 @@ func Init(ctx context.Context,
 		return nil
 	})
 	if err != nil {
-		return err
+		return errors.Wrap(err, "transaction for Init failed")
 	}
 
 	return nil

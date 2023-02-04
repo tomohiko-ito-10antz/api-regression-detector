@@ -8,6 +8,7 @@ import (
 
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"
 	"github.com/Jumpaku/api-regression-detector/lib/db"
+	"github.com/Jumpaku/api-regression-detector/lib/errors"
 )
 
 type selectOperation struct{}
@@ -23,7 +24,9 @@ func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName strin
 
 	rows, err = tx.Read(ctx, stmt, nil)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(
+			errors.DBFailure,
+			"fail to select all rows (stmt=%v)", stmt)
 	}
 
 	out := db.Table{}
@@ -32,17 +35,23 @@ func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName strin
 		for _, columnName := range schema.GetColumnNames() {
 			col, ok := row[columnName]
 			if !ok {
-				return nil, fmt.Errorf("column %s not found", columnName)
+				return nil, errors.Wrap(
+					errors.BadKeyAccess,
+					"column %s not found in schema of table %s", columnName, tableName)
 			}
 
 			colBytes, err := col.AsBytes()
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrap(
+					err,
+					"fail to parse value of column %s as []byte", columnName)
 			}
 
 			typ, exists := schema.ColumnTypes[columnName]
 			if !exists {
-				return nil, fmt.Errorf("column %s not found", columnName)
+				return nil, errors.Wrap(
+					errors.BadKeyAccess,
+					"column %s not found in schema of table %s", columnName, tableName)
 			}
 
 			var val any
@@ -50,30 +59,30 @@ func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName strin
 			switch typ {
 			case db.ColumnTypeBoolean:
 				if colBytes.Valid {
-					v, err := strconv.ParseBool(string(colBytes.Bytes))
+					val, err = strconv.ParseBool(string(colBytes.Bytes))
 					if err != nil {
-						return nil, err
+						return nil, errors.Wrap(
+							errors.Join(err, errors.BadConversion),
+							"fail to convert value %v:%T of column %s as bool", colBytes, colBytes, columnName)
 					}
-
-					val = v
 				}
 			case db.ColumnTypeInteger:
 				if colBytes.Valid {
-					v, err := strconv.ParseInt(string(colBytes.Bytes), 10, 64)
+					val, err = strconv.ParseInt(string(colBytes.Bytes), 10, 64)
 					if err != nil {
-						return nil, err
+						return nil, errors.Wrap(
+							errors.Join(err, errors.BadConversion),
+							"fail to convert value %v:%T of column %s as integer", colBytes, colBytes, columnName)
 					}
-
-					val = v
 				}
 			case db.ColumnTypeFloat:
 				if colBytes.Valid {
-					v, err := strconv.ParseFloat(string(colBytes.Bytes), 64)
+					val, err = strconv.ParseFloat(string(colBytes.Bytes), 64)
 					if err != nil {
-						return nil, err
+						return nil, errors.Wrap(
+							errors.Join(err, errors.BadConversion),
+							"fail to convert value %v:%T of column %s as float", colBytes, colBytes, columnName)
 					}
-
-					val = v
 				}
 			case db.ColumnTypeTime, db.ColumnTypeString:
 				if colBytes.Valid {
@@ -81,7 +90,9 @@ func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName strin
 					typ = db.ColumnTypeString
 				}
 			default:
-				return nil, fmt.Errorf("unexpected type %v of column %s not found", typ, columnName)
+				return nil, errors.Wrap(
+					errors.Join(err, errors.Unexpected),
+					"unexpected type %v of column %s", typ, columnName)
 			}
 
 			outRow[columnName] = db.NewColumnValue(val, typ)

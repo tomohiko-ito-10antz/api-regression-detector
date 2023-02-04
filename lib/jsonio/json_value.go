@@ -316,9 +316,9 @@ func (a JsonArray) Get(i int) (*JsonValue, bool) {
 	return a[i], true
 }
 
-func (a JsonArray) Set(i int, val *JsonValue) error {
+func (a JsonArray) Set(i int, val *JsonValue) bool {
 	if i >= len(a) {
-		return fmt.Errorf("value not found for index %v (len %v)", i, len(a))
+		return false
 	}
 
 	if val == nil {
@@ -327,7 +327,7 @@ func (a JsonArray) Set(i int, val *JsonValue) error {
 
 	a[i] = val
 
-	return nil
+	return true
 }
 
 func (a JsonArray) Append(val *JsonValue) JsonArray {
