@@ -98,6 +98,7 @@ func (v ColumnValue) AsInteger() (NullInteger, error) {
 		}
 		val = rv.Elem().Interface()
 	}
+
 	switch val := val.(type) {
 	case int:
 		return NullInteger{Valid: true, Int64: int64(val)}, nil
@@ -149,6 +150,7 @@ func (v ColumnValue) AsFloat() (NullFloat, error) {
 		}
 		val = rv.Elem().Interface()
 	}
+
 	switch val := val.(type) {
 	case float32:
 		return NullFloat{Valid: true, Float64: float64(val)}, nil

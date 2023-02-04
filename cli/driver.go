@@ -12,6 +12,7 @@ import (
 
 func NewDriver(name string) (*cmd.Driver, error) {
 	var driver *cmd.Driver
+
 	switch name {
 	case "mysql":
 		driver = &cmd.Driver{

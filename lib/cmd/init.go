@@ -29,6 +29,7 @@ func Init(ctx context.Context,
 				return err
 			}
 		}
+
 		return nil
 	})
 }

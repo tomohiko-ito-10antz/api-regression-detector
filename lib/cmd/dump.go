@@ -34,6 +34,7 @@ func Dump(
 		if err != nil {
 			return err
 		}
+
 		return nil
 	})
 	if err != nil {

@@ -41,6 +41,7 @@ func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName strin
 				return nil, fmt.Errorf("column %s not found", columnName)
 			}
 			var val any
+
 			switch typ {
 			case db.ColumnTypeBoolean:
 				if colBytes.Valid {

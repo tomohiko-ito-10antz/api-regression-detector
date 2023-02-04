@@ -35,6 +35,7 @@ func Compare(expectedJson io.Reader, actualJson io.Reader) (CompareResult, strin
 	match, _ := jsondiff.Compare(actual, expected, &opt)
 	// Describe how actual value is different from expected value
 	_, diff := jsondiff.Compare(expected, actual, &opt)
+
 	switch match {
 	case jsondiff.FullMatch:
 		return CompareResultFullMatch, describe(diff), nil
@@ -57,9 +58,10 @@ func describe(diff string) string {
 		changeEnd   = "\033[0m"
 	)
 	lines := []string{}
+
 	for _, line := range strings.Split(diff, "\n") {
 		trim := strings.Trim(line, " \t\n")
-		if prefix := string((trim + "  ")[:2]); prefix == "@+" {
+		if prefix := ((trim + "  ")[:2]); prefix == "@+" {
 			line = addBegin + "+|" + strings.Replace(line, prefix, "", 1) + addEnd
 		} else if prefix := ((trim + "  ")[:2]); prefix == "@-" {
 			line = removeBegin + "-|" + strings.Replace(line, prefix, "", 1) + removeEnd

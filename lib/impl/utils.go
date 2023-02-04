@@ -21,6 +21,7 @@ func ExtractColumnValueAsDB(row jsonio.Row, columnName string, dbType db.ColumnT
 			isNull = true
 		}
 	}
+
 	switch dbType {
 	case db.ColumnTypeBoolean:
 		if isNull {

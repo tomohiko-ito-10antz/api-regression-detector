@@ -6,7 +6,8 @@ import (
 
 type Row map[string]*JsonValue
 
-func (row Row) GetColumnNames() (columnNames []string) {
+func (row Row) GetColumnNames() []string {
+	columnNames := []string{}
 	for columnName := range row {
 		columnNames = append(columnNames, columnName)
 	}
@@ -15,6 +16,7 @@ func (row Row) GetColumnNames() (columnNames []string) {
 
 func (row Row) Has(columnName string) bool {
 	_, exists := row[columnName]
+
 	return exists
 }
 

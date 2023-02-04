@@ -15,7 +15,7 @@ func GetSchema() schemaGetter { return schemaGetter{} }
 
 var _ cmd.SchemaGetter = schemaGetter{}
 
-func (o schemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string) (schema db.Schema, err error) {
+func (o schemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string) (db.Schema, error) {
 	columnTypes, err := getColumnTypes(ctx, tx, tableName)
 	if err != nil {
 		return db.Schema{}, err

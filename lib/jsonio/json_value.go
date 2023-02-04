@@ -82,12 +82,14 @@ func NewJson(valAny any) (jv *JsonValue, err error) {
 		return NewJsonBoolean(val), nil
 	}
 	rv := reflect.ValueOf(valAny)
+
 	switch rv.Kind() {
 	case reflect.Slice:
 		arrayValue := JsonArray{}
 		for i := 0; i < rv.Len(); i++ {
 			rvi := rv.Index(i)
 			var vi *JsonValue
+
 			if !rvi.IsValid() {
 				vi, err = NewJson(nil)
 				if err != nil {
@@ -99,18 +101,23 @@ func NewJson(valAny any) (jv *JsonValue, err error) {
 					return nil, err
 				}
 			}
+
 			arrayValue = append(arrayValue, vi)
 		}
+
 		return &JsonValue{Type: JsonTypeArray, arrayValue: arrayValue}, nil
 	case reflect.Map:
 		objectValue := JsonObject{}
 		for _, rvKey := range rv.MapKeys() {
 			rvVal := rv.MapIndex(rvKey)
+
 			key, ok := rvKey.Interface().(string)
 			if !ok {
 				return nil, fmt.Errorf("cannot new JsonValue %v:%T", valAny, valAny)
 			}
+
 			var val *JsonValue
+
 			if !rvVal.IsValid() {
 				val, err = NewJson(nil)
 				if err != nil {
@@ -122,10 +129,13 @@ func NewJson(valAny any) (jv *JsonValue, err error) {
 					return nil, err
 				}
 			}
+
 			objectValue[key] = val
 		}
+
 		return &JsonValue{Type: JsonTypeObject, objectValue: objectValue}, nil
 	}
+
 	return nil, fmt.Errorf("cannot new JsonValue %v:%T", valAny, valAny)
 }
 
@@ -153,6 +163,7 @@ func (v *JsonValue) ToBool() (bool, error) {
 		case "false":
 			return false, nil
 		}
+
 		return false, fmt.Errorf("cannot convert string value %v to bool", v.stringValue)
 	case JsonTypeBoolean:
 		return bool(v.booleanValue), nil
@@ -165,6 +176,7 @@ func (v *JsonValue) ToBool() (bool, error) {
 		if v, e := json.Number(v.numberValue).Float64(); e == nil {
 			return v != 0.0, nil
 		}
+
 		return false, fmt.Errorf("cannot convert number value %v to bool", json.Number(v.numberValue).String())
 	default:
 		return false, fmt.Errorf("cannot convert value of %v to bool", v.Type)
@@ -182,8 +194,10 @@ func (v *JsonValue) ToInt64() (int64, error) {
 			if err != nil {
 				return 0, fmt.Errorf("cannot convert number value %v to int64", v.numberValue)
 			}
+
 			return i, nil
 		}
+
 		return 0, fmt.Errorf("cannot convert number value %v to int64", v.numberValue)
 	case JsonTypeBoolean:
 		if v.booleanValue {
@@ -263,7 +277,9 @@ func (o JsonObject) Set(key string, val *JsonValue) JsonObject {
 	if val == nil {
 		val = NewJsonNull()
 	}
+
 	o[key] = val
+
 	return o
 }
 
@@ -282,7 +298,7 @@ func (a JsonArray) Get(i int) (*JsonValue, error) {
 	return a[i], nil
 }
 
-func (a JsonArray) Set(i int, val *JsonValue) (err error) {
+func (a JsonArray) Set(i int, val *JsonValue) error {
 	if i >= len(a) {
 		return fmt.Errorf("value not found for index %v (len %v)", i, len(a))
 	}
@@ -297,7 +313,9 @@ func (a JsonArray) Append(val *JsonValue) JsonArray {
 	if val == nil {
 		val = NewJsonNull()
 	}
+
 	a = append(a, val)
+
 	return a
 }
 

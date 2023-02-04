@@ -19,11 +19,6 @@ init-spanner:
 init-sqlite:
 	sqlite3 examples/sqlite/sqlite.db <examples/sqlite/create.sql
 
-
-.PHONY: test
-test:
-	go test -v ./...
-
 .PHONY: build
 build:
 	env GOOS=windows GOARCH=arm64 go build -ldflags '-s -w' -trimpath -o bin/windows/arm64/jrd main.go
@@ -36,4 +31,9 @@ build:
 .PHONY: lint
 lint:
 	find . -print | grep --regex '.*\.go' | xargs goimports -w
-	golangci-lint run ./...
+	golangci-lint run --fix --enable-all ./...
+
+
+.PHONY: test
+test:
+	go test ./...

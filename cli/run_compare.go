@@ -13,6 +13,7 @@ func RunCompare(expectedJson string, actualJson string, verbose bool, strict boo
 	if err != nil {
 		return 1, err
 	}
+
 	defer func() {
 		err = multierr.Combine(err, expectedJsonFile.Close())
 		if err != nil {

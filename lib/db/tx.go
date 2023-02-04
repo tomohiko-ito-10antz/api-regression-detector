@@ -49,10 +49,12 @@ func (e *transaction) Read(ctx context.Context, stmt string, params []any) ([]Ro
 	if err != nil {
 		return nil, err
 	}
+
 	defer func() {
 		err = multierr.Combine(err, itr.Close())
 	}()
 	rows := []Row{}
+
 	for itr.Next() {
 		columns, err := itr.Columns()
 		if err != nil {
@@ -61,6 +63,7 @@ func (e *transaction) Read(ctx context.Context, stmt string, params []any) ([]Ro
 		columnCount := len(columns)
 		pointers := make([]any, columnCount)
 		values := make([]any, columnCount)
+
 		for i := 0; i < columnCount; i++ {
 			pointers[i] = &values[i]
 		}
@@ -69,6 +72,7 @@ func (e *transaction) Read(ctx context.Context, stmt string, params []any) ([]Ro
 			return nil, err
 		}
 		row := Row{}
+
 		for i, column := range columns {
 			row[column] = UnknownTypeColumnValue(values[i])
 		}
@@ -94,6 +98,7 @@ func paramsToStrings(params []any) []string {
 	strArr := []string{}
 	for _, param := range params {
 		rv := reflect.ValueOf(param)
+
 		switch {
 		case !rv.IsValid(), rv.Kind() == reflect.Pointer && rv.IsNil():
 			strArr = append(strArr, "<nil>")

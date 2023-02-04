@@ -17,9 +17,9 @@ func (tables Tables) GetTableNames() []string {
 
 func TableFromJson(json map[string][]map[string]any) (tables Tables, err error) {
 	tables = Tables{}
-	for tableName, rows := range json {
-		table := Table{}
-		for _, rowObj := range rows {
+	for tableName, rowsArr := range json {
+		rows := []Row{}
+		for _, rowObj := range rowsArr {
 			row := Row{}
 			for columnName, columnValue := range rowObj {
 				jsonVal, err := NewJson(columnValue)
@@ -28,9 +28,9 @@ func TableFromJson(json map[string][]map[string]any) (tables Tables, err error) 
 				}
 				row[columnName] = jsonVal
 			}
-			table.Rows = append(table.Rows, row)
+			rows = append(rows, row)
 		}
-		tables[tableName] = table
+		tables[tableName] = Table{Rows: rows}
 	}
 	return tables, nil
 }

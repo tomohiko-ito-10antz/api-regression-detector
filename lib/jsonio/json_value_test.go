@@ -522,6 +522,7 @@ func TestJsonObject(t *testing.T) {
 			[]any{},
 		},
 	})
+
 	t.Run("Keys", func(t *testing.T) {
 		obj, err := v.AsObject()
 		assert.Equal(t, err, nil)
@@ -677,6 +678,7 @@ func TestJsonArray(t *testing.T) {
 			[]any{},
 		},
 	})
+
 	t.Run("Len for array of 2 elements", func(t *testing.T) {
 		arr, err := v.AsArray()
 		assert.Equal(t, err, nil)

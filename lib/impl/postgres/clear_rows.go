@@ -16,8 +16,8 @@ func ClearRows() truncateOperation {
 
 var _ cmd.RowClearer = truncateOperation{}
 
-func (o truncateOperation) ClearRows(ctx context.Context, tx db.Tx, table string) (err error) {
-	err = tx.Write(ctx, fmt.Sprintf(`TRUNCATE TABLE %s RESTART IDENTITY`, table), nil)
+func (o truncateOperation) ClearRows(ctx context.Context, tx db.Tx, table string) error {
+	err := tx.Write(ctx, fmt.Sprintf(`TRUNCATE TABLE %s RESTART IDENTITY`, table), nil)
 	if err != nil {
 		return err
 	}
