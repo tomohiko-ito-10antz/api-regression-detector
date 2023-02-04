@@ -10,8 +10,7 @@ import (
 	"github.com/Jumpaku/api-regression-detector/lib/db"
 )
 
-type selectOperation struct {
-}
+type selectOperation struct{}
 
 func ListRows() selectOperation {
 	return selectOperation{}

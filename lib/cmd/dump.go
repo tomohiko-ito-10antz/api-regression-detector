@@ -4,20 +4,20 @@ import (
 	"context"
 	"time"
 
-	lib_db "github.com/Jumpaku/api-regression-detector/lib/db"
-	"github.com/Jumpaku/api-regression-detector/lib/io_json"
+	libdb "github.com/Jumpaku/api-regression-detector/lib/db"
+	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
 )
 
 func Dump(
 	ctx context.Context,
-	db lib_db.DB,
+	db libdb.DB,
 	tableNames []string,
 	schemaGetter SchemaGetter,
 	rowLister RowLister,
-) (tables io_json.Tables, err error) {
-	tables = io_json.Tables{}
-	err = db.RunTransaction(ctx, func(ctx context.Context, tx lib_db.Tx) error {
-		dbTables := lib_db.Tables{}
+) (tables jsonio.Tables, err error) {
+	tables = jsonio.Tables{}
+	err = db.RunTransaction(ctx, func(ctx context.Context, tx libdb.Tx) error {
+		dbTables := libdb.Tables{}
 		for _, tableName := range tableNames {
 			schema, err := schemaGetter.GetSchema(ctx, tx, tableName)
 			if err != nil {
@@ -27,7 +27,7 @@ func Dump(
 			if err != nil {
 				return err
 			}
-			dbTables[tableName] = lib_db.Table{Name: tableName, Schema: schema, Rows: rows}
+			dbTables[tableName] = libdb.Table{Name: tableName, Schema: schema, Rows: rows}
 		}
 		tables, err = convertTablesDBToJson(dbTables)
 		if err != nil {
@@ -41,12 +41,12 @@ func Dump(
 	return tables, nil
 }
 
-func convertTablesDBToJson(dbTables lib_db.Tables) (jsonTables io_json.Tables, err error) {
-	jsonTables = io_json.Tables{}
+func convertTablesDBToJson(dbTables libdb.Tables) (jsonTables jsonio.Tables, err error) {
+	jsonTables = jsonio.Tables{}
 	for dbTableName, dbTable := range dbTables {
-		jsonTable := io_json.Table{}
+		jsonTable := jsonio.Table{}
 		for _, dbRow := range dbTable.Rows {
-			jsonRow := io_json.Row{}
+			jsonRow := jsonio.Row{}
 			for dbColumnName, dbColumnValue := range dbRow {
 				jsonRow[dbColumnName], err = convertDBColumnValueToJsonValue(dbColumnValue)
 				if err != nil {
@@ -60,61 +60,61 @@ func convertTablesDBToJson(dbTables lib_db.Tables) (jsonTables io_json.Tables, e
 	return jsonTables, nil
 }
 
-func convertDBColumnValueToJsonValue(dbVal *lib_db.ColumnValue) (*io_json.JsonValue, error) {
+func convertDBColumnValueToJsonValue(dbVal *libdb.ColumnValue) (*jsonio.JsonValue, error) {
 	switch dbVal.Type {
-	case lib_db.ColumnTypeBoolean:
+	case libdb.ColumnTypeBoolean:
 		v, err := dbVal.AsBool()
 		if err != nil {
 			return nil, err
 		}
 		if !v.Valid {
-			return io_json.NewJsonNull(), nil
+			return jsonio.NewJsonNull(), nil
 		}
-		return io_json.NewJsonBoolean(v.Bool), nil
-	case lib_db.ColumnTypeInteger:
+		return jsonio.NewJsonBoolean(v.Bool), nil
+	case libdb.ColumnTypeInteger:
 		v, err := dbVal.AsInteger()
 		if err != nil {
 			return nil, err
 		}
 		if !v.Valid {
-			return io_json.NewJsonNull(), nil
+			return jsonio.NewJsonNull(), nil
 		}
-		return io_json.NewJsonNumberInt64(v.Int64), nil
-	case lib_db.ColumnTypeFloat:
+		return jsonio.NewJsonNumberInt64(v.Int64), nil
+	case libdb.ColumnTypeFloat:
 		v, err := dbVal.AsFloat()
 		if err != nil {
 			return nil, err
 		}
 		if !v.Valid {
-			return io_json.NewJsonNull(), nil
+			return jsonio.NewJsonNull(), nil
 		}
-		return io_json.NewJsonNumberFloat64(v.Float64), nil
-	case lib_db.ColumnTypeString:
+		return jsonio.NewJsonNumberFloat64(v.Float64), nil
+	case libdb.ColumnTypeString:
 		v, err := dbVal.AsString()
 		if err != nil {
 			return nil, err
 		}
 		if !v.Valid {
-			return io_json.NewJsonNull(), nil
+			return jsonio.NewJsonNull(), nil
 		}
-		return io_json.NewJsonString(v.String), nil
-	case lib_db.ColumnTypeTime:
+		return jsonio.NewJsonString(v.String), nil
+	case libdb.ColumnTypeTime:
 		v, err := dbVal.AsTime()
 		if err != nil {
 			return nil, err
 		}
 		if !v.Valid {
-			return io_json.NewJsonNull(), nil
+			return jsonio.NewJsonNull(), nil
 		}
-		return io_json.NewJsonString(v.Time.Format(time.RFC3339)), nil
+		return jsonio.NewJsonString(v.Time.Format(time.RFC3339)), nil
 	default:
 		v, err := dbVal.AsBytes()
 		if err != nil {
 			return nil, err
 		}
 		if !v.Valid {
-			return io_json.NewJsonNull(), nil
+			return jsonio.NewJsonNull(), nil
 		}
-		return io_json.NewJsonString(string(v.Bytes)), nil
+		return jsonio.NewJsonString(string(v.Bytes)), nil
 	}
 }

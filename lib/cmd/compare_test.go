@@ -55,7 +55,7 @@ func TestCompare_FullMatch(t *testing.T) {
 }`)
 	aResult, _, err := cmd.Compare(expectedJson, actualJson)
 	assert.Equal(t, err, nil)
-	assert.Equal(t, aResult, cmd.CompareResult_FullMatch)
+	assert.Equal(t, aResult, cmd.CompareResultFullMatch)
 }
 
 func TestCompare_SupersetMatch(t *testing.T) {
@@ -108,7 +108,7 @@ func TestCompare_SupersetMatch(t *testing.T) {
 }`)
 	aResult, _, err := cmd.Compare(expectedJson, actualJson)
 	assert.Equal(t, err, nil)
-	assert.Equal(t, aResult, cmd.CompareResult_SupersetMatch)
+	assert.Equal(t, aResult, cmd.CompareResultSupersetMatch)
 }
 
 func TestCompare_NoMatch(t *testing.T) {
@@ -159,7 +159,7 @@ func TestCompare_NoMatch(t *testing.T) {
 }`)
 	aResult, _, err := cmd.Compare(expectedJson, actualJson)
 	assert.Equal(t, err, nil)
-	assert.Equal(t, aResult, cmd.CompareResult_NoMatch)
+	assert.Equal(t, aResult, cmd.CompareResultNoMatch)
 }
 
 func TestCompare_Error(t *testing.T) {
@@ -212,5 +212,5 @@ func TestCompare_Error(t *testing.T) {
 }`)
 	aResult, _, err := cmd.Compare(expectedJson, actualJson)
 	assert.Equal(t, err, nil)
-	assert.Equal(t, aResult, cmd.CompareResult_Error)
+	assert.Equal(t, aResult, cmd.CompareResultError)
 }

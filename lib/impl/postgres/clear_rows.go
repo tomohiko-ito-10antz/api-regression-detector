@@ -8,8 +8,7 @@ import (
 	"github.com/Jumpaku/api-regression-detector/lib/db"
 )
 
-type truncateOperation struct {
-}
+type truncateOperation struct{}
 
 func ClearRows() truncateOperation {
 	return truncateOperation{}

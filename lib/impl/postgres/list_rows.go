@@ -9,8 +9,7 @@ import (
 	"github.com/Jumpaku/api-regression-detector/lib/db"
 )
 
-type selectOperation struct {
-}
+type selectOperation struct{}
 
 func ListRows() selectOperation {
 	return selectOperation{}
@@ -18,15 +17,22 @@ func ListRows() selectOperation {
 
 var _ cmd.RowLister = selectOperation{}
 
-func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema) (table []db.Row, err error) {
+func (o selectOperation) ListRows(
+	ctx context.Context,
+	tx db.Tx,
+	tableName string,
+	schema db.Schema) ([]db.Row, error) {
 	var rows []db.Row
+	var err error
 	if len(schema.PrimaryKeys) == 0 {
-		rows, err = tx.Read(ctx, fmt.Sprintf(`SELECT * FROM %s ORDER BY $1::regclass::oid`, tableName), []any{tableName})
+		stmt := fmt.Sprintf(`SELECT * FROM %s ORDER BY $1::regclass::oid`, tableName)
+		rows, err = tx.Read(ctx, stmt, []any{tableName})
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		rows, err = tx.Read(ctx, fmt.Sprintf(`SELECT * FROM %s ORDER BY %s`, tableName, strings.Join(schema.PrimaryKeys, ", ")), nil)
+		stmt := fmt.Sprintf(`SELECT * FROM %s ORDER BY %s`, tableName, strings.Join(schema.PrimaryKeys, ", "))
+		rows, err = tx.Read(ctx, stmt, nil)
 		if err != nil {
 			return nil, err
 		}

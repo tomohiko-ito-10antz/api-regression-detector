@@ -8,11 +8,10 @@ import (
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"
 	"github.com/Jumpaku/api-regression-detector/lib/db"
 	"github.com/Jumpaku/api-regression-detector/lib/impl"
-	"github.com/Jumpaku/api-regression-detector/lib/io_json"
+	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
 )
 
-type insertOperation struct {
-}
+type insertOperation struct{}
 
 func Insert() insertOperation {
 	return insertOperation{}
@@ -20,7 +19,13 @@ func Insert() insertOperation {
 
 var _ cmd.RowCreator = insertOperation{}
 
-func (o insertOperation) CreateRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema, rows []io_json.Row) (err error) {
+func (o insertOperation) CreateRows(
+	ctx context.Context,
+	tx db.Tx,
+	tableName string,
+	schema db.Schema,
+	rows []jsonio.Row,
+) (err error) {
 	columnTypes := schema.ColumnTypes
 	if len(columnTypes) == 0 {
 		return nil
@@ -47,7 +52,6 @@ func (o insertOperation) CreateRows(ctx context.Context, tx db.Tx, tableName str
 				return err
 			}
 			params = append(params, param)
-
 		}
 		stmt += ")"
 	}

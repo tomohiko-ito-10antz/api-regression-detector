@@ -7,23 +7,21 @@ import (
 	"github.com/Jumpaku/api-regression-detector/lib/db"
 )
 
-type MockDB struct {
-}
+type DB struct{}
 
-func (MockDB) Open() error {
+func (DB) Open() error {
 	return nil
 }
 
-func (MockDB) Close() error {
+func (DB) Close() error {
 	return nil
 }
 
-func (MockDB) RunTransaction(ctx context.Context, handler func(ctx context.Context, tx db.Tx) error) error {
+func (DB) RunTransaction(ctx context.Context, handler func(ctx context.Context, tx db.Tx) error) error {
 	return handler(ctx, nil)
 }
 
-type MockDBErr struct {
-}
+type MockDBErr struct{}
 
 func (MockDBErr) Open() error {
 	return nil

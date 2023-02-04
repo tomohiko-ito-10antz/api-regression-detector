@@ -5,20 +5,20 @@ import (
 	"fmt"
 
 	"github.com/Jumpaku/api-regression-detector/lib/db"
-	"github.com/Jumpaku/api-regression-detector/lib/io_json"
+	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
 )
 
-type MockRowCreator struct{}
+type RowCreator struct{}
 
-func (MockRowCreator) CreateRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema, rows []io_json.Row) error {
+func (RowCreator) CreateRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema, rows []jsonio.Row) error {
 	if tableName != "mock_table" {
 		return fmt.Errorf("table %s not found", tableName)
 	}
 	return nil
 }
 
-type MockRowCreatorErr struct{}
+type ErrRowCreator struct{}
 
-func (MockRowCreatorErr) CreateRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema, rows []io_json.Row) error {
+func (ErrRowCreator) CreateRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema, rows []jsonio.Row) error {
 	return fmt.Errorf("error with table %s", tableName)
 }

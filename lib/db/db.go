@@ -24,13 +24,17 @@ type database struct {
 func (d *database) RunTransaction(ctx context.Context, handler func(ctx context.Context, tx Tx) error) error {
 	return runTransaction(ctx, d.db, handler)
 }
-func (d *database) Open() (err error) {
-	d.db, err = sql.Open(d.driver, d.connection)
+
+func (d *database) Open() error {
+	db, err := sql.Open(d.driver, d.connection)
 	if err != nil {
 		return err
 	}
+	d.db = db
+
 	return nil
 }
+
 func (d *database) Close() error {
 	return d.db.Close()
 }

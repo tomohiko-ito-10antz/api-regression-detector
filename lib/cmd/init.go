@@ -3,18 +3,18 @@ package cmd
 import (
 	"context"
 
-	lib_db "github.com/Jumpaku/api-regression-detector/lib/db"
-	"github.com/Jumpaku/api-regression-detector/lib/io_json"
+	libdb "github.com/Jumpaku/api-regression-detector/lib/db"
+	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
 )
 
 func Init(ctx context.Context,
-	db lib_db.DB,
-	jsonTables io_json.Tables,
+	db libdb.DB,
+	jsonTables jsonio.Tables,
 	schemaGetter SchemaGetter,
 	clearer RowClearer,
 	creator RowCreator,
 ) (err error) {
-	return db.RunTransaction(ctx, func(ctx context.Context, tx lib_db.Tx) error {
+	return db.RunTransaction(ctx, func(ctx context.Context, tx libdb.Tx) error {
 		for tableName, table := range jsonTables {
 			schema, err := schemaGetter.GetSchema(ctx, tx, tableName)
 			if err != nil {
@@ -34,7 +34,7 @@ func Init(ctx context.Context,
 }
 
 /*
-func convertTablesJsonToDB(jsonTables io_json.JsonTables) (dbTables db.Tables) {
+func convertTablesJsonToDB(jsonTables jsonio.JsonTables) (dbTables db.Tables) {
 	dbTables = db.Tables{}
 	for jsonTableName, jsonRows := range jsonTables {
 		dbRows := db.Table{}

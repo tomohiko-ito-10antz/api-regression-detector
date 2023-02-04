@@ -8,9 +8,9 @@ import (
 	"github.com/Jumpaku/api-regression-detector/lib/db"
 )
 
-type MockRowLister struct{}
+type RowLister struct{}
 
-func (MockRowLister) ListRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema) ([]db.Row, error) {
+func (RowLister) ListRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema) ([]db.Row, error) {
 	if tableName != "mock_table" {
 		return nil, fmt.Errorf("table %s not found", tableName)
 	}
@@ -39,8 +39,8 @@ func (MockRowLister) ListRows(ctx context.Context, tx db.Tx, tableName string, s
 	}, nil
 }
 
-type MockRowListerErr struct{}
+type ErrRowLister struct{}
 
-func (MockRowListerErr) ListRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema) ([]db.Row, error) {
+func (ErrRowLister) ListRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema) ([]db.Row, error) {
 	return nil, fmt.Errorf("error table %s", tableName)
 }

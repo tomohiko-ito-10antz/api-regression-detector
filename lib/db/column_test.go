@@ -163,7 +163,7 @@ func TestColumnValue_AsInteger(t *testing.T) {
 		a, err := db.UnknownTypeColumnValue(&v).AsInteger()
 		assert.Equal(t, err, nil)
 		assert.Equal(t, a.Valid, true)
-		assert.Equal(t, a.Int64, int64(v))
+		assert.Equal(t, a.Int64, v)
 	})
 	t.Run(`pointer to uint(1)`, func(t *testing.T) {
 		v := uint(1)
@@ -233,7 +233,7 @@ func TestColumnValue_AsInteger(t *testing.T) {
 		a, err := db.UnknownTypeColumnValue(v).AsInteger()
 		assert.Equal(t, err, nil)
 		assert.Equal(t, a.Valid, true)
-		assert.Equal(t, a.Int64, int64(v))
+		assert.Equal(t, a.Int64, v)
 	})
 	t.Run(`uint(1)`, func(t *testing.T) {
 		v := uint(1)
@@ -320,7 +320,7 @@ func TestColumnValue_AsInteger(t *testing.T) {
 		a, err := db.UnknownTypeColumnValue(v).AsInteger()
 		assert.Equal(t, err, nil)
 		assert.Equal(t, a.Valid, true)
-		assert.Equal(t, a.Int64, int64(v.Int64))
+		assert.Equal(t, a.Int64, v.Int64)
 	})
 	t.Run(`string`, func(t *testing.T) {
 		_, err := db.UnknownTypeColumnValue("abc").AsInteger()
@@ -356,7 +356,7 @@ func TestColumnValue_AsFloat(t *testing.T) {
 		a, err := db.UnknownTypeColumnValue(&v).AsFloat()
 		assert.Equal(t, err, nil)
 		assert.Equal(t, a.Valid, true)
-		assert.Equal(t, a.Float64, float64(v))
+		assert.Equal(t, a.Float64, v)
 	})
 	t.Run(`float32(1)`, func(t *testing.T) {
 		a, err := db.UnknownTypeColumnValue(float32(1)).AsFloat()

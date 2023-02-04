@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/Jumpaku/api-regression-detector/lib/db"
-	"github.com/Jumpaku/api-regression-detector/lib/io_json"
+	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
 )
 
-func ExtractColumnValueAsDB(row io_json.Row, columnName string, dbType db.ColumnType) (any, error) {
+func ExtractColumnValueAsDB(row jsonio.Row, columnName string, dbType db.ColumnType) (any, error) {
 	isNull := false
 	if !row.Has(columnName) {
 		isNull = true
@@ -17,7 +17,7 @@ func ExtractColumnValueAsDB(row io_json.Row, columnName string, dbType db.Column
 		if err != nil {
 			return nil, err
 		}
-		if jsonType == io_json.JsonTypeNull {
+		if jsonType == jsonio.JsonTypeNull {
 			isNull = true
 		}
 	}

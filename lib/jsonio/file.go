@@ -1,4 +1,4 @@
-package io_json
+package jsonio
 
 import "io"
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Jumpaku/api-regression-detector/lib/db"
-	"github.com/Jumpaku/api-regression-detector/lib/io_json"
+	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
 )
 
 type RowLister interface {
@@ -17,7 +17,7 @@ type RowClearer interface {
 }
 
 type RowCreator interface {
-	CreateRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema, rows []io_json.Row) error
+	CreateRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema, rows []jsonio.Row) error
 }
 
 type SchemaGetter interface {

@@ -13,6 +13,6 @@ type Table struct {
 	Rows   []Row
 }
 
-func (schema Schema) GetColumnNames() (columnNames []string) {
+func (schema Schema) GetColumnNames() []string {
 	return schema.ColumnTypes.GetColumnNames()
 }

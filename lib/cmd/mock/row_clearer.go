@@ -7,17 +7,17 @@ import (
 	"github.com/Jumpaku/api-regression-detector/lib/db"
 )
 
-type MockRowClearer struct{}
+type RowClearer struct{}
 
-func (MockRowClearer) ClearRows(ctx context.Context, tx db.Tx, tableName string) error {
+func (RowClearer) ClearRows(ctx context.Context, tx db.Tx, tableName string) error {
 	if tableName != "mock_table" {
 		return fmt.Errorf("table %s not found", tableName)
 	}
 	return nil
 }
 
-type MockRowClearerErr struct{}
+type ErrRowClearer struct{}
 
-func (MockRowClearerErr) ClearRows(ctx context.Context, tx db.Tx, tableName string) error {
+func (ErrRowClearer) ClearRows(ctx context.Context, tx db.Tx, tableName string) error {
 	return fmt.Errorf("error with table %s", tableName)
 }

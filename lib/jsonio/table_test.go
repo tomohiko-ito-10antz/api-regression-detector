@@ -1,20 +1,20 @@
-package io_json_test
+package jsonio_test
 
 import (
 	"encoding/json"
 	"testing"
 
-	"github.com/Jumpaku/api-regression-detector/lib/io_json"
+	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
 	"github.com/Jumpaku/api-regression-detector/test/assert"
 	"golang.org/x/exp/slices"
 )
 
 func TestGetTableNames(t *testing.T) {
-	v := io_json.Tables{
-		"a": io_json.Table{},
-		"z": io_json.Table{},
-		"b": io_json.Table{},
-		"y": io_json.Table{},
+	v := jsonio.Tables{
+		"a": jsonio.Table{},
+		"z": jsonio.Table{},
+		"b": jsonio.Table{},
+		"y": jsonio.Table{},
 	}
 	a := v.GetTableNames()
 	assert.Equal(t, len(a), 4)
@@ -57,7 +57,7 @@ func TestTableFromJson(t *testing.T) {
 			},
 		},
 	}
-	a, err := io_json.TableFromJson(v)
+	a, err := jsonio.TableFromJson(v)
 	assert.Equal(t, err, nil)
 	assert.Equal(t, len(a), 2)
 
@@ -67,21 +67,21 @@ func TestTableFromJson(t *testing.T) {
 
 	aT10 := aT1.Rows[0]
 	assert.Equal(t, len(aT10), 6)
-	assert.Equal(t, aT10["a"].Type, io_json.JsonTypeNull)
-	assert.Equal(t, aT10["b"].Type, io_json.JsonTypeNumber)
-	assert.Equal(t, aT10["c"].Type, io_json.JsonTypeNumber)
-	assert.Equal(t, aT10["d"].Type, io_json.JsonTypeString)
-	assert.Equal(t, aT10["e"].Type, io_json.JsonTypeBoolean)
-	assert.Equal(t, aT10["f"].Type, io_json.JsonTypeBoolean)
+	assert.Equal(t, aT10["a"].Type, jsonio.JsonTypeNull)
+	assert.Equal(t, aT10["b"].Type, jsonio.JsonTypeNumber)
+	assert.Equal(t, aT10["c"].Type, jsonio.JsonTypeNumber)
+	assert.Equal(t, aT10["d"].Type, jsonio.JsonTypeString)
+	assert.Equal(t, aT10["e"].Type, jsonio.JsonTypeBoolean)
+	assert.Equal(t, aT10["f"].Type, jsonio.JsonTypeBoolean)
 
 	aT11 := aT1.Rows[1]
 	assert.Equal(t, len(aT11), 6)
-	assert.Equal(t, aT11["a"].Type, io_json.JsonTypeNull)
-	assert.Equal(t, aT11["b"].Type, io_json.JsonTypeNumber)
-	assert.Equal(t, aT11["c"].Type, io_json.JsonTypeNumber)
-	assert.Equal(t, aT11["d"].Type, io_json.JsonTypeString)
-	assert.Equal(t, aT11["e"].Type, io_json.JsonTypeBoolean)
-	assert.Equal(t, aT11["f"].Type, io_json.JsonTypeBoolean)
+	assert.Equal(t, aT11["a"].Type, jsonio.JsonTypeNull)
+	assert.Equal(t, aT11["b"].Type, jsonio.JsonTypeNumber)
+	assert.Equal(t, aT11["c"].Type, jsonio.JsonTypeNumber)
+	assert.Equal(t, aT11["d"].Type, jsonio.JsonTypeString)
+	assert.Equal(t, aT11["e"].Type, jsonio.JsonTypeBoolean)
+	assert.Equal(t, aT11["f"].Type, jsonio.JsonTypeBoolean)
 
 	aT2, ok := a["t2"]
 	assert.Equal(t, ok, true)
@@ -89,15 +89,15 @@ func TestTableFromJson(t *testing.T) {
 
 	aT20 := aT2.Rows[0]
 	assert.Equal(t, len(aT20), 3)
-	assert.Equal(t, aT20["x"].Type, io_json.JsonTypeNull)
-	assert.Equal(t, aT20["y"].Type, io_json.JsonTypeNumber)
-	assert.Equal(t, aT20["z"].Type, io_json.JsonTypeNumber)
+	assert.Equal(t, aT20["x"].Type, jsonio.JsonTypeNull)
+	assert.Equal(t, aT20["y"].Type, jsonio.JsonTypeNumber)
+	assert.Equal(t, aT20["z"].Type, jsonio.JsonTypeNumber)
 
 	aT21 := aT2.Rows[1]
 	assert.Equal(t, len(aT21), 3)
-	assert.Equal(t, aT21["x"].Type, io_json.JsonTypeNull)
-	assert.Equal(t, aT21["y"].Type, io_json.JsonTypeNumber)
-	assert.Equal(t, aT21["z"].Type, io_json.JsonTypeNumber)
+	assert.Equal(t, aT21["x"].Type, jsonio.JsonTypeNull)
+	assert.Equal(t, aT21["y"].Type, jsonio.JsonTypeNumber)
+	assert.Equal(t, aT21["z"].Type, jsonio.JsonTypeNumber)
 }
 
 func TestTableToJson(t *testing.T) {
@@ -133,8 +133,8 @@ func TestTableToJson(t *testing.T) {
 			},
 		},
 	}
-	e, _ := io_json.TableFromJson(v)
-	a, err := io_json.TableToJson(e)
+	e, _ := jsonio.TableFromJson(v)
+	a, err := jsonio.TableToJson(e)
 	assert.Equal(t, err, nil)
 
 	aT1, ok := a["t1"]

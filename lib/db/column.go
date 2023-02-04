@@ -7,13 +7,17 @@ import (
 	"time"
 )
 
-type ColumnType string
-type ColumnTypes map[string]ColumnType
+type (
+	ColumnType  string
+	ColumnTypes map[string]ColumnType
+)
 
-func (columnTypes ColumnTypes) GetColumnNames() (columnNames []string) {
+func (columnTypes ColumnTypes) GetColumnNames() []string {
+	columnNames := []string{}
 	for columnName := range columnTypes {
 		columnNames = append(columnNames, columnName)
 	}
+
 	return columnNames
 }
 
@@ -26,14 +30,16 @@ const (
 	ColumnTypeTime    ColumnType = "TIME"
 )
 
-type NullString sql.NullString
-type NullInteger sql.NullInt64
-type NullFloat sql.NullFloat64
-type NullBool sql.NullBool
-type NullBytes struct {
-	Bytes []byte
-	Valid bool
-}
+type (
+	NullString  sql.NullString
+	NullInteger sql.NullInt64
+	NullFloat   sql.NullFloat64
+	NullBool    sql.NullBool
+	NullBytes   struct {
+		Bytes []byte
+		Valid bool
+	}
+)
 type NullTime sql.NullTime
 
 type ColumnValue struct {
@@ -44,12 +50,14 @@ type ColumnValue struct {
 func UnknownTypeColumnValue(val any) *ColumnValue {
 	return NewColumnValue(val, ColumnTypeUnknown)
 }
+
 func NewColumnValue(val any, typ ColumnType) *ColumnValue {
 	return &ColumnValue{value: val, Type: typ}
 }
 
 func (v ColumnValue) WithType(typ ColumnType) *ColumnValue {
 	v.Type = typ
+
 	return &v
 }
 
@@ -61,12 +69,14 @@ func (v ColumnValue) AsString() (NullString, error) {
 		if val == nil {
 			return NullString{}, nil
 		}
+
 		return NullString{Valid: true, String: *val}, nil
 	case string:
 		return NullString{Valid: true, String: val}, nil
 	case sql.NullString:
 		return NullString(val), nil
 	}
+
 	return NullString{}, fmt.Errorf("value %v:%T not compatible to string", v.value, v.value)
 }
 
@@ -98,7 +108,7 @@ func (v ColumnValue) AsInteger() (NullInteger, error) {
 	case int32:
 		return NullInteger{Valid: true, Int64: int64(val)}, nil
 	case int64:
-		return NullInteger{Valid: true, Int64: int64(val)}, nil
+		return NullInteger{Valid: true, Int64: val}, nil
 	case uint:
 		return NullInteger{Valid: true, Int64: int64(val)}, nil
 	case uint8:
@@ -118,6 +128,7 @@ func (v ColumnValue) AsInteger() (NullInteger, error) {
 	case sql.NullInt64:
 		return NullInteger(val), nil
 	}
+
 	return NullInteger{}, fmt.Errorf("value %v:%T not compatible to int64", v.value, v.value)
 }
 
@@ -142,10 +153,11 @@ func (v ColumnValue) AsFloat() (NullFloat, error) {
 	case float32:
 		return NullFloat{Valid: true, Float64: float64(val)}, nil
 	case float64:
-		return NullFloat{Valid: true, Float64: float64(val)}, nil
+		return NullFloat{Valid: true, Float64: val}, nil
 	case sql.NullFloat64:
 		return NullFloat(val), nil
 	}
+
 	return NullFloat{}, fmt.Errorf("value %v:%T not compatible to float64", v.value, v.value)
 }
 
@@ -157,13 +169,16 @@ func (v ColumnValue) AsBytes() (NullBytes, error) {
 		if val == nil {
 			return NullBytes{}, nil
 		}
+
 		return NullBytes{Valid: true, Bytes: *val}, nil
 	case []byte:
 		if val == nil {
 			return NullBytes{}, nil
 		}
+
 		return NullBytes{Valid: true, Bytes: val}, nil
 	}
+
 	return NullBytes{}, fmt.Errorf("value %v:%T not compatible to []byte", v.value, v.value)
 }
 
@@ -175,6 +190,7 @@ func (v ColumnValue) AsTime() (NullTime, error) {
 		if val == nil {
 			return NullTime{}, nil
 		}
+
 		return NullTime{Valid: true, Time: *val}, nil
 	case time.Time:
 		return NullTime{Valid: true, Time: val}, nil
@@ -193,6 +209,7 @@ func (v ColumnValue) AsBool() (NullBool, error) {
 		if val == nil {
 			return NullBool{}, nil
 		}
+
 		return NullBool{Valid: true, Bool: *val}, nil
 	case bool:
 		return NullBool{Valid: true, Bool: val}, nil

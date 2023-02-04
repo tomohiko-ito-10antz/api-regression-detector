@@ -6,19 +6,15 @@ import (
 	"os"
 )
 
-var logger *log.Logger
-
-func init() {
-	flags :=
-		log.Lmsgprefix |
-			log.Ldate |
-			log.Ltime |
-			log.Llongfile
-	logger = log.New(os.Stderr, "", flags)
-}
+var logger *log.Logger = log.New(os.Stderr, "",
+	log.Lmsgprefix|
+		log.Ldate|
+		log.Ltime|
+		log.Llongfile)
 
 func Stderr(format string, args ...any) {
-	err := logger.Output(3, fmt.Sprintf(format, args...))
+	callPath := 3
+	err := logger.Output(callPath, fmt.Sprintf(format, args...))
 	if err != nil {
 		logger.Fatalln(err)
 	}

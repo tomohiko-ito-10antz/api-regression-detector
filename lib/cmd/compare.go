@@ -10,20 +10,20 @@ import (
 type CompareResult string
 
 const (
-	CompareResult_SupersetMatch CompareResult = "SupersetMatch"
-	CompareResult_FullMatch     CompareResult = "FullMatch"
-	CompareResult_NoMatch       CompareResult = "NoMatch"
-	CompareResult_Error         CompareResult = "Error"
+	CompareResultSupersetMatch CompareResult = "SupersetMatch"
+	CompareResultFullMatch     CompareResult = "FullMatch"
+	CompareResultNoMatch       CompareResult = "NoMatch"
+	CompareResultError         CompareResult = "Error"
 )
 
 func Compare(expectedJson io.Reader, actualJson io.Reader) (CompareResult, string, error) {
 	expected, err := io.ReadAll(expectedJson)
 	if err != nil {
-		return CompareResult_Error, "", err
+		return CompareResultError, "", err
 	}
 	actual, err := io.ReadAll(actualJson)
 	if err != nil {
-		return CompareResult_Error, "", err
+		return CompareResultError, "", err
 	}
 	opt := jsondiff.DefaultConsoleOptions()
 	opt.SkipMatches = true
@@ -37,13 +37,13 @@ func Compare(expectedJson io.Reader, actualJson io.Reader) (CompareResult, strin
 	_, diff := jsondiff.Compare(expected, actual, &opt)
 	switch match {
 	case jsondiff.FullMatch:
-		return CompareResult_FullMatch, describe(diff), nil
+		return CompareResultFullMatch, describe(diff), nil
 	case jsondiff.SupersetMatch:
-		return CompareResult_SupersetMatch, describe(diff), nil
+		return CompareResultSupersetMatch, describe(diff), nil
 	case jsondiff.NoMatch:
-		return CompareResult_NoMatch, describe(diff), nil
+		return CompareResultNoMatch, describe(diff), nil
 	default:
-		return CompareResult_Error, "", nil
+		return CompareResultError, "", nil
 	}
 }
 

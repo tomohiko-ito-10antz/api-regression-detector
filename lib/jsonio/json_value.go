@@ -1,4 +1,4 @@
-package io_json
+package jsonio
 
 import (
 	"encoding/json"
@@ -21,42 +21,51 @@ const (
 	JsonTypeObject  jsonType = "OBJECT"
 )
 
-type JsonNull any
-type JsonString string
-type JsonNumber json.Number
-type JsonBoolean bool
-type JsonArray []*JsonValue
-type JsonObject map[string]*JsonValue
-type JsonValue struct {
-	Type         jsonType
-	stringValue  JsonString
-	numberValue  JsonNumber
-	booleanValue JsonBoolean
-	arrayValue   JsonArray
-	objectValue  JsonObject
-}
+type (
+	JsonNull    any
+	JsonString  string
+	JsonNumber  json.Number
+	JsonBoolean bool
+	JsonArray   []*JsonValue
+	JsonObject  map[string]*JsonValue
+	JsonValue   struct {
+		Type         jsonType
+		stringValue  JsonString
+		numberValue  JsonNumber
+		booleanValue JsonBoolean
+		arrayValue   JsonArray
+		objectValue  JsonObject
+	}
+)
 
 func NewJsonString(v string) *JsonValue {
 	return &JsonValue{Type: JsonTypeString, stringValue: JsonString(v)}
 }
+
 func NewJsonBoolean(v bool) *JsonValue {
 	return &JsonValue{Type: JsonTypeBoolean, booleanValue: JsonBoolean(v)}
 }
+
 func NewJsonNumberInt64(v int64) *JsonValue {
 	return &JsonValue{Type: JsonTypeNumber, numberValue: JsonNumber(strconv.FormatInt(v, 10))}
 }
+
 func NewJsonNumberFloat64(v float64) *JsonValue {
 	return &JsonValue{Type: JsonTypeNumber, numberValue: JsonNumber(strconv.FormatFloat(v, 'f', 15, 64))}
 }
+
 func NewJsonNull() *JsonValue {
 	return &JsonValue{Type: JsonTypeNull}
 }
+
 func NewJsonArrayEmpty() *JsonValue {
 	return &JsonValue{Type: JsonTypeArray, arrayValue: JsonArray{}}
 }
+
 func NewJsonObjectEmpty() *JsonValue {
 	return &JsonValue{Type: JsonTypeObject, objectValue: JsonObject{}}
 }
+
 func NewJson(valAny any) (jv *JsonValue, err error) {
 	switch val := valAny.(type) {
 	case nil:
@@ -218,6 +227,7 @@ func (v *JsonValue) ToFloat64() (float64, error) {
 		return 0, fmt.Errorf("cannot convert value of %v to float64", v.Type)
 	}
 }
+
 func (v *JsonValue) AsObject() (o JsonObject, err error) {
 	if v.Type != JsonTypeObject {
 		return nil, fmt.Errorf("AsObject must be called with JsonValue of type JsonTypeObject")
@@ -239,6 +249,7 @@ func (o JsonObject) Keys() (keys []string) {
 	}
 	return keys
 }
+
 func (o JsonObject) Get(key string) (*JsonValue, error) {
 	val, ok := o[key]
 	if !ok {
@@ -289,6 +300,6 @@ func (a JsonArray) Append(val *JsonValue) JsonArray {
 	return a
 }
 
-func (o JsonArray) AsJsonValue() *JsonValue {
-	return &JsonValue{Type: JsonTypeArray, arrayValue: o}
+func (a JsonArray) AsJsonValue() *JsonValue {
+	return &JsonValue{Type: JsonTypeArray, arrayValue: a}
 }

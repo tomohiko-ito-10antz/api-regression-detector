@@ -29,19 +29,21 @@ func runTransaction(ctx context.Context, db *sql.DB, handler func(ctx context.Co
 	if err != nil {
 		return err
 	}
+
 	return commit(ctx, tx)
 }
 
-func (e *transaction) Write(ctx context.Context, stmt string, params []any) (err error) {
+func (e *transaction) Write(ctx context.Context, stmt string, params []any) error {
 	log.Stderr("SQL\n\tstatement: %v\n\tparams   : %v", stmt, paramsToStrings(params))
-	_, err = e.tx.Exec(stmt, params...)
+	_, err := e.tx.Exec(stmt, params...)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
-func (e *transaction) Read(ctx context.Context, stmt string, params []any) (rows []Row, err error) {
+func (e *transaction) Read(ctx context.Context, stmt string, params []any) ([]Row, error) {
 	log.Stderr("SQL\n\tstatement: %v\n\tparams   : %v", stmt, paramsToStrings(params))
 	itr, err := e.tx.Query(stmt, params...)
 	if err != nil {
@@ -50,14 +52,15 @@ func (e *transaction) Read(ctx context.Context, stmt string, params []any) (rows
 	defer func() {
 		err = multierr.Combine(err, itr.Close())
 	}()
+	rows := []Row{}
 	for itr.Next() {
 		columns, err := itr.Columns()
 		if err != nil {
 			return nil, err
 		}
 		columnCount := len(columns)
-		var pointers = make([]any, columnCount)
-		var values = make([]any, columnCount)
+		pointers := make([]any, columnCount)
+		values := make([]any, columnCount)
 		for i := 0; i < columnCount; i++ {
 			pointers[i] = &values[i]
 		}
@@ -71,23 +74,24 @@ func (e *transaction) Read(ctx context.Context, stmt string, params []any) (rows
 		}
 		rows = append(rows, row)
 	}
+
 	return rows, nil
 }
 
-func rollback(ctx context.Context, tx *sql.Tx, err error) error {
+func rollback(_ context.Context, tx *sql.Tx, err error) error {
 	return multierr.Combine(err, tx.Rollback())
 }
 
-func commit(ctx context.Context, tx *sql.Tx) (err error) {
-	err = tx.Commit()
-	if err != nil {
+func commit(ctx context.Context, tx *sql.Tx) error {
+	if err := tx.Commit(); err != nil {
 		return rollback(ctx, tx, err)
 	}
+
 	return nil
 }
 
-func paramsToStrings(params []any) (strArr []string) {
-	strArr = []string{}
+func paramsToStrings(params []any) []string {
+	strArr := []string{}
 	for _, param := range params {
 		rv := reflect.ValueOf(param)
 		switch {
@@ -99,5 +103,6 @@ func paramsToStrings(params []any) (strArr []string) {
 			strArr = append(strArr, fmt.Sprintf("%v:%T", rv.Interface(), rv.Interface()))
 		}
 	}
+
 	return strArr
 }

@@ -7,9 +7,9 @@ import (
 	"github.com/Jumpaku/api-regression-detector/lib/db"
 )
 
-type MockSchemaGetter struct{}
+type SchemaGetter struct{}
 
-func (MockSchemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string) (db.Schema, error) {
+func (SchemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string) (db.Schema, error) {
 	if tableName != "mock_table" {
 		return db.Schema{}, fmt.Errorf("table %s not found", tableName)
 	}
@@ -25,8 +25,8 @@ func (MockSchemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName strin
 	}, nil
 }
 
-type MockSchemaGetterErr struct{}
+type ErrSchemaGetter struct{}
 
-func (MockSchemaGetterErr) GetSchema(ctx context.Context, tx db.Tx, tableName string) (db.Schema, error) {
+func (ErrSchemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string) (db.Schema, error) {
 	return db.Schema{}, fmt.Errorf("error with table %s", tableName)
 }
