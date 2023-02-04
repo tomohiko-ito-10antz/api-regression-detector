@@ -36,7 +36,7 @@ func RunDump(databaseDriver string, connectionString string) (code int, err erro
 	if err != nil {
 		return 1, err
 	}
-	err = io.Save(json, os.Stdout)
+	err = io.SaveJson(json, os.Stdout)
 	if err != nil {
 		return 1, err
 	}
