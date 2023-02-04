@@ -3,6 +3,7 @@ package mysql
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"
@@ -39,11 +40,41 @@ func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName strin
 			if !exists {
 				return nil, fmt.Errorf("column %s not found", columnName)
 			}
-			if colBytes.Valid {
-				outRow.SetColumnValue(columnName, string(colBytes.Bytes), typ)
-			} else {
-				outRow.SetColumnValue(columnName, nil, typ)
+			var val any = nil
+			switch typ {
+			case db.ColumnTypeBoolean:
+				if colBytes.Valid {
+					v, err := strconv.ParseBool(string(colBytes.Bytes))
+					if err != nil {
+						return nil, err
+					}
+					val = v
+				}
+			case db.ColumnTypeInteger:
+				if colBytes.Valid {
+					v, err := strconv.ParseInt(string(colBytes.Bytes), 10, 64)
+					if err != nil {
+						return nil, err
+					}
+					val = v
+				}
+			case db.ColumnTypeFloat:
+				if colBytes.Valid {
+					v, err := strconv.ParseFloat(string(colBytes.Bytes), 64)
+					if err != nil {
+						return nil, err
+					}
+					val = v
+				}
+			case db.ColumnTypeTime, db.ColumnTypeString:
+				if colBytes.Valid {
+					val = string(colBytes.Bytes)
+					typ = db.ColumnTypeString
+				}
+			default:
+				return nil, fmt.Errorf("unexpected type %v of column %s not found", typ, columnName)
 			}
+			outRow.SetColumnValue(columnName, val, typ)
 		}
 		out.Rows = append(out.Rows, outRow)
 	}

@@ -62,7 +62,7 @@ func (v ColumnValue) AsString() (NullString, error) {
 	case sql.NullString:
 		return NullString(val), nil
 	}
-	return NullString{}, fmt.Errorf("value not compatible to string")
+	return NullString{}, fmt.Errorf("value %v:%T not compatible to string", v.value, v.value)
 }
 
 func (v ColumnValue) AsInteger() (NullInteger, error) {
@@ -74,7 +74,7 @@ func (v ColumnValue) AsInteger() (NullInteger, error) {
 	if rv.Kind() == reflect.Pointer {
 		switch rv.Type().Elem().Kind() {
 		default:
-			return NullInteger{}, fmt.Errorf("value not compatible to int64")
+			return NullInteger{}, fmt.Errorf("value %v:%T not compatible to int64", v.value, v.value)
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		}
@@ -113,7 +113,7 @@ func (v ColumnValue) AsInteger() (NullInteger, error) {
 	case sql.NullInt64:
 		return NullInteger(val), nil
 	}
-	return NullInteger{}, fmt.Errorf("value not compatible to int64")
+	return NullInteger{}, fmt.Errorf("value %v:%T not compatible to int64", v.value, v.value)
 }
 
 func (v ColumnValue) AsFloat() (NullFloat, error) {
@@ -125,7 +125,7 @@ func (v ColumnValue) AsFloat() (NullFloat, error) {
 	if rv.Kind() == reflect.Pointer {
 		switch rv.Type().Elem().Kind() {
 		default:
-			return NullFloat{}, fmt.Errorf("value not compatible to float64")
+			return NullFloat{}, fmt.Errorf("value %v:%T not compatible to float64", v.value, v.value)
 		case reflect.Float32, reflect.Float64:
 		}
 		if rv.IsNil() {
@@ -141,7 +141,7 @@ func (v ColumnValue) AsFloat() (NullFloat, error) {
 	case sql.NullFloat64:
 		return NullFloat(val), nil
 	}
-	return NullFloat{}, fmt.Errorf("value not compatible to float64")
+	return NullFloat{}, fmt.Errorf("value %v:%T not compatible to float64", v.value, v.value)
 }
 
 func (v ColumnValue) AsBytes() (NullBytes, error) {
@@ -159,7 +159,7 @@ func (v ColumnValue) AsBytes() (NullBytes, error) {
 		}
 		return NullBytes{Valid: true, Bytes: val}, nil
 	}
-	return NullBytes{}, fmt.Errorf("value not compatible to []byte")
+	return NullBytes{}, fmt.Errorf("value %v:%T not compatible to []byte", v.value, v.value)
 }
 
 func (v ColumnValue) AsTime() (NullTime, error) {
@@ -176,7 +176,7 @@ func (v ColumnValue) AsTime() (NullTime, error) {
 	case sql.NullTime:
 		return NullTime(val), nil
 	default:
-		return NullTime{}, fmt.Errorf("value not compatible to time.Time")
+		return NullTime{}, fmt.Errorf("value %v:%T not compatible to time.Time", v.value, v.value)
 	}
 }
 
@@ -194,6 +194,6 @@ func (v ColumnValue) AsBool() (NullBool, error) {
 	case sql.NullBool:
 		return NullBool(val), nil
 	default:
-		return NullBool{}, fmt.Errorf("value not compatible to time.Time")
+		return NullBool{}, fmt.Errorf("value %v:%T not compatible to bool", v.value, v.value)
 	}
 }
