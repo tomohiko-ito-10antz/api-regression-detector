@@ -31,7 +31,11 @@ func (o schemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string)
 }
 
 func getColumnTypes(ctx context.Context, tx db.Tx, table string) (columnTypes db.ColumnTypes, err error) {
-	rows, err := tx.Read(ctx, `SELECT column_name, column_type FROM information_schema.columns WHERE table_name = ?`, []any{table})
+	rows, err := tx.Read(ctx, `SELECT
+	column_name AS column_name,
+	column_type AS column_type
+FROM information_schema.columns
+WHERE table_name = ?`, []any{table})
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +68,7 @@ func getColumnTypes(ctx context.Context, tx db.Tx, table string) (columnTypes db
 		lowerTyp := strings.ToLower(typ)
 		startsWithAny := func(prefixes ...string) bool {
 			for _, prefix := range prefixes {
-				if strings.HasPrefix(lowerTyp, strings.ToUpper(prefix)) {
+				if strings.HasPrefix(lowerTyp, strings.ToLower(prefix)) {
 					return true
 				}
 			}
@@ -89,7 +93,7 @@ func getColumnTypes(ctx context.Context, tx db.Tx, table string) (columnTypes db
 func getPrimaryKeys(ctx context.Context, tx db.Tx, tableName string) (primaryKeys []string, err error) {
 	table, err := tx.Read(ctx, `
 SELECT 
-    column_name
+    column_name AS column_name
 FROM 
     information_schema.key_column_usage AS key_columns 
     JOIN information_schema.table_constraints AS constraints 

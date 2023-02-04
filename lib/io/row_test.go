@@ -40,6 +40,30 @@ func TestRow_GetColumnNames(t *testing.T) {
 	assert.Equal(t, slices.Contains(a, "h"), true)
 }
 
+func TestRow_Has(t *testing.T) {
+	var v = Row{
+		"a": mustNewJson(int64(123)),
+		"b": mustNewJson(float64(-123.45)),
+		"c": mustNewJson("abc"),
+		"d": mustNewJson(nil),
+		"e": mustNewJson(true),
+		"f": mustNewJson(false),
+		"g": mustNewJson(map[string]any{}),
+		"h": mustNewJson([]any{}),
+	}
+	assert.Equal(t, v.Has("a"), true)
+	assert.Equal(t, v.Has("b"), true)
+	assert.Equal(t, v.Has("c"), true)
+	assert.Equal(t, v.Has("d"), true)
+	assert.Equal(t, v.Has("e"), true)
+	assert.Equal(t, v.Has("f"), true)
+	assert.Equal(t, v.Has("g"), true)
+	assert.Equal(t, v.Has("h"), true)
+	assert.Equal(t, v.Has("x"), false)
+	assert.Equal(t, v.Has("y"), false)
+	assert.Equal(t, v.Has("z"), false)
+}
+
 func TestRow_GetColumnTypes(t *testing.T) {
 	var v = Row{
 		"a": mustNewJson(int64(123)),

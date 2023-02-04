@@ -25,15 +25,12 @@ func (d *database) RunTransaction(ctx context.Context, handler func(ctx context.
 	return runTransaction(ctx, d.db, handler)
 }
 func (d *database) Open() (err error) {
-	if d == nil || d.db == nil {
-		return nil
-	}
 	d.db, err = sql.Open(d.driver, d.connection)
-	return err
+	if err != nil {
+		return err
+	}
+	return nil
 }
 func (d *database) Close() error {
-	if d == nil || d.db == nil {
-		return nil
-	}
 	return d.db.Close()
 }

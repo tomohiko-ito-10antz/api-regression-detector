@@ -94,9 +94,9 @@ func paramsToStrings(params []any) (strArr []string) {
 		case !rv.IsValid(), rv.Kind() == reflect.Pointer && rv.IsNil():
 			strArr = append(strArr, "<nil>")
 		case rv.Kind() == reflect.Pointer:
-			strArr = append(strArr, fmt.Sprintf("%v", rv.Elem().Interface()))
+			strArr = append(strArr, fmt.Sprintf("%v:%T", rv.Elem().Interface(), rv.Elem().Interface()))
 		default:
-			strArr = append(strArr, fmt.Sprintf("%v", rv.Interface()))
+			strArr = append(strArr, fmt.Sprintf("%v:%T", rv.Interface(), rv.Interface()))
 		}
 	}
 	return strArr
