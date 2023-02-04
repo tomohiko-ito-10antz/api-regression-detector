@@ -39,7 +39,7 @@ func getColumnTypes(ctx context.Context, tx db.Tx, table string) (columnTypes db
 	for _, row := range rows {
 		col := ""
 		{
-			columnName, ok := row.GetColumnValue("name")
+			columnName, ok := row["name"]
 			if !ok {
 				return nil, fmt.Errorf("column %s not found", "name")
 			}
@@ -51,7 +51,7 @@ func getColumnTypes(ctx context.Context, tx db.Tx, table string) (columnTypes db
 		}
 		typ := ""
 		{
-			columnType, ok := row.GetColumnValue("type")
+			columnType, ok := row["type"]
 			if !ok {
 				return nil, fmt.Errorf("column %s not found", "type")
 			}
@@ -91,7 +91,7 @@ func getPrimaryKeys(ctx context.Context, tx db.Tx, table string) (primaryKeys []
 		return nil, err
 	}
 	for _, row := range rows {
-		columnName, ok := row.GetColumnValue("name")
+		columnName, ok := row["name"]
 		if !ok {
 			return nil, fmt.Errorf("column %s not found", "name")
 		}

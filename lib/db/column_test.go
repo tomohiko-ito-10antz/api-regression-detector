@@ -30,6 +30,12 @@ func TestUnknownTypeColumnValue(t *testing.T) {
 	a := UnknownTypeColumnValue(3)
 	assert.Equal(t, a.Type, ColumnTypeUnknown)
 }
+
+func TestWithType(t *testing.T) {
+	a := UnknownTypeColumnValue(3).WithType(ColumnTypeInteger)
+	assert.Equal(t, a.Type, ColumnTypeInteger)
+}
+
 func TestColumnValue_AsString(t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
 		a, err := UnknownTypeColumnValue(nil).AsString()

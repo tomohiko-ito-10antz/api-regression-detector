@@ -7,7 +7,7 @@ import (
 	"github.com/Jumpaku/api-regression-detector/lib/log"
 )
 
-func Save(jsonValue any, file *os.File) (err error) {
+func SaveJson(jsonValue any, file *os.File) (err error) {
 	log.Stderr("OUTPUT JSON TO %s", file.Name())
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "    ")

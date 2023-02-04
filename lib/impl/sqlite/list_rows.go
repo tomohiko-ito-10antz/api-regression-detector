@@ -27,7 +27,7 @@ func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName strin
 	for _, row := range rows {
 		outRow := db.Row{}
 		for _, columnName := range schema.ColumnTypes.GetColumnNames() {
-			col, ok := row.GetColumnValue(columnName)
+			col, ok := row[columnName]
 			if !ok {
 				return nil, fmt.Errorf("column %s not found", columnName)
 			}
@@ -35,7 +35,7 @@ func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName strin
 			if !exists {
 				return nil, fmt.Errorf("column %s not found", columnName)
 			}
-			outRow.SetColumnValue(columnName, col, typ)
+			outRow[columnName] = db.NewColumnValue(col, typ)
 		}
 		out.Rows = append(out.Rows, outRow)
 	}

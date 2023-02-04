@@ -37,7 +37,7 @@ func getColumnTypes(ctx context.Context, tx db.Tx, table string) (columnTypes db
 	}
 	columnTypes = db.ColumnTypes{}
 	for _, row := range rows {
-		columnName, ok := row.GetColumnValue("column_name")
+		columnName, ok := row["column_name"]
 		if !ok {
 			return nil, fmt.Errorf("column %s not found", "column_name")
 		}
@@ -47,7 +47,7 @@ func getColumnTypes(ctx context.Context, tx db.Tx, table string) (columnTypes db
 		}
 		col := string(columnNameBytes.Bytes)
 
-		columnType, ok := row.GetColumnValue("data_type")
+		columnType, ok := row["data_type"]
 		if !ok {
 			return nil, fmt.Errorf("column %s not found", "data_type")
 		}
@@ -100,7 +100,7 @@ ORDER BY
 		return nil, err
 	}
 	for _, row := range rows {
-		columnName, ok := row.GetColumnValue("column_name")
+		columnName, ok := row["column_name"]
 		if !ok {
 			return nil, fmt.Errorf("column %s not found", "column_name")
 		}

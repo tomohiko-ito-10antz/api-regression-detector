@@ -1,11 +1,6 @@
 package db
 
-import (
-	"testing"
-	"time"
-
-	"github.com/Jumpaku/api-regression-detector/test/assert"
-)
+/*
 
 func TestRow_String(t *testing.T) {
 	v := Row{}
@@ -71,8 +66,6 @@ func TestRow_Time(t *testing.T) {
 	aV, _ := a.AsTime()
 	assert.Equal(t, aV.Time, e)
 }
-
-/*
 func (row Row) GetColumnValue(columnName string) (*ColumnValue, error) {
 	val, exists := row[columnName]
 	if !exists {

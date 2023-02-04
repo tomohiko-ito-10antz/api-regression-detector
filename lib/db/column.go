@@ -48,6 +48,11 @@ func NewColumnValue(val any, typ ColumnType) *ColumnValue {
 	return &ColumnValue{value: val, Type: typ}
 }
 
+func (v ColumnValue) WithType(typ ColumnType) *ColumnValue {
+	v.Type = typ
+	return &v
+}
+
 func (v ColumnValue) AsString() (NullString, error) {
 	switch val := v.value.(type) {
 	case nil:

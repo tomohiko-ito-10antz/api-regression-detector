@@ -43,7 +43,7 @@ WHERE table_name = ?`, []any{table})
 	for _, row := range rows {
 		col := ""
 		{
-			columnName, ok := row.GetColumnValue("column_name")
+			columnName, ok := row["column_name"]
 			if !ok {
 				return nil, fmt.Errorf("column %s not found", "column_name")
 			}
@@ -55,7 +55,7 @@ WHERE table_name = ?`, []any{table})
 		}
 		typ := ""
 		{
-			columnType, ok := row.GetColumnValue("column_type")
+			columnType, ok := row["column_type"]
 			if !ok {
 				return nil, fmt.Errorf("column %s not found", "column_type")
 			}
@@ -109,7 +109,7 @@ ORDER BY
 		return nil, err
 	}
 	for _, row := range table {
-		columnName, ok := row.GetColumnValue("column_name")
+		columnName, ok := row["column_name"]
 		if !ok {
 			return nil, fmt.Errorf("column %s not found", "column_name")
 		}

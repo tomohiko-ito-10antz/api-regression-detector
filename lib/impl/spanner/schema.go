@@ -37,26 +37,33 @@ func getColumnTypes(ctx context.Context, tx db.Tx, table string) (columnTypes db
 	}
 	columnTypes = db.ColumnTypes{}
 	for _, row := range rows {
-		columnName, ok := row.GetColumnValue("column_name")
+		columnName, ok := row["column_name"]
 		if !ok {
 			return nil, fmt.Errorf("column %s not found", "column_name")
 		}
 		col, _ := columnName.AsString()
-		spannerType, ok := row.GetColumnValue("spanner_type")
+		spannerType, ok := row["spanner_type"]
 		if !ok {
 			return nil, fmt.Errorf("column %s not found", "spanner_type")
 		}
 		typ, _ := spannerType.AsString()
-		startsWith := func(prefix string) bool {
-			return strings.HasPrefix(strings.ToLower(typ.String), strings.ToLower(prefix))
+		startsWithAny := func(prefixes ...string) bool {
+			for _, prefix := range prefixes {
+				if strings.HasPrefix(strings.ToLower(typ.String), strings.ToLower(prefix)) {
+					return true
+				}
+			}
+			return false
 		}
 		switch {
-		case startsWith("BOOL"):
+		case startsWithAny("BOOL"):
 			columnTypes[col.String] = db.ColumnTypeBoolean
-		case startsWith("INT64"):
+		case startsWithAny("INT64"):
 			columnTypes[col.String] = db.ColumnTypeInteger
-		case startsWith("FLOAT64"):
+		case startsWithAny("FLOAT64"):
 			columnTypes[col.String] = db.ColumnTypeFloat
+		case startsWithAny("DATE", "TIMESTAMP"):
+			columnTypes[col.String] = db.ColumnTypeTime
 		default:
 			columnTypes[col.String] = db.ColumnTypeString
 		}
@@ -83,7 +90,7 @@ ORDER BY
 		return nil, err
 	}
 	for _, row := range rows {
-		columnName, ok := row.GetColumnValue("column_name")
+		columnName, ok := row["column_name"]
 		if !ok {
 			return nil, fmt.Errorf("column %s not found", "column_name")
 		}
