@@ -31,40 +31,38 @@ func (o schemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string)
 }
 
 func getColumnTypes(ctx context.Context, tx db.Tx, table string) (columnTypes db.ColumnTypes, err error) {
-	rows, err := tx.Read(ctx, `SELECT column_name, column_type FROM information_schema.columns WHERE table_name = ?`, []any{table})
+	rows, err := tx.Read(ctx, `SELECT column_name, data_type FROM information_schema.columns WHERE table_name = $1`, []any{table})
+	fmt.Println("1")
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("2")
 	columnTypes = db.ColumnTypes{}
 	for _, row := range rows {
-		col := ""
-		{
-			columnName, ok := row.GetColumnValue("column_name")
-			if !ok {
-				return nil, fmt.Errorf("column %s not found", "column_name")
-			}
-			columnNameString, err := columnName.AsString()
-			if err != nil {
-				return nil, err
-			}
-			col = columnNameString.String
+		fmt.Printf("row %v", row)
+		columnName, ok := row.GetColumnValue("column_name")
+		if !ok {
+			return nil, fmt.Errorf("column %s not found", "column_name")
 		}
-		typ := ""
-		{
-			columnType, ok := row.GetColumnValue("data_type")
-			if !ok {
-				return nil, fmt.Errorf("column %s not found", "data_type")
-			}
-			columnTypeString, err := columnType.AsString()
-			if err != nil {
-				return nil, err
-			}
-			typ = columnTypeString.String
+		columnNameBytes, err := columnName.AsBytes()
+		if err != nil {
+			return nil, err
 		}
+		col := string(columnNameBytes.Bytes)
+
+		columnType, ok := row.GetColumnValue("data_type")
+		if !ok {
+			return nil, fmt.Errorf("column %s not found", "data_type")
+		}
+		columnTypeString, err := columnType.AsString()
+		if err != nil {
+			return nil, err
+		}
+		typ := columnTypeString.String
 		lowerTyp := strings.ToLower(typ)
 		startsWithAny := func(prefixes ...string) bool {
 			for _, prefix := range prefixes {
-				if strings.HasPrefix(lowerTyp, strings.ToUpper(prefix)) {
+				if strings.HasPrefix(lowerTyp, strings.ToLower(prefix)) {
 					return true
 				}
 			}
@@ -96,7 +94,7 @@ FROM
     ON keys.constraint_name = constraints.constraint_name 
         AND keys.table_name = constraints.table_name
 WHERE
-    keys.table_name = ?
+    keys.table_name = $1
     AND constraint_type = 'PRIMARY KEY'
 ORDER BY
     ordinal_position
