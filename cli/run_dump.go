@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"
+	"github.com/Jumpaku/api-regression-detector/lib/errors"
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
-	"go.uber.org/multierr"
 )
 
 func RunDump(databaseDriver string, connectionString string) (code int, err error) {
@@ -14,32 +14,38 @@ func RunDump(databaseDriver string, connectionString string) (code int, err erro
 	if err != nil {
 		return 1, err
 	}
+
 	err = driver.Open(connectionString)
 	if err != nil {
 		return 1, err
 	}
 
 	defer func() {
-		err = multierr.Combine(err, driver.Close())
+		err = errors.Wrap(errors.Join(err, driver.Close()), "fail RunDump")
 		if err != nil {
 			code = 1
 		}
 	}()
+
 	tableNames, err := jsonio.LoadJson[[]string](os.Stdin)
 	if err != nil {
-		return 1, err
+		return 1, errors.Wrap(err, "fail to load JSON from stdin")
 	}
+
 	dump, err := cmd.Dump(context.Background(), driver.DB, tableNames, driver.SchemaGetter, driver.ListRows)
 	if err != nil {
-		return 1, err
+		return 1, errors.Wrap(err, "fail Dump")
 	}
+
 	json, err := jsonio.TableToJson(dump)
 	if err != nil {
-		return 1, err
+		return 1, errors.Wrap(err, "fail to convert to JSON")
 	}
+
 	err = jsonio.SaveJson(json, os.Stdout)
 	if err != nil {
-		return 1, err
+		return 1, errors.Wrap(err, "fail to save JSON to stdout")
 	}
+
 	return 0, nil
 }

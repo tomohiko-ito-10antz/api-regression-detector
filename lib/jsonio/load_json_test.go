@@ -97,3 +97,9 @@ func TestLoadJson_TableNames(t *testing.T) {
 	assert.Equal(t, a[0], "t1")
 	assert.Equal(t, a[1], "t2")
 }
+
+func TestLoadJson_NG(t *testing.T) {
+	reader := mock.ErrNamedBuffer{}
+	_, err := jsonio.LoadJson[[]any](reader)
+	assert.NotEqual(t, err, nil)
+}

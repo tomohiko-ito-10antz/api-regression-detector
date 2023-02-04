@@ -1,9 +1,8 @@
 package cli
 
 import (
-	"fmt"
-
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"
+	"github.com/Jumpaku/api-regression-detector/lib/errors"
 	"github.com/Jumpaku/api-regression-detector/lib/impl/mysql"
 	"github.com/Jumpaku/api-regression-detector/lib/impl/postgres"
 	"github.com/Jumpaku/api-regression-detector/lib/impl/spanner"
@@ -47,7 +46,7 @@ func NewDriver(name string) (*cmd.Driver, error) {
 			SchemaGetter: spanner.GetSchema(),
 		}
 	default:
-		return nil, fmt.Errorf("invalid driver name")
+		return nil, errors.Wrap(errors.BadArgs, "invalid driver name %s", name)
 	}
 	return driver, nil
 }

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	libdb "github.com/Jumpaku/api-regression-detector/lib/db"
+	"github.com/Jumpaku/api-regression-detector/lib/errors"
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
 )
 
@@ -19,27 +20,29 @@ func Dump(
 
 	err := db.RunTransaction(ctx, func(ctx context.Context, tx libdb.Tx) error {
 		var err error
+
 		dbTables := libdb.Tables{}
 		for _, tableName := range tableNames {
 			schema, err := schemaGetter.GetSchema(ctx, tx, tableName)
 			if err != nil {
-				return err
+				return errors.Wrap(err, "fail to get schema of table %s", tableName)
 			}
 			rows, err := rowLister.ListRows(ctx, tx, tableName, schema)
 			if err != nil {
-				return err
+				return errors.Wrap(err, "fail to list rows of table %s", tableName)
 			}
 			dbTables[tableName] = libdb.Table{Name: tableName, Schema: schema, Rows: rows}
 		}
+
 		tables, err = convertTablesDBToJson(dbTables)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "fail to convert tables to JSON")
 		}
 
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "transaction failed")
 	}
 
 	return tables, nil
@@ -54,7 +57,7 @@ func convertTablesDBToJson(dbTables libdb.Tables) (jsonTables jsonio.Tables, err
 			for dbColumnName, dbColumnValue := range dbRow {
 				jsonRow[dbColumnName], err = convertDBColumnValueToJsonValue(dbColumnValue)
 				if err != nil {
-					return nil, err
+					return nil, errors.Wrap(err, "fail to convert DB value to JSON value")
 				}
 			}
 
@@ -72,7 +75,7 @@ func convertDBColumnValueToJsonValue(dbVal *libdb.ColumnValue) (*jsonio.JsonValu
 	case libdb.ColumnTypeBoolean:
 		v, err := dbVal.AsBool()
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(errors.Join(err, errors.BadConversion), "fail to parse DB column value as bool value")
 		}
 
 		if !v.Valid {
@@ -83,7 +86,7 @@ func convertDBColumnValueToJsonValue(dbVal *libdb.ColumnValue) (*jsonio.JsonValu
 	case libdb.ColumnTypeInteger:
 		v, err := dbVal.AsInteger()
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(errors.Join(err, errors.BadConversion), "fail to parse DB column value as integer value")
 		}
 
 		if !v.Valid {
@@ -94,7 +97,7 @@ func convertDBColumnValueToJsonValue(dbVal *libdb.ColumnValue) (*jsonio.JsonValu
 	case libdb.ColumnTypeFloat:
 		v, err := dbVal.AsFloat()
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(errors.Join(err, errors.BadConversion), "fail to parse DB column value as float value")
 		}
 
 		if !v.Valid {
@@ -105,7 +108,7 @@ func convertDBColumnValueToJsonValue(dbVal *libdb.ColumnValue) (*jsonio.JsonValu
 	case libdb.ColumnTypeString:
 		v, err := dbVal.AsString()
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(errors.Join(err, errors.BadConversion), "fail to parse DB column value as string value")
 		}
 
 		if !v.Valid {
@@ -116,7 +119,7 @@ func convertDBColumnValueToJsonValue(dbVal *libdb.ColumnValue) (*jsonio.JsonValu
 	case libdb.ColumnTypeTime:
 		v, err := dbVal.AsTime()
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(errors.Join(err, errors.BadConversion), "fail to parse DB column value as time.Time value")
 		}
 
 		if !v.Valid {
@@ -127,7 +130,7 @@ func convertDBColumnValueToJsonValue(dbVal *libdb.ColumnValue) (*jsonio.JsonValu
 	default:
 		v, err := dbVal.AsBytes()
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(errors.Join(err, errors.BadConversion), "fail to parse DB column value as []byte value")
 		}
 
 		if !v.Valid {

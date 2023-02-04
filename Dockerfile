@@ -1,4 +1,4 @@
-FROM golang:1.19.4-bullseye
+FROM golang:1.20.0-bullseye
 
 ENV DEBIAN_FRONTEND=noninteractive
 # https://cloud.google.com/spanner/docs/emulator#client-libraries

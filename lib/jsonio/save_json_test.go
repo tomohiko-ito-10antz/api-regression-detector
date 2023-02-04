@@ -87,14 +87,8 @@ func TestSaveJson_Tables(t *testing.T) {
 	assert.Equal(t, eCompact, aCompact)
 }
 
-/*
-func SaveJson(jsonValue any, file NamedWriter) (err error) {
-	log.Stderr("OUTPUT JSON TO %s", file.Name())
-	encoder := json.NewEncoder(file)
-	encoder.SetIndent("", "    ")
-	if err := encoder.Encode(jsonValue); err != nil {
-		return err
-	}
-	return nil
+func TestSaveJson_NG(t *testing.T) {
+	writer := mock.ErrNamedBuffer{}
+	err := jsonio.SaveJson(map[string][]map[string]any{}, writer)
+	assert.NotEqual(t, err, nil)
 }
-*/

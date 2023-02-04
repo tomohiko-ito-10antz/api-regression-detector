@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Jumpaku/api-regression-detector/lib/db"
+	"github.com/Jumpaku/api-regression-detector/lib/errors"
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
 )
 
@@ -34,17 +34,27 @@ type Driver struct {
 }
 
 func (d *Driver) Close() error {
-	return d.DB.Close()
+	err := d.DB.Close()
+	if err != nil {
+		return errors.Wrap(errors.Join(err, errors.IOFailure), "fail to close database")
+	}
+
+	return nil
 }
 
 func (d *Driver) Open(connectionString string) error {
 	switch d.Name {
 	default:
-		return fmt.Errorf("invalid driver name")
+		return errors.Wrap(errors.BadArgs, "unsupported driver name")
 	case "mysql", "postgres", "sqlite3", "spanner":
 	}
 
 	d.DB = db.NewDB(d.Name, connectionString)
 
-	return d.DB.Open()
+	err := d.DB.Open()
+	if err != nil {
+		return errors.Wrap(err, "fail to open database")
+	}
+
+	return nil
 }

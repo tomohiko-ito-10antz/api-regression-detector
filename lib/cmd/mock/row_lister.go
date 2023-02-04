@@ -2,17 +2,18 @@ package mock
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/Jumpaku/api-regression-detector/lib/db"
+	"github.com/Jumpaku/api-regression-detector/lib/errors"
+	"github.com/Jumpaku/api-regression-detector/test"
 )
 
 type RowLister struct{}
 
 func (RowLister) ListRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema) ([]db.Row, error) {
 	if tableName != "mock_table" {
-		return nil, fmt.Errorf("table %s not found", tableName)
+		return nil, errors.Wrap(test.MockError, "table %s not found", tableName)
 	}
 
 	return []db.Row{
@@ -43,5 +44,5 @@ func (RowLister) ListRows(ctx context.Context, tx db.Tx, tableName string, schem
 type ErrRowLister struct{}
 
 func (ErrRowLister) ListRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema) ([]db.Row, error) {
-	return nil, fmt.Errorf("error table %s", tableName)
+	return nil, errors.Wrap(test.MockError, "error with database")
 }

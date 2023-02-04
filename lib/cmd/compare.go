@@ -4,6 +4,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/Jumpaku/api-regression-detector/lib/errors"
 	"github.com/nsf/jsondiff"
 )
 
@@ -19,12 +20,12 @@ const (
 func Compare(expectedJson io.Reader, actualJson io.Reader) (CompareResult, string, error) {
 	expected, err := io.ReadAll(expectedJson)
 	if err != nil {
-		return CompareResultError, "", err
+		return CompareResultError, "", errors.Wrap(errors.IOFailure, "fail to read first JSON")
 	}
 
 	actual, err := io.ReadAll(actualJson)
 	if err != nil {
-		return CompareResultError, "", err
+		return CompareResultError, "", errors.Wrap(errors.IOFailure, "fail to read second JSON")
 	}
 
 	opt := jsondiff.DefaultConsoleOptions()
@@ -37,21 +38,23 @@ func Compare(expectedJson io.Reader, actualJson io.Reader) (CompareResult, strin
 	// Check actual value matches or is a superset of expected value
 	match, _ := jsondiff.Compare(actual, expected, &opt)
 	// Describe how actual value is different from expected value
-	_, diff := jsondiff.Compare(expected, actual, &opt)
+	_, description := jsondiff.Compare(expected, actual, &opt)
 
 	switch match {
 	case jsondiff.FullMatch:
-		return CompareResultFullMatch, describe(diff), nil
+		return CompareResultFullMatch, describeDiff(description), nil
 	case jsondiff.SupersetMatch:
-		return CompareResultSupersetMatch, describe(diff), nil
+		return CompareResultSupersetMatch, describeDiff(description), nil
 	case jsondiff.NoMatch:
-		return CompareResultNoMatch, describe(diff), nil
+		return CompareResultNoMatch, describeDiff(description), nil
+	case jsondiff.BothArgsAreInvalidJson, jsondiff.FirstArgIsInvalidJson, jsondiff.SecondArgIsInvalidJson:
+		return CompareResultError, "", errors.Wrap(errors.BadJSON, description)
 	default:
-		return CompareResultError, "", nil
+		return CompareResultError, "", errors.Wrap(errors.BadState, "unexpected case %v", match)
 	}
 }
 
-func describe(diff string) string {
+func describeDiff(diff string) string {
 	var (
 		addBegin    = "\033[0;32m"
 		addEnd      = "\033[0m"
@@ -62,8 +65,10 @@ func describe(diff string) string {
 	)
 
 	lines := []string{}
+
 	for _, line := range strings.Split(diff, "\n") {
 		trim := strings.Trim(line, " \t\n")
+
 		if prefix := ((trim + "  ")[:2]); prefix == "@+" {
 			line = addBegin + "+|" + strings.Replace(line, prefix, "", 1) + addEnd
 		} else if prefix := ((trim + "  ")[:2]); prefix == "@-" {

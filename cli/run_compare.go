@@ -5,25 +5,29 @@ import (
 	"os"
 
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"
-	"go.uber.org/multierr"
+	"github.com/Jumpaku/api-regression-detector/lib/errors"
 )
 
 func RunCompare(expectedJson string, actualJson string, verbose bool, strict bool) (code int, err error) {
 	expectedJsonFile, err := os.Open(expectedJson)
 	if err != nil {
-		return 1, err
+		return 1, errors.Wrap(errors.Join(err, errors.IOFailure), "fail to open %s", expectedJson)
 	}
 
 	defer func() {
-		err = multierr.Combine(err, expectedJsonFile.Close())
+		err = errors.Wrap(errors.Join(err, expectedJsonFile.Close()), "fail RunCompare")
 		if err != nil {
 			code = 1
 		}
 	}()
 
 	actualJsonFile, err := os.Open(actualJson)
+	if err != nil {
+		return 1, errors.Wrap(errors.Join(err, errors.IOFailure), "fail to open %s", actualJson)
+	}
+
 	defer func() {
-		err = multierr.Combine(err, actualJsonFile.Close())
+		err = errors.Wrap(errors.Join(err, actualJsonFile.Close()), "fail RunCompare")
 		if err != nil {
 			code = 1
 		}
@@ -31,7 +35,7 @@ func RunCompare(expectedJson string, actualJson string, verbose bool, strict boo
 
 	match, detail, err := cmd.Compare(expectedJsonFile, actualJsonFile)
 	if err != nil {
-		return 1, err
+		return 1, errors.Wrap(err, "fail RunCompare %s", detail)
 	}
 
 	fmt.Println(match)

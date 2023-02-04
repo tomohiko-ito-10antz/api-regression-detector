@@ -2,9 +2,10 @@ package mock
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Jumpaku/api-regression-detector/lib/db"
+	"github.com/Jumpaku/api-regression-detector/lib/errors"
+	"github.com/Jumpaku/api-regression-detector/test"
 )
 
 type DB struct{}
@@ -32,5 +33,5 @@ func (ErrDB) Close() error {
 }
 
 func (ErrDB) RunTransaction(ctx context.Context, handler func(ctx context.Context, tx db.Tx) error) error {
-	return fmt.Errorf("error with database")
+	return errors.Wrap(test.MockError, "error with database")
 }

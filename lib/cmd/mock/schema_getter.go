@@ -2,16 +2,17 @@ package mock
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Jumpaku/api-regression-detector/lib/db"
+	"github.com/Jumpaku/api-regression-detector/lib/errors"
+	"github.com/Jumpaku/api-regression-detector/test"
 )
 
 type SchemaGetter struct{}
 
 func (SchemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string) (db.Schema, error) {
 	if tableName != "mock_table" {
-		return db.Schema{}, fmt.Errorf("table %s not found", tableName)
+		return db.Schema{}, errors.Wrap(test.MockError, "table %s not found", tableName)
 	}
 
 	return db.Schema{
@@ -29,5 +30,5 @@ func (SchemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string) (
 type ErrSchemaGetter struct{}
 
 func (ErrSchemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string) (db.Schema, error) {
-	return db.Schema{}, fmt.Errorf("error with table %s", tableName)
+	return db.Schema{}, errors.Wrap(test.MockError, "error with database")
 }
