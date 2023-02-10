@@ -6,7 +6,8 @@ import (
 
 	libdb "github.com/Jumpaku/api-regression-detector/lib/db"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
-	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
+	"github.com/Jumpaku/api-regression-detector/lib/jsonio/tables"
+	"github.com/Jumpaku/api-regression-detector/lib/jsonio/wrap"
 )
 
 func Dump(
@@ -15,8 +16,8 @@ func Dump(
 	tableNames []string,
 	schemaGetter SchemaGetter,
 	rowLister RowLister,
-) (jsonio.Tables, error) {
-	tables := jsonio.Tables{}
+) (tables.DumpTables, error) {
+	dumpTables := tables.DumpTables{}
 
 	err := db.RunTransaction(ctx, func(ctx context.Context, tx libdb.Tx) error {
 		var err error
@@ -34,7 +35,7 @@ func Dump(
 			dbTables[tableName] = libdb.Table{Name: tableName, Schema: schema, Rows: rows}
 		}
 
-		tables, err = convertTablesDBToJson(dbTables)
+		dumpTables, err = convertTablesDBToJson(dbTables)
 		if err != nil {
 			return errors.Wrap(err, "fail to convert tables to JSON")
 		}
@@ -45,15 +46,15 @@ func Dump(
 		return nil, errors.Wrap(err, "transaction for Dump failed")
 	}
 
-	return tables, nil
+	return dumpTables, nil
 }
 
-func convertTablesDBToJson(dbTables libdb.Tables) (jsonTables jsonio.Tables, err error) {
-	jsonTables = jsonio.Tables{}
+func convertTablesDBToJson(dbTables libdb.Tables) (jsonTables tables.DumpTables, err error) {
+	jsonTables = tables.DumpTables{}
 	for dbTableName, dbTable := range dbTables {
-		jsonTable := jsonio.Table{}
+		jsonRows := []tables.Row{}
 		for _, dbRow := range dbTable.Rows {
-			jsonRow := jsonio.Row{}
+			jsonRow := tables.Row{}
 			for dbColumnName, dbColumnValue := range dbRow {
 				jsonRow[dbColumnName], err = convertDBColumnValueToJsonValue(dbColumnValue)
 				if err != nil {
@@ -61,16 +62,16 @@ func convertTablesDBToJson(dbTables libdb.Tables) (jsonTables jsonio.Tables, err
 				}
 			}
 
-			jsonTable.Rows = append(jsonTable.Rows, jsonRow)
+			jsonRows = append(jsonRows, jsonRow)
 		}
 
-		jsonTables[dbTableName] = jsonTable
+		jsonTables[dbTableName] = jsonRows
 	}
 
 	return jsonTables, nil
 }
 
-func convertDBColumnValueToJsonValue(dbVal *libdb.ColumnValue) (*jsonio.JsonValue, error) {
+func convertDBColumnValueToJsonValue(dbVal *libdb.ColumnValue) (*wrap.JsonValue, error) {
 	switch dbVal.Type {
 	case libdb.ColumnTypeBoolean:
 		v, err := dbVal.AsBool()
@@ -79,10 +80,10 @@ func convertDBColumnValueToJsonValue(dbVal *libdb.ColumnValue) (*jsonio.JsonValu
 		}
 
 		if !v.Valid {
-			return jsonio.NewJsonNull(), nil
+			return wrap.Null(), nil
 		}
 
-		return jsonio.NewJsonBoolean(v.Bool), nil
+		return wrap.Boolean(v.Bool), nil
 	case libdb.ColumnTypeInteger:
 		v, err := dbVal.AsInteger()
 		if err != nil {
@@ -90,10 +91,10 @@ func convertDBColumnValueToJsonValue(dbVal *libdb.ColumnValue) (*jsonio.JsonValu
 		}
 
 		if !v.Valid {
-			return jsonio.NewJsonNull(), nil
+			return wrap.Null(), nil
 		}
 
-		return jsonio.NewJsonNumberInt64(v.Int64), nil
+		return wrap.Number(v.Int64), nil
 	case libdb.ColumnTypeFloat:
 		v, err := dbVal.AsFloat()
 		if err != nil {
@@ -101,10 +102,10 @@ func convertDBColumnValueToJsonValue(dbVal *libdb.ColumnValue) (*jsonio.JsonValu
 		}
 
 		if !v.Valid {
-			return jsonio.NewJsonNull(), nil
+			return wrap.Null(), nil
 		}
 
-		return jsonio.NewJsonNumberFloat64(v.Float64), nil
+		return wrap.Number(v.Float64), nil
 	case libdb.ColumnTypeString:
 		v, err := dbVal.AsString()
 		if err != nil {
@@ -112,10 +113,10 @@ func convertDBColumnValueToJsonValue(dbVal *libdb.ColumnValue) (*jsonio.JsonValu
 		}
 
 		if !v.Valid {
-			return jsonio.NewJsonNull(), nil
+			return wrap.Null(), nil
 		}
 
-		return jsonio.NewJsonString(v.String), nil
+		return wrap.String(v.String), nil
 	case libdb.ColumnTypeTime:
 		v, err := dbVal.AsTime()
 		if err != nil {
@@ -123,10 +124,10 @@ func convertDBColumnValueToJsonValue(dbVal *libdb.ColumnValue) (*jsonio.JsonValu
 		}
 
 		if !v.Valid {
-			return jsonio.NewJsonNull(), nil
+			return wrap.Null(), nil
 		}
 
-		return jsonio.NewJsonString(v.Time.Format(time.RFC3339)), nil
+		return wrap.String(v.Time.Format(time.RFC3339)), nil
 	default:
 		v, err := dbVal.AsBytes()
 		if err != nil {
@@ -134,9 +135,9 @@ func convertDBColumnValueToJsonValue(dbVal *libdb.ColumnValue) (*jsonio.JsonValu
 		}
 
 		if !v.Valid {
-			return jsonio.NewJsonNull(), nil
+			return wrap.Null(), nil
 		}
 
-		return jsonio.NewJsonString(string(v.Bytes)), nil
+		return wrap.String(string(v.Bytes)), nil
 	}
 }

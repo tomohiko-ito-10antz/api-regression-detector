@@ -7,6 +7,7 @@ import (
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
+	"github.com/Jumpaku/api-regression-detector/lib/jsonio/tables"
 )
 
 func RunDump(databaseDriver string, connectionString string) (code int, err error) {
@@ -29,22 +30,16 @@ func RunDump(databaseDriver string, connectionString string) (code int, err erro
 
 	tableNames, err := jsonio.LoadJson[[]string](os.Stdin)
 	if err != nil {
-		return 1, errors.Wrap(err, "fail to load JSON from stdin")
+		return 1, errors.Wrap(err, "fail to load init tables as JSON from stdin")
 	}
 
-	dump, err := cmd.Dump(context.Background(), driver.DB, tableNames, driver.SchemaGetter, driver.ListRows)
+	dump, err := cmd.Dump(context.Background(), driver.DB, tableNames, driver.SchemaGetter, driver.RowLister)
 	if err != nil {
 		return 1, errors.Wrap(err, "fail Dump")
 	}
 
-	json, err := jsonio.TableToJson(dump)
-	if err != nil {
-		return 1, errors.Wrap(err, "fail to convert to JSON")
-	}
-
-	err = jsonio.SaveJson(json, os.Stdout)
-	if err != nil {
-		return 1, errors.Wrap(err, "fail to save JSON to stdout")
+	if err := tables.SaveDumpTables(dump, os.Stdout); err != nil {
+		return 1, errors.Wrap(err, "fail to convert dump tables as JSON to stdout")
 	}
 
 	return 0, nil

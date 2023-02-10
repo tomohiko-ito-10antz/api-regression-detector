@@ -5,7 +5,7 @@ import (
 
 	"github.com/Jumpaku/api-regression-detector/lib/db"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
-	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
+	"github.com/Jumpaku/api-regression-detector/lib/jsonio/tables"
 )
 
 type RowLister interface {
@@ -17,7 +17,7 @@ type RowClearer interface {
 }
 
 type RowCreator interface {
-	CreateRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema, rows []jsonio.Row) error
+	CreateRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema, rows []tables.Row) error
 }
 
 type SchemaGetter interface {
@@ -27,9 +27,9 @@ type SchemaGetter interface {
 type Driver struct {
 	Name         string
 	DB           db.DB
-	ListRows     RowLister
-	ClearRows    RowClearer
-	CreateRows   RowCreator
+	RowLister    RowLister
+	RowClearer   RowClearer
+	RowCreator   RowCreator
 	SchemaGetter SchemaGetter
 }
 

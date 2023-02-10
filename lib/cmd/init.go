@@ -5,31 +5,31 @@ import (
 
 	libdb "github.com/Jumpaku/api-regression-detector/lib/db"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
-	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
+	"github.com/Jumpaku/api-regression-detector/lib/jsonio/tables"
 )
 
 func Init(ctx context.Context,
 	db libdb.DB,
-	jsonTables jsonio.Tables,
+	jsonTables tables.InitTables,
 	schemaGetter SchemaGetter,
-	clearer RowClearer,
-	creator RowCreator,
+	rowClearer RowClearer,
+	rowCreator RowCreator,
 ) error {
 	err := db.RunTransaction(ctx, func(ctx context.Context, tx libdb.Tx) error {
-		for tableName, table := range jsonTables {
-			schema, err := schemaGetter.GetSchema(ctx, tx, tableName)
+		for _, table := range jsonTables {
+			schema, err := schemaGetter.GetSchema(ctx, tx, table.Name)
 			if err != nil {
-				return errors.Wrap(err, "fail to get schema of table %s", tableName)
+				return errors.Wrap(err, "fail to get schema of table %s", table.Name)
 			}
 
-			err = clearer.ClearRows(ctx, tx, tableName)
+			err = rowClearer.ClearRows(ctx, tx, table.Name)
 			if err != nil {
-				return errors.Wrap(err, "fail to clear rows in table %s", tableName)
+				return errors.Wrap(err, "fail to clear rows in table %s", table.Name)
 			}
 
-			err = creator.CreateRows(ctx, tx, tableName, schema, table.Rows)
+			err = rowCreator.CreateRows(ctx, tx, table.Name, schema, table.Rows)
 			if err != nil {
-				return errors.Wrap(err, "fail to create rows in table %s", tableName)
+				return errors.Wrap(err, "fail to create rows in table %s", table.Name)
 			}
 		}
 

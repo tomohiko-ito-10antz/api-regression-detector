@@ -6,7 +6,7 @@ import (
 
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
-	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
+	"github.com/Jumpaku/api-regression-detector/lib/jsonio/tables"
 )
 
 func RunInit(databaseDriver string, connectionString string) (code int, err error) {
@@ -27,17 +27,12 @@ func RunInit(databaseDriver string, connectionString string) (code int, err erro
 		}
 	}()
 
-	json, err := jsonio.LoadJson[map[string][]map[string]any](os.Stdin)
+	initTables, err := tables.LoadInitTables(os.Stdin)
 	if err != nil {
 		return 1, errors.Wrap(err, "fail to load JSON from stdin")
 	}
 
-	tables, err := jsonio.TableFromJson(json)
-	if err != nil {
-		return 1, errors.Wrap(err, "fail to parse JSON")
-	}
-
-	err = cmd.Init(context.Background(), driver.DB, tables, driver.SchemaGetter, driver.ClearRows, driver.CreateRows)
+	err = cmd.Init(context.Background(), driver.DB, initTables, driver.SchemaGetter, driver.RowClearer, driver.RowCreator)
 	if err != nil {
 		return 1, errors.Wrap(err, "fail Init")
 	}

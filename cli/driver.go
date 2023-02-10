@@ -16,37 +16,38 @@ func NewDriver(name string) (*cmd.Driver, error) {
 	case "mysql":
 		driver = &cmd.Driver{
 			Name:         name,
-			ListRows:     mysql.ListRows(),
-			ClearRows:    mysql.ClearRows(),
-			CreateRows:   mysql.CreateRows(),
+			RowLister:    mysql.ListRows(),
+			RowClearer:   mysql.ClearRows(),
+			RowCreator:   mysql.CreateRows(),
 			SchemaGetter: mysql.GetSchema(),
 		}
 	case "postgres":
 		driver = &cmd.Driver{
 			Name:         name,
-			ListRows:     postgres.ListRows(),
-			ClearRows:    postgres.ClearRows(),
-			CreateRows:   postgres.CreateRows(),
+			RowLister:    postgres.ListRows(),
+			RowClearer:   postgres.ClearRows(),
+			RowCreator:   postgres.CreateRows(),
 			SchemaGetter: postgres.GetSchema(),
 		}
 	case "sqlite3":
 		driver = &cmd.Driver{
 			Name:         name,
-			ListRows:     sqlite.ListRows(),
-			ClearRows:    sqlite.ClearRows(),
-			CreateRows:   sqlite.Insert(),
+			RowLister:    sqlite.ListRows(),
+			RowClearer:   sqlite.ClearRows(),
+			RowCreator:   sqlite.Insert(),
 			SchemaGetter: sqlite.GetSchema(),
 		}
 	case "spanner":
 		driver = &cmd.Driver{
 			Name:         name,
-			ListRows:     spanner.ListRows(),
-			ClearRows:    spanner.ClearRows(),
-			CreateRows:   spanner.CreateRows(),
+			RowLister:    spanner.ListRows(),
+			RowClearer:   spanner.ClearRows(),
+			RowCreator:   spanner.CreateRows(),
 			SchemaGetter: spanner.GetSchema(),
 		}
 	default:
 		return nil, errors.Wrap(errors.BadArgs, "invalid driver name %s", name)
 	}
+
 	return driver, nil
 }

@@ -6,21 +6,24 @@ import (
 
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"
 	"github.com/Jumpaku/api-regression-detector/lib/cmd/mock"
-	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
+	"github.com/Jumpaku/api-regression-detector/lib/jsonio/tables"
+	"github.com/Jumpaku/api-regression-detector/lib/jsonio/wrap"
 	"github.com/Jumpaku/api-regression-detector/test/assert"
 )
 
 func TestInit_OK(t *testing.T) {
 	err := cmd.Init(context.Background(),
 		mock.DB{},
-		jsonio.Tables{
-			"mock_table": jsonio.Table{Rows: []jsonio.Row{
-				{"a": jsonio.NewJsonNull()},
-				{"b": jsonio.NewJsonBoolean(true)},
-				{"c": jsonio.NewJsonNumberInt64(123)},
-				{"x": jsonio.NewJsonNumberFloat64(-123.45)},
-				{"y": jsonio.NewJsonString("abc")},
-			}},
+		tables.InitTables{
+			tables.Table{
+				Name: "mock_table",
+				Rows: []tables.Row{
+					{"a": wrap.Null()},
+					{"b": wrap.Boolean(true)},
+					{"c": wrap.Number(123)},
+					{"x": wrap.Number(-123.45)},
+					{"y": wrap.String("abc")},
+				}},
 		},
 		mock.SchemaGetter{},
 		mock.RowClearer{},
@@ -31,14 +34,16 @@ func TestInit_OK(t *testing.T) {
 func TestInit_NG_Table(t *testing.T) {
 	err := cmd.Init(context.Background(),
 		mock.DB{},
-		jsonio.Tables{
-			"invalid_table": jsonio.Table{Rows: []jsonio.Row{
-				{"a": jsonio.NewJsonNull()},
-				{"b": jsonio.NewJsonBoolean(true)},
-				{"c": jsonio.NewJsonNumberInt64(123)},
-				{"x": jsonio.NewJsonNumberFloat64(-123.45)},
-				{"y": jsonio.NewJsonString("abc")},
-			}},
+		tables.InitTables{
+			tables.Table{
+				Name: "invalid_table",
+				Rows: []tables.Row{
+					{"a": wrap.Null()},
+					{"b": wrap.Boolean(true)},
+					{"c": wrap.Number(123)},
+					{"x": wrap.Number(-123.45)},
+					{"y": wrap.String("abc")},
+				}},
 		},
 		mock.SchemaGetter{},
 		mock.RowClearer{},
@@ -49,14 +54,16 @@ func TestInit_NG_Table(t *testing.T) {
 func TestInit_NG_DB(t *testing.T) {
 	err := cmd.Init(context.Background(),
 		mock.ErrDB{},
-		jsonio.Tables{
-			"mock_table": jsonio.Table{Rows: []jsonio.Row{
-				{"a": jsonio.NewJsonNull()},
-				{"b": jsonio.NewJsonBoolean(true)},
-				{"c": jsonio.NewJsonNumberInt64(123)},
-				{"x": jsonio.NewJsonNumberFloat64(-123.45)},
-				{"y": jsonio.NewJsonString("abc")},
-			}},
+		tables.InitTables{
+			tables.Table{
+				Name: "mock_table",
+				Rows: []tables.Row{
+					{"a": wrap.Null()},
+					{"b": wrap.Boolean(true)},
+					{"c": wrap.Number(123)},
+					{"x": wrap.Number(-123.45)},
+					{"y": wrap.String("abc")},
+				}},
 		},
 		mock.SchemaGetter{},
 		mock.RowClearer{},
@@ -67,14 +74,16 @@ func TestInit_NG_DB(t *testing.T) {
 func TestInit_NG_SchemaGetter(t *testing.T) {
 	err := cmd.Init(context.Background(),
 		mock.DB{},
-		jsonio.Tables{
-			"mock_table": jsonio.Table{Rows: []jsonio.Row{
-				{"a": jsonio.NewJsonNull()},
-				{"b": jsonio.NewJsonBoolean(true)},
-				{"c": jsonio.NewJsonNumberInt64(123)},
-				{"x": jsonio.NewJsonNumberFloat64(-123.45)},
-				{"y": jsonio.NewJsonString("abc")},
-			}},
+		tables.InitTables{
+			tables.Table{
+				Name: "mock_table",
+				Rows: []tables.Row{
+					{"a": wrap.Null()},
+					{"b": wrap.Boolean(true)},
+					{"c": wrap.Number(123)},
+					{"x": wrap.Number(-123.45)},
+					{"y": wrap.String("abc")},
+				}},
 		},
 		mock.ErrSchemaGetter{},
 		mock.RowClearer{},
@@ -85,14 +94,16 @@ func TestInit_NG_SchemaGetter(t *testing.T) {
 func TestInit_NG_RowClearer(t *testing.T) {
 	err := cmd.Init(context.Background(),
 		mock.DB{},
-		jsonio.Tables{
-			"mock_table": jsonio.Table{Rows: []jsonio.Row{
-				{"a": jsonio.NewJsonNull()},
-				{"b": jsonio.NewJsonBoolean(true)},
-				{"c": jsonio.NewJsonNumberInt64(123)},
-				{"x": jsonio.NewJsonNumberFloat64(-123.45)},
-				{"y": jsonio.NewJsonString("abc")},
-			}},
+		tables.InitTables{
+			tables.Table{
+				Name: "mock_table",
+				Rows: []tables.Row{
+					{"a": wrap.Null()},
+					{"b": wrap.Boolean(true)},
+					{"c": wrap.Number(123)},
+					{"x": wrap.Number(-123.45)},
+					{"y": wrap.String("abc")},
+				}},
 		},
 		mock.SchemaGetter{},
 		mock.ErrRowClearer{},
@@ -103,62 +114,19 @@ func TestInit_NG_RowClearer(t *testing.T) {
 func TestInit_NG_RowCreator(t *testing.T) {
 	err := cmd.Init(context.Background(),
 		mock.DB{},
-		jsonio.Tables{
-			"mock_table": jsonio.Table{Rows: []jsonio.Row{
-				{"a": jsonio.NewJsonNull()},
-				{"b": jsonio.NewJsonBoolean(true)},
-				{"c": jsonio.NewJsonNumberInt64(123)},
-				{"x": jsonio.NewJsonNumberFloat64(-123.45)},
-				{"y": jsonio.NewJsonString("abc")},
-			}},
+		tables.InitTables{
+			tables.Table{
+				Name: "mock_table",
+				Rows: []tables.Row{
+					{"a": wrap.Null()},
+					{"b": wrap.Boolean(true)},
+					{"c": wrap.Number(123)},
+					{"x": wrap.Number(-123.45)},
+					{"y": wrap.String("abc")},
+				}},
 		},
 		mock.SchemaGetter{},
 		mock.RowClearer{},
 		mock.ErrRowCreator{})
 	assert.NotEqual(t, err, nil)
 }
-
-/*
-func Init(ctx context.Context,
-	db libdb.DB,
-	jsonTables jsonio.Tables,
-	schemaGetter SchemaGetter,
-	clearer RowClearer,
-	creator RowCreator,
-) (err error) {
-	return db.RunTransaction(ctx, func(ctx context.Context, tx libdb.Tx) error {
-		for tableName, table := range jsonTables {
-			schema, err := schemaGetter.GetSchema(ctx, tx, tableName)
-			if err != nil {
-				return err
-			}
-			err = clearer.ClearRows(ctx, tx, tableName)
-			if err != nil {
-				return err
-			}
-			err = creator.CreateRows(ctx, tx, tableName, schema, table.Rows)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-}
-
-/*
-func convertTablesJsonToDB(jsonTables jsonio.JsonTables) (dbTables db.Tables) {
-	dbTables = db.Tables{}
-	for jsonTableName, jsonRows := range jsonTables {
-		dbRows := db.Table{}
-		for _, jsonRow := range jsonRows {
-			dbRow := db.Row{}
-			for jsonColumnName, jsonColumnValue := range jsonRow {
-				dbRow[jsonColumnName] = jsonColumnValue
-			}
-			dbRows = append(dbRows, dbRow)
-		}
-		dbTables[jsonTableName] = dbRows
-	}
-	return dbTables
-}
-*/

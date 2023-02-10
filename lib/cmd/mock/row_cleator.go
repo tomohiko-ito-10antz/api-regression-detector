@@ -5,7 +5,7 @@ import (
 
 	"github.com/Jumpaku/api-regression-detector/lib/db"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
-	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
+	"github.com/Jumpaku/api-regression-detector/lib/jsonio/tables"
 	"github.com/Jumpaku/api-regression-detector/test"
 )
 
@@ -16,7 +16,7 @@ func (RowCreator) CreateRows(
 	tx db.Tx,
 	tableName string,
 	schema db.Schema,
-	rows []jsonio.Row,
+	rows []tables.Row,
 ) error {
 	if tableName != "mock_table" {
 		return errors.Wrap(test.MockError, "table %s not found", tableName)
@@ -32,7 +32,7 @@ func (ErrRowCreator) CreateRows(
 	tx db.Tx,
 	tableName string,
 	schema db.Schema,
-	rows []jsonio.Row,
+	rows []tables.Row,
 ) error {
 	return errors.Wrap(test.MockError, "error with database")
 }

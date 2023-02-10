@@ -5,12 +5,13 @@ import (
 
 	"github.com/Jumpaku/api-regression-detector/lib/db"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
-	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
+	"github.com/Jumpaku/api-regression-detector/lib/jsonio/tables"
+	"github.com/Jumpaku/api-regression-detector/lib/jsonio/wrap"
 )
 
-func ExtractColumnValueAsDB(row jsonio.Row, columnName string, dbType db.ColumnType) (any, error) {
+func ExtractColumnValueAsDB(row tables.Row, columnName string, dbType db.ColumnType) (any, error) {
 	jsonType, ok := row.GetJsonType(columnName)
-	isNull := !ok || jsonType == jsonio.JsonTypeNull
+	isNull := !ok || jsonType == wrap.JsonTypeNull
 
 	switch dbType {
 	case db.ColumnTypeBoolean:

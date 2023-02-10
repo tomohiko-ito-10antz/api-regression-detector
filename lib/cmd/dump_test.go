@@ -17,7 +17,7 @@ func TestDump_OK(t *testing.T) {
 		mock.RowLister{})
 	assert.Equal(t, err, nil)
 	assert.Equal(t, len(v), 1)
-	assert.Equal(t, len(v["mock_table"].Rows), 3)
+	assert.Equal(t, len(v["mock_table"]), 3)
 }
 
 func TestDump_NG_Table(t *testing.T) {
