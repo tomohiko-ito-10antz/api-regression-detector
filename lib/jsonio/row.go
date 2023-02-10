@@ -21,7 +21,7 @@ func (row Row) Has(columnName string) bool {
 	return exists
 }
 
-func (row Row) GetJsonType(columnName string) (jsonType, bool) {
+func (row Row) GetJsonType(columnName string) (JsonType, bool) {
 	val, exists := row[columnName]
 	if !exists {
 		return JsonTypeUnknown, false

@@ -11,16 +11,16 @@ import (
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
 )
 
-type jsonType string
+type JsonType string
 
 const (
-	JsonTypeUnknown jsonType = "UNKNOWN"
-	JsonTypeNull    jsonType = "NULL"
-	JsonTypeString  jsonType = "STRING"
-	JsonTypeNumber  jsonType = "NUMBER"
-	JsonTypeBoolean jsonType = "BOOLEAN"
-	JsonTypeArray   jsonType = "ARRAY"
-	JsonTypeObject  jsonType = "OBJECT"
+	JsonTypeUnknown JsonType = "UNKNOWN"
+	JsonTypeNull    JsonType = "NULL"
+	JsonTypeString  JsonType = "STRING"
+	JsonTypeNumber  JsonType = "NUMBER"
+	JsonTypeBoolean JsonType = "BOOLEAN"
+	JsonTypeArray   JsonType = "ARRAY"
+	JsonTypeObject  JsonType = "OBJECT"
 )
 
 type (
@@ -31,7 +31,7 @@ type (
 	JsonArray   []*JsonValue
 	JsonObject  map[string]*JsonValue
 	JsonValue   struct {
-		Type         jsonType
+		Type         JsonType
 		stringValue  JsonString
 		numberValue  JsonNumber
 		booleanValue JsonBoolean
