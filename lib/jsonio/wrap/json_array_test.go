@@ -135,3 +135,25 @@ func TestArrayAppend(t *testing.T) {
 	assert.Equal(t, arr.Get(1).Array().Get(6).Type, jw.JsonTypeObject)
 	assert.Equal(t, arr.Get(1).Array().Get(7).Type, jw.JsonTypeArray)
 }
+
+func TestArraSet(t *testing.T) {
+	arr := jw.JsonArray([]*jw.JsonValue{nil, nil, nil, nil, nil, nil, nil, nil, nil})
+
+	arr.Set(0, jw.Number(123))
+	arr.Set(1, jw.Number(-123.45))
+	arr.Set(2, jw.String("abc"))
+	arr.Set(3, nil)
+	arr.Set(4, jw.Boolean(true))
+	arr.Set(5, jw.Boolean(false))
+	arr.Set(6, jw.Object(nil))
+	arr.Set(7, jw.Array())
+
+	assert.Equal(t, arr.Get(0).Type, jw.JsonTypeNumber)
+	assert.Equal(t, arr.Get(1).Type, jw.JsonTypeNumber)
+	assert.Equal(t, arr.Get(2).Type, jw.JsonTypeString)
+	assert.Equal(t, arr.Get(3).Type, jw.JsonTypeNull)
+	assert.Equal(t, arr.Get(4).Type, jw.JsonTypeBoolean)
+	assert.Equal(t, arr.Get(5).Type, jw.JsonTypeBoolean)
+	assert.Equal(t, arr.Get(6).Type, jw.JsonTypeObject)
+	assert.Equal(t, arr.Get(7).Type, jw.JsonTypeArray)
+}

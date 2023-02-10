@@ -1,7 +1,6 @@
 package tables
 
 import (
-	"fmt"
 	"sort"
 
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
@@ -52,7 +51,7 @@ func LoadInitTables(file jsonio.NamedReader) (InitTables, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "fail to load tables in %s", file.Name())
 	}
-	fmt.Printf("%#v\n", json)
+
 	tables := []Table{}
 	for _, jsonTable := range json {
 		rows := []Row{}
