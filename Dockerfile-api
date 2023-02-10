@@ -1,0 +1,13 @@
+FROM golang:1.20.0-bullseye
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt update && apt install -y git curl jq
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28 && \
+    go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2 && \
+    git clone -b v1.52.0 --depth 1 https://github.com/grpc/grpc-go
+
+
+WORKDIR grpc-go/examples/features/reflection
+
+CMD go run server/main.go
