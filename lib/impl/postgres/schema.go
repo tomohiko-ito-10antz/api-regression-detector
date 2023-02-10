@@ -110,17 +110,17 @@ func getColumnTypes(ctx context.Context, tx db.Tx, tableName string) (db.ColumnT
 
 func getPrimaryKeys(ctx context.Context, tx db.Tx, tableName string) ([]string, error) {
 	stmt := `SELECT 
-column_name
-FROM 
-information_schema.key_column_usage AS keys 
-JOIN information_schema.table_constraints AS constraints 
-ON keys.constraint_name = constraints.constraint_name 
-	AND keys.table_name = constraints.table_name
+	column_name
+FROM
+	information_schema.key_column_usage AS keys
+	JOIN information_schema.table_constraints AS constraints 
+	ON keys.constraint_name = constraints.constraint_name 
+		AND keys.table_name = constraints.table_name
 WHERE
-keys.table_name = $1
-AND constraint_type = 'PRIMARY KEY'
+	keys.table_name = $1
+	AND constraint_type = 'PRIMARY KEY'
 ORDER BY
-ordinal_position`
+	ordinal_position`
 	params := []any{tableName}
 
 	rows, err := tx.Read(ctx, stmt, params)

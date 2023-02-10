@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"reflect"
+	"sort"
 	"time"
 
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
@@ -18,6 +19,10 @@ func (columnTypes ColumnTypes) GetColumnNames() []string {
 	for columnName := range columnTypes {
 		columnNames = append(columnNames, columnName)
 	}
+
+	sort.Slice(columnNames, func(i, j int) bool {
+		return columnNames[i] < columnNames[j]
+	})
 
 	return columnNames
 }
