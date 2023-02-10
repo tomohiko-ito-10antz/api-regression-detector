@@ -8,7 +8,6 @@ INIT_TABLES='test/data/db/postgres/init.json'
 DUMP_TABLES='test/data/db/postgres/dump.json'
 EXPECTED_TABLES='test/data/db/postgres/expected.json'
 
-make init-postgres
 go run main.go init "${DRIVER}" "${CONNECT}" < "${INIT_TABLES}"
 jq '. | keys' <  "${EXPECTED_TABLES}" \
 	| go run main.go dump "${DRIVER}" "${CONNECT}" > "${DUMP_TABLES}"

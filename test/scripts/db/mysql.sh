@@ -8,7 +8,6 @@ INIT_TABLES='test/data/db/mysql/init.json'
 DUMP_TABLES='test/data/db/mysql/dump.json'
 EXPECTED_TABLES='test/data/db/mysql/expected.json'
 
-make init-mysql
 go run main.go init "${DRIVER}" "${CONNECT}" < "${INIT_TABLES}"
 jq '. | keys' <  "${EXPECTED_TABLES}" \
 	| go run main.go dump "${DRIVER}" "${CONNECT}" > "${DUMP_TABLES}"
