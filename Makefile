@@ -37,3 +37,7 @@ lint:
 .PHONY: test
 test:
 	go test ./...
+	./test/scripts/db/mysql.sh 2> /dev/null
+	./test/scripts/db/postgres.sh 2> /dev/null
+	./test/scripts/db/spanner.sh 2> /dev/null
+	./test/scripts/db/sqlite.sh 2> /dev/null
