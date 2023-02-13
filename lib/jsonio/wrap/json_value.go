@@ -215,21 +215,21 @@ func FromAny(valAny any) (jv *JsonValue, err error) {
 	}
 }
 
-func (v *JsonValue) String() string {
+func (v *JsonValue) AsString() string {
 	if v.Type != JsonTypeString {
 		panic(errors.Wrap(errors.BadState, "String() is called with json type %v", v.Type))
 	}
 	return v.StringValue
 }
 
-func (v *JsonValue) Bool() bool {
+func (v *JsonValue) AsBool() bool {
 	if v.Type != JsonTypeBoolean {
 		panic(errors.Wrap(errors.BadState, "Bool() is called with json type %v", v.Type))
 	}
 	return v.BooleanValue
 }
 
-func (v *JsonValue) Number() JsonNumber {
+func (v *JsonValue) AsNumber() JsonNumber {
 	if v.Type != JsonTypeNumber {
 		panic(errors.Wrap(errors.BadState, "Number() is called with json type %v", v.Type))
 	}
@@ -250,16 +250,96 @@ func (v *JsonValue) Float64() (float64, bool) {
 	return v.NumberValue.Float64()
 }
 
-func (v *JsonValue) Object() JsonObject {
+func (v *JsonValue) AsObject() JsonObject {
 	if v.Type != JsonTypeObject {
 		panic(errors.Wrap(errors.BadState, "Object() is called with json type %v", v.Type))
 	}
 	return v.ObjectValue
 }
 
-func (v *JsonValue) Array() JsonArray {
+func (v *JsonValue) AsArray() JsonArray {
 	if v.Type != JsonTypeArray {
 		panic(errors.Wrap(errors.BadState, "Array() is called with json type %v", v.Type))
 	}
 	return v.ArrayValue
+}
+
+func (v *JsonValue) FindByKeySeq(keys ...any) (*JsonValue, bool) {
+	if len(keys) == 0 {
+		return v, true
+	}
+
+	switch v.Type {
+	case JsonTypeArray:
+		a := v.AsArray()
+
+		var index int
+		switch i := keys[0].(type) {
+		case int:
+			index = i
+		case string:
+			i64, err := strconv.ParseInt(i, 10, 64)
+			if err != nil {
+				return nil, false
+			}
+
+			index = int(i64)
+		default:
+			return nil, false
+		}
+
+		if index >= a.Len() {
+			return nil, false
+		}
+
+		return a.Get(index).FindByKeySeq(keys[1:])
+	case JsonTypeObject:
+		o := v.AsObject()
+
+		key, ok := keys[0].(string)
+		if ok {
+			return nil, false
+		}
+
+		if !o.Has(key) {
+			return nil, false
+		}
+
+		return o.Get(key).FindByKeySeq(keys[1:])
+	default:
+		return nil, false
+	}
+}
+
+func ToAny(v *JsonValue) any {
+	if v == nil {
+		return nil
+	}
+
+	switch v.Type {
+	case JsonTypeNull:
+		return nil
+	case JsonTypeBoolean:
+		return v.BooleanValue
+	case JsonTypeNumber:
+		return json.Number(v.NumberValue)
+	case JsonTypeString:
+		return v.StringValue
+	case JsonTypeArray:
+		arr := []any{}
+		for _, vi := range v.ArrayValue {
+			arr = append(arr, ToAny(vi))
+		}
+
+		return arr
+	case JsonTypeObject:
+		obj := map[string]any{}
+		for key, val := range v.ObjectValue {
+			obj[key] = ToAny(val)
+		}
+
+		return obj
+	default:
+		panic(errors.Wrap(errors.BadState, "unexpected case of ToAny(): %v", v))
+	}
 }

@@ -12,7 +12,7 @@ func TestString(t *testing.T) {
 	s := "abc"
 	v := wrap.String(s)
 	assert.Equal(t, v.Type, wrap.JsonTypeString)
-	a := v.String()
+	a := v.AsString()
 	assert.Equal(t, a, s)
 }
 
@@ -21,13 +21,13 @@ func TestBoolean_True(t *testing.T) {
 		b := true
 		v := wrap.Boolean(b)
 		assert.Equal(t, v.Type, wrap.JsonTypeBoolean)
-		assert.Equal(t, v.Bool(), b)
+		assert.Equal(t, v.AsBool(), b)
 	})
 	t.Run("false", func(t *testing.T) {
 		b := false
 		v := wrap.Boolean(b)
 		assert.Equal(t, v.Type, wrap.JsonTypeBoolean)
-		assert.Equal(t, v.Bool(), b)
+		assert.Equal(t, v.AsBool(), b)
 	})
 }
 
@@ -40,7 +40,7 @@ func TestNumber_JsonNumber(t *testing.T) {
 			a, ok := v.Int64()
 			assert.Equal(t, ok, true)
 			assert.Equal(t, a, int64(123))
-			a, ok = v.Number().Int64()
+			a, ok = v.AsNumber().Int64()
 			assert.Equal(t, ok, true)
 			assert.Equal(t, a, int64(123))
 		})
@@ -51,7 +51,7 @@ func TestNumber_JsonNumber(t *testing.T) {
 			a, ok := v.Float64()
 			assert.Equal(t, ok, true)
 			assert.Equal(t, a, -123.45)
-			a, ok = v.Number().Float64()
+			a, ok = v.AsNumber().Float64()
 			assert.Equal(t, ok, true)
 			assert.Equal(t, a, -123.45)
 		})
@@ -63,7 +63,7 @@ func TestNumber_JsonNumber(t *testing.T) {
 		a, ok := v.Int64()
 		assert.Equal(t, ok, true)
 		assert.Equal(t, a, i)
-		a, ok = v.Number().Int64()
+		a, ok = v.AsNumber().Int64()
 		assert.Equal(t, ok, true)
 		assert.Equal(t, a, i)
 	})
@@ -74,7 +74,7 @@ func TestNumber_JsonNumber(t *testing.T) {
 		a, ok := v.Float64()
 		assert.Equal(t, ok, true)
 		assert.Equal(t, a, f)
-		a, ok = v.Number().Float64()
+		a, ok = v.AsNumber().Float64()
 		assert.Equal(t, ok, true)
 		assert.Equal(t, a, f)
 	})
@@ -90,7 +90,7 @@ func TestObject(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		v := wrap.Object(nil)
 		assert.Equal(t, v.Type, wrap.JsonTypeObject)
-		assert.Equal(t, len(v.Object()), 0)
+		assert.Equal(t, len(v.AsObject()), 0)
 	})
 	t.Run("elements", func(t *testing.T) {
 		v := wrap.Object(map[string]*wrap.JsonValue{
@@ -103,7 +103,7 @@ func TestObject(t *testing.T) {
 			"f": wrap.Boolean(false),
 		})
 		assert.Equal(t, v.Type, wrap.JsonTypeObject)
-		assert.Equal(t, len(v.Object()), 7)
+		assert.Equal(t, len(v.AsObject()), 7)
 	})
 }
 
@@ -111,7 +111,7 @@ func TestArray(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		v := wrap.Array()
 		assert.Equal(t, v.Type, wrap.JsonTypeArray)
-		assert.Equal(t, len(v.Array()), 0)
+		assert.Equal(t, len(v.AsArray()), 0)
 	})
 	t.Run("elements", func(t *testing.T) {
 		v := wrap.Array(
@@ -124,7 +124,7 @@ func TestArray(t *testing.T) {
 			wrap.Boolean(false),
 		)
 		assert.Equal(t, v.Type, wrap.JsonTypeArray)
-		assert.Equal(t, len(v.Array()), 7)
+		assert.Equal(t, len(v.AsArray()), 7)
 	})
 }
 

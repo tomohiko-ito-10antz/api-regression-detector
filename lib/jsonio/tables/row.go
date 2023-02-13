@@ -50,11 +50,11 @@ func (row Row) ToString(columnName string) (string, error) {
 	case wrap.JsonTypeNull:
 		return "", nil
 	case wrap.JsonTypeString:
-		return val.String(), nil
+		return val.AsString(), nil
 	case wrap.JsonTypeNumber:
-		return string(val.Number()), nil
+		return string(val.AsNumber()), nil
 	case wrap.JsonTypeBoolean:
-		return strconv.FormatBool(val.Bool()), nil
+		return strconv.FormatBool(val.AsBool()), nil
 	default:
 		return "", errors.Wrap(
 			errors.BadConversion,
@@ -86,13 +86,13 @@ func (row Row) ToBool(columnName string) (bool, error) {
 	case wrap.JsonTypeNull:
 		return false, nil
 	case wrap.JsonTypeString:
-		return val.String() != "", nil
+		return val.AsString() != "", nil
 	case wrap.JsonTypeNumber:
-		if v, ok := val.Number().Int64(); ok {
+		if v, ok := val.AsNumber().Int64(); ok {
 			return v != 0, nil
 		}
 
-		if v, ok := val.Number().Float64(); ok {
+		if v, ok := val.AsNumber().Float64(); ok {
 			return v != 0, nil
 		}
 
@@ -100,7 +100,7 @@ func (row Row) ToBool(columnName string) (bool, error) {
 			errors.BadConversion,
 			"fail to convert value %v:%T of column %s to string", val, val, columnName)
 	case wrap.JsonTypeBoolean:
-		return val.Bool(), nil
+		return val.AsBool(), nil
 	default:
 		return false, errors.Wrap(
 			errors.BadConversion,
@@ -120,7 +120,7 @@ func (row Row) ToInt64(columnName string) (int64, error) {
 	case wrap.JsonTypeNull:
 		return 0, nil
 	case wrap.JsonTypeString:
-		v, ok := parseAsInteger(val.String())
+		v, ok := parseAsInteger(val.AsString())
 		if !ok {
 			return 0, errors.Wrap(
 				errors.BadConversion,
@@ -129,7 +129,7 @@ func (row Row) ToInt64(columnName string) (int64, error) {
 
 		return v, nil
 	case wrap.JsonTypeNumber:
-		v, ok := val.Number().Int64()
+		v, ok := val.AsNumber().Int64()
 		if !ok {
 			return 0, errors.Wrap(
 				errors.BadConversion,
@@ -138,7 +138,7 @@ func (row Row) ToInt64(columnName string) (int64, error) {
 
 		return v, nil
 	case wrap.JsonTypeBoolean:
-		if val.Bool() {
+		if val.AsBool() {
 			return 1, nil
 		} else {
 			return 0, nil
@@ -162,7 +162,7 @@ func (row Row) ToFloat64(columnName string) (float64, error) {
 	case wrap.JsonTypeNull:
 		return 0, nil
 	case wrap.JsonTypeString:
-		v, err := strconv.ParseFloat(val.String(), 64)
+		v, err := strconv.ParseFloat(val.AsString(), 64)
 		if err != nil {
 			return 0, errors.Wrap(
 				errors.BadConversion,
@@ -171,7 +171,7 @@ func (row Row) ToFloat64(columnName string) (float64, error) {
 
 		return v, nil
 	case wrap.JsonTypeNumber:
-		v, ok := val.Number().Float64()
+		v, ok := val.AsNumber().Float64()
 		if !ok {
 			return 0, errors.Wrap(
 				errors.BadConversion,
@@ -180,7 +180,7 @@ func (row Row) ToFloat64(columnName string) (float64, error) {
 
 		return v, nil
 	case wrap.JsonTypeBoolean:
-		if val.Bool() {
+		if val.AsBool() {
 			return 1, nil
 		} else {
 			return 0, nil
