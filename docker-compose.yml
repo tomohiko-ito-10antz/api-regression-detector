@@ -11,7 +11,7 @@ services:
     #  - "${APP_PORT}:80"
 
   api:
-    image: "ubuntu"
+    build: "server"
 
   spanner:
     image: gcr.io/cloud-spanner-emulator/emulator
