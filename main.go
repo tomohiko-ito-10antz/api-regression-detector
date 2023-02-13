@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
 	"os"
 
 	"github.com/Jumpaku/api-regression-detector/cli"
+	"github.com/Jumpaku/api-regression-detector/lib/cmd"
 	"github.com/Jumpaku/api-regression-detector/lib/log"
+	"github.com/Jumpaku/api-regression-detector/lib/rpc"
+	http "github.com/Jumpaku/api-regression-detector/lib/rpc/impl/http"
 	"github.com/docopt/docopt-go"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/googleapis/go-sql-spanner"
@@ -35,6 +39,8 @@ func main() {
 		code, err = cli.RunDump(
 			args["<database-driver>"].(string),
 			args["<connection-string>"].(string))
+	case args["call"]:
+		_, _ = cmd.CallHTTP(context.Background(), rpc.Request{}, "https://api:80", "GET", http.Caller())
 	default:
 	}
 
