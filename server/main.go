@@ -25,9 +25,14 @@ type greetingService struct {
 	proto_api.UnimplementedGreetingServiceServer
 }
 
-func (s *greetingService) SayHello(ctx context.Context, in *proto_api.HelloRequest) (*proto_api.HelloResponse, error) {
-	log.Printf("Received: %v", in.GetName())
-	return &proto_api.HelloResponse{Message: "Hello " + in.Name}, nil
+func (s *greetingService) SayHello(ctx context.Context, req *proto_api.HelloRequest) (*proto_api.HelloResponse, error) {
+	log.Printf("Received: %v %v", req.Title, req.Name)
+	message := "Hello, "
+	if req.Title != "" {
+		message += req.Title + " "
+	}
+	message += req.Name + "!"
+	return &proto_api.HelloResponse{Message: message}, nil
 }
 
 func runGRPCGateway(grpcHostPort string) {
