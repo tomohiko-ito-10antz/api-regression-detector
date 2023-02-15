@@ -10,9 +10,9 @@ import (
 )
 
 func main() {
-	b, _ := wrap.FromAny("abc")
+	b, _ := wrap.FromAny(map[string]any{"name": "My-Name", "title": "Dr."})
 	req := &call.Request{Body: b}
-	res, err := grpc.CallGRPC("api:50051", "api.GreetingService/SayHello", req)
+	res, err := grpc.CallGRPC("localhost:50051", "api.GreetingService/SayHello", req)
 	if err != nil {
 		log.Fatalf("fail to call GRPC, %+v", err)
 	}
