@@ -1,10 +1,15 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
+	"net/url"
+	"regexp"
+	"strings"
 
 	"github.com/Jumpaku/api-regression-detector/lib/call"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
+	"github.com/Jumpaku/api-regression-detector/lib/jsonio/wrap"
 )
 
 type Method string
@@ -21,19 +26,13 @@ const (
 	MethodTrace   Method = http.MethodTrace
 )
 
-func CallHTTP(endpoint string, method Method, req *call.Request) (*call.Response, error) {
-	reader, err := call.ToReader(req.Body)
-	if err != nil {
-		return nil, errors.Wrap(
-			errors.Join(err, errors.HTTPFailure),
-			"fail to read JsonValue: %#v", req.Body)
-	}
+func CallHTTP(url string, method Method, req *call.Request) (*call.Response, error) {
 
-	request, err := http.NewRequest(string(method), "http://"+endpoint, reader)
+	request, err := CreateRequest(url, method, req.Body)
 	if err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.HTTPFailure),
-			"fail to create request: %s %v %#v", endpoint, method, req)
+			"fail to create request: %s %v %#v", url, method, req)
 	}
 
 	response, err := http.DefaultClient.Do(request)
@@ -51,4 +50,100 @@ func CallHTTP(endpoint string, method Method, req *call.Request) (*call.Response
 	}
 
 	return res, nil
+}
+
+func CreateRequest(rawURL string, method Method, body *wrap.JsonValue) (*http.Request, error) {
+	reader, err := call.ToReader(body)
+	if err != nil {
+		return nil, errors.Wrap(
+			errors.Join(err, errors.HTTPFailure),
+			"fail to read JsonValue: %#v", body)
+	}
+
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, errors.Wrap(
+			errors.Join(err, errors.HTTPFailure),
+			"fail to parse url: %s", rawURL)
+	}
+
+	primitives, err := EnumeratePrimitives(body)
+	if err != nil {
+		return nil, errors.Wrap(
+			errors.Join(err, errors.HTTPFailure),
+			"fail to parse url: %s", rawURL)
+	}
+
+	fmt.Printf("%#v\n", primitives)
+
+	isPathParam := regexp.MustCompile(`^\[.+\]$`)
+	pathElms := strings.Split(parsed.Path, "/")
+	for i, pathElm := range pathElms {
+		fmt.Printf("%d: %#v\n", i, pathElm)
+
+		if !isPathParam.MatchString(pathElm) {
+			continue
+		}
+
+		pathParamName := strings.TrimPrefix(strings.TrimSuffix(pathElm, "]"), "[")
+		fmt.Printf("%d: %#v\n", i, pathParamName)
+
+		if primitive, ok := primitives[pathParamName]; ok {
+			pathElms[i] = primitive.String()
+			continue
+		}
+
+		for jsonPath, primitive := range primitives {
+			if strings.HasSuffix(jsonPath, "."+pathParamName) {
+				pathElms[i] = primitive.String()
+				break
+			}
+		}
+	}
+	fmt.Printf("%#v\n", pathElms)
+	parsed.Path = ""
+	parsed = parsed.JoinPath(pathElms...)
+
+	fmt.Printf("%#v\n", parsed)
+	fmt.Printf("%#v\n", parsed.String())
+
+	request, err := http.NewRequest(string(method), parsed.String(), reader)
+	if err != nil {
+		return nil, errors.Wrap(
+			errors.Join(err, errors.HTTPFailure),
+			"fail to create request: %s %v %#v", rawURL, method, body)
+	}
+
+	return request, nil
+}
+
+func EnumeratePrimitives(v *wrap.JsonValue) (map[string]*wrap.JsonValue, error) {
+	m := map[string]*wrap.JsonValue{}
+	if err := enumeratePrimitivesImpl(v, "", m); err != nil {
+		return nil, errors.Wrap(errors.BadState, "unexpected JsoType %v", v.Type)
+	}
+
+	return m, nil
+}
+
+func enumeratePrimitivesImpl(v *wrap.JsonValue, path string, m map[string]*wrap.JsonValue) error {
+	switch v.Type {
+	case wrap.JsonTypeNull, wrap.JsonTypeBoolean, wrap.JsonTypeNumber, wrap.JsonTypeString:
+		if path == "" {
+			path = "."
+		}
+		m[path] = v
+	case wrap.JsonTypeObject:
+		for k, vk := range v.Object() {
+			enumeratePrimitivesImpl(vk, fmt.Sprintf(`%s.%s`, path, k), m)
+		}
+	case wrap.JsonTypeArray:
+		for i, vi := range v.Array() {
+			enumeratePrimitivesImpl(vi, fmt.Sprintf(`%s.%d`, path, i), m)
+		}
+	default:
+		return errors.Wrap(errors.BadState, "unexpected JsoType %v", v.Type)
+	}
+
+	return nil
 }
