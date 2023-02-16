@@ -17,9 +17,11 @@ func callSayHello() {
 		log.Fatalf("fail to call GRPC, %+v", err)
 	}
 
-	a, _ := call.ToAny(res.Body)
-	fmt.Printf("%#v", res.Header)
-	fmt.Printf("%#v", a)
+	ab, _ := call.ToAny(res.Body)
+	ae, _ := call.ToAny(res.Error)
+	fmt.Printf("header %#v\n", res.Header)
+	fmt.Printf("body   %#v\n", ab)
+	fmt.Printf("error  %#v\n", ae)
 }
 
 func callGetError() {
@@ -38,6 +40,6 @@ func callGetError() {
 }
 
 func main() {
-	//callSayHello()
-	callGetError()
+	callSayHello()
+	//callGetError()
 }

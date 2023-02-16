@@ -23,7 +23,7 @@ const (
 
 func CallHTTP(url string, method Method, req *Request) (*Response, error) {
 
-	request, err := ToHTTPRequest(url, method, req.Body)
+	request, err := req.ToHTTPRequest(url, method)
 	if err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.HTTPFailure),
@@ -37,7 +37,7 @@ func CallHTTP(url string, method Method, req *Request) (*Response, error) {
 			"fail to do request: %#v", request)
 	}
 
-	res := &Response{Header: response.Header}
+	res := &Response{Header: response.Header, Code: response.StatusCode}
 	if res.Body, err = call.FromReader(response.Body); err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.HTTPFailure),

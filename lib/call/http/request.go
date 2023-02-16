@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	nethttp "net/http"
 	"net/url"
 	"regexp"
@@ -17,12 +16,12 @@ type Request struct {
 	Body   *wrap.JsonValue
 }
 
-func ToHTTPRequest(rawURL string, method Method, body *wrap.JsonValue) (*nethttp.Request, error) {
-	reader, err := call.ToReader(body)
+func (r *Request) ToHTTPRequest(rawURL string, method Method) (*nethttp.Request, error) {
+	reader, err := call.ToReader(r.Body)
 	if err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.HTTPFailure),
-			"fail to read JsonValue: %#v", body)
+			"fail to read JsonValue: %#v", r.Body)
 	}
 
 	parsed, err := url.Parse(rawURL)
@@ -32,52 +31,57 @@ func ToHTTPRequest(rawURL string, method Method, body *wrap.JsonValue) (*nethttp
 			"fail to parse url: %s", rawURL)
 	}
 
-	primitives, err := call.EnumeratePrimitives(body)
+	primitives, err := call.EnumeratePrimitives(r.Body)
 	if err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.HTTPFailure),
 			"fail to parse url: %s", rawURL)
 	}
 
-	fmt.Printf("%#v\n", primitives)
-
 	isPathParam := regexp.MustCompile(`^\[.+\]$`)
 	pathElms := strings.Split(parsed.Path, "/")
-	for i, pathElm := range pathElms {
-		fmt.Printf("%d: %#v\n", i, pathElm)
 
+	// Add all primitive values in JSON body to queryParams
+	queryParams := url.Values{}
+	for jsonPath, primitive := range primitives {
+		queryParams.Add(strings.TrimPrefix(jsonPath, "."), primitive.String())
+	}
+
+	// Add primitive values in JSON body and remove them from queryParams if required as path params
+	for i, pathElm := range pathElms {
 		if !isPathParam.MatchString(pathElm) {
 			continue
 		}
 
 		pathParamName := strings.TrimPrefix(strings.TrimSuffix(pathElm, "]"), "[")
-		fmt.Printf("%d: %#v\n", i, pathParamName)
 
 		if primitive, ok := primitives[pathParamName]; ok {
 			pathElms[i] = primitive.String()
+			queryParams.Del(strings.TrimPrefix(pathParamName, "."))
 			continue
 		}
 
 		for jsonPath, primitive := range primitives {
 			if strings.HasSuffix(jsonPath, "."+pathParamName) {
 				pathElms[i] = primitive.String()
+				queryParams.Del(strings.TrimPrefix(jsonPath, "."))
 				break
 			}
 		}
 	}
-	fmt.Printf("%#v\n", pathElms)
+
 	parsed.Path = ""
 	parsed = parsed.JoinPath(pathElms...)
-
-	fmt.Printf("%#v\n", parsed)
-	fmt.Printf("%#v\n", parsed.String())
+	parsed.RawQuery = queryParams.Encode()
 
 	request, err := nethttp.NewRequest(string(method), parsed.String(), reader)
 	if err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.HTTPFailure),
-			"fail to create request: %s %v %#v", rawURL, method, body)
+			"fail to create request: %s %v %#v", rawURL, method, r)
 	}
+
+	request.Header = r.Header
 
 	return request, nil
 }
