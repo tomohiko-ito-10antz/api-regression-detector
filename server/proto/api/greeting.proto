@@ -5,11 +5,17 @@ option go_package = "github.com/Jumpaku/api-regression-detector/server/gen/proto
 package api;
 
 import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
 
 service GreetingService {
   rpc SayHello (HelloRequest) returns (HelloResponse) {
     option (google.api.http) = {
       get: "/say/hello/{name}"
+    };
+  }
+  rpc GetError (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      get: "/error"
     };
   }
 }

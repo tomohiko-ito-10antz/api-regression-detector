@@ -1,4 +1,4 @@
-package call
+package http
 
 import "github.com/Jumpaku/api-regression-detector/lib/jsonio/wrap"
 

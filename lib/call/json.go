@@ -3,6 +3,7 @@ package call
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
@@ -90,4 +91,35 @@ func ToReader(v *wrap.JsonValue) (*bytes.Buffer, error) {
 	}
 
 	return buffer, nil
+}
+
+func EnumeratePrimitives(v *wrap.JsonValue) (map[string]*wrap.JsonValue, error) {
+	m := map[string]*wrap.JsonValue{}
+	if err := enumeratePrimitivesImpl(v, "", m); err != nil {
+		return nil, errors.Wrap(errors.BadState, "unexpected JsoType %v", v.Type)
+	}
+
+	return m, nil
+}
+
+func enumeratePrimitivesImpl(v *wrap.JsonValue, path string, m map[string]*wrap.JsonValue) error {
+	switch v.Type {
+	case wrap.JsonTypeNull, wrap.JsonTypeBoolean, wrap.JsonTypeNumber, wrap.JsonTypeString:
+		if path == "" {
+			path = "."
+		}
+		m[path] = v
+	case wrap.JsonTypeObject:
+		for k, vk := range v.Object() {
+			enumeratePrimitivesImpl(vk, fmt.Sprintf(`%s.%s`, path, k), m)
+		}
+	case wrap.JsonTypeArray:
+		for i, vi := range v.Array() {
+			enumeratePrimitivesImpl(vi, fmt.Sprintf(`%s.%d`, path, i), m)
+		}
+	default:
+		return errors.Wrap(errors.BadState, "unexpected JsoType %v", v.Type)
+	}
+
+	return nil
 }
