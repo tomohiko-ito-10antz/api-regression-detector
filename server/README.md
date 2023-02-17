@@ -17,9 +17,9 @@ The GRPC gateway, which translates HTTP and GRPC, behaves as REST API version of
 ```sh
 make serve &
 
-ENDPOINT_REST=localhost
+ENDPOINT=localhost
 
-curl "${ENDPOINT_REST}:80/say/hello/MyName" | jq
+curl "${ENDPOINT}:80/say/hello/MyName" | jq
 
-grpcurl -plaintext -d '{"name":"MyName"}' "${ENDPOINT_GRPC}:50051" api.GreetingService/SayHello | jq
+grpcurl -plaintext -d '{"name":"MyName"}' "${ENDPOINT}:50051" api.GreetingService/SayHello | jq
 ```
