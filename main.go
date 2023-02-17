@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strings"
 
 	"github.com/Jumpaku/api-regression-detector/cli"
 	"github.com/Jumpaku/api-regression-detector/lib/call/http"
@@ -41,7 +42,7 @@ func main() {
 		case args["http"]:
 			code, err = cli.RunCallHTTP(
 				args["<endpoint-url>"].(string),
-				http.Method(args["<http-method>"].(string)))
+				http.Method(strings.ToUpper(args["<http-method>"].(string))))
 		case args["grpc"]:
 			code, err = cli.RunCallGRPC(
 				args["<grpc-endpoint>"].(string),

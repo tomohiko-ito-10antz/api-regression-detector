@@ -2,7 +2,6 @@ package http
 
 import (
 	"bytes"
-	"fmt"
 	nethttp "net/http"
 	"net/url"
 	"regexp"
@@ -26,7 +25,6 @@ func (r *Request) ToHTTPRequest(endpointURL string, method Method) (*nethttp.Req
 			"fail to read JsonValue: %#v", r.Body)
 	}
 
-	fmt.Printf("%#v\n", endpointURL)
 	if method == MethodGet {
 		urlWithParams, err := AssignParamsToURL(endpointURL, r)
 		if err != nil {
@@ -34,14 +32,9 @@ func (r *Request) ToHTTPRequest(endpointURL string, method Method) (*nethttp.Req
 				errors.Join(err, errors.HTTPFailure),
 				"fail to assign JsonValue: %#v", r.Body)
 		}
-		v, _ := r.Body.Find(wrap.JsonKey("name"))
-		fmt.Printf("%#v\n", v)
-		fmt.Printf("%#v\n", urlWithParams)
 		endpointURL = urlWithParams.String()
 		reqBodyBytes = nil
 	}
-
-	fmt.Printf("%#v\n", endpointURL)
 
 	request, err := nethttp.NewRequest(string(method), endpointURL, bytes.NewBuffer(reqBodyBytes))
 	if err != nil {
