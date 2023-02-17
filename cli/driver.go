@@ -9,12 +9,12 @@ import (
 	"github.com/Jumpaku/api-regression-detector/lib/impl/sqlite"
 )
 
-func NewDriver(name string) (*cmd.Driver, error) {
-	var driver *cmd.Driver
+func NewDriver(name string) (*cmd.DatabaseDriver, error) {
+	var driver *cmd.DatabaseDriver
 
 	switch name {
 	case "mysql":
-		driver = &cmd.Driver{
+		driver = &cmd.DatabaseDriver{
 			Name:         name,
 			RowLister:    mysql.ListRows(),
 			RowClearer:   mysql.ClearRows(),
@@ -22,7 +22,7 @@ func NewDriver(name string) (*cmd.Driver, error) {
 			SchemaGetter: mysql.GetSchema(),
 		}
 	case "postgres":
-		driver = &cmd.Driver{
+		driver = &cmd.DatabaseDriver{
 			Name:         name,
 			RowLister:    postgres.ListRows(),
 			RowClearer:   postgres.ClearRows(),
@@ -30,7 +30,7 @@ func NewDriver(name string) (*cmd.Driver, error) {
 			SchemaGetter: postgres.GetSchema(),
 		}
 	case "sqlite3":
-		driver = &cmd.Driver{
+		driver = &cmd.DatabaseDriver{
 			Name:         name,
 			RowLister:    sqlite.ListRows(),
 			RowClearer:   sqlite.ClearRows(),
@@ -38,7 +38,7 @@ func NewDriver(name string) (*cmd.Driver, error) {
 			SchemaGetter: sqlite.GetSchema(),
 		}
 	case "spanner":
-		driver = &cmd.Driver{
+		driver = &cmd.DatabaseDriver{
 			Name:         name,
 			RowLister:    spanner.ListRows(),
 			RowClearer:   spanner.ClearRows(),

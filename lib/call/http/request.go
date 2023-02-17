@@ -1,12 +1,14 @@
 package http
 
 import (
+	"bytes"
+	"fmt"
 	nethttp "net/http"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 
-	"github.com/Jumpaku/api-regression-detector/lib/call"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio/wrap"
 )
@@ -17,26 +19,56 @@ type Request struct {
 }
 
 func (r *Request) ToHTTPRequest(endpointURL string, method Method) (*nethttp.Request, error) {
-	reader, err := call.ToReader(r.Body)
+	reqBodyBytes, err := wrap.Encode(r.Body)
 	if err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.HTTPFailure),
 			"fail to read JsonValue: %#v", r.Body)
 	}
 
-	parsed, err := url.Parse(endpointURL)
+	fmt.Printf("%#v\n", endpointURL)
+	if method == MethodGet {
+		urlWithParams, err := AssignParamsToURL(endpointURL, r)
+		if err != nil {
+			return nil, errors.Wrap(
+				errors.Join(err, errors.HTTPFailure),
+				"fail to assign JsonValue: %#v", r.Body)
+		}
+		v, _ := r.Body.Find(wrap.JsonKey("name"))
+		fmt.Printf("%#v\n", v)
+		fmt.Printf("%#v\n", urlWithParams)
+		endpointURL = urlWithParams.String()
+		reqBodyBytes = nil
+	}
+
+	fmt.Printf("%#v\n", endpointURL)
+
+	request, err := nethttp.NewRequest(string(method), endpointURL, bytes.NewBuffer(reqBodyBytes))
 	if err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.HTTPFailure),
-			"fail to parse url: %s", endpointURL)
+			"fail to create request: %s %v %#v", endpointURL, method, r)
 	}
 
-	jsonPrimitiveKeys := r.Body.EnumeratePrimitiveKeys()
+	request.Header = r.Header
+
+	return request, nil
+}
+
+func AssignParamsToURL(templateURL string, req *Request) (*url.URL, error) {
+	parsed, err := url.Parse(templateURL)
+	if err != nil {
+		return nil, errors.Wrap(
+			errors.Join(err, errors.HTTPFailure),
+			"fail to parse url: %s", templateURL)
+	}
+
+	jsonPrimitiveKeys := req.Body.EnumeratePrimitiveKeys()
 
 	// Add all primitive values in JSON body to queryParams
 	queryParams := url.Values{}
 	for _, key := range jsonPrimitiveKeys {
-		val, ok := r.Body.Find(key...)
+		val, ok := req.Body.Find(key...)
 		if !ok || val.Type == wrap.JsonTypeNull {
 			continue
 		}
@@ -44,11 +76,14 @@ func (r *Request) ToHTTPRequest(endpointURL string, method Method) (*nethttp.Req
 		for _, v := range key {
 			keyStrings = append(keyStrings, v.String())
 		}
-		b, err := wrap.Encode(val)
-		if err != nil {
-			return nil, errors.Wrap(errors.Join(err, errors.BadConversion), "fail to encode JsonValue")
+		switch val.Type {
+		case wrap.JsonTypeBoolean:
+			queryParams.Add(strings.Join(keyStrings, "."), strconv.FormatBool(val.MustBool()))
+		case wrap.JsonTypeNumber:
+			queryParams.Add(strings.Join(keyStrings, "."), string(val.MustNumber()))
+		case wrap.JsonTypeString:
+			queryParams.Add(strings.Join(keyStrings, "."), val.MustString())
 		}
-		queryParams.Add(strings.Join(keyStrings, "."), string(b))
 	}
 
 	isPathParam := regexp.MustCompile(`^\[.+\]$`)
@@ -80,14 +115,5 @@ func (r *Request) ToHTTPRequest(endpointURL string, method Method) (*nethttp.Req
 	parsed = parsed.JoinPath(pathElms...)
 	parsed.RawQuery = queryParams.Encode()
 
-	request, err := nethttp.NewRequest(string(method), parsed.String(), reader)
-	if err != nil {
-		return nil, errors.Wrap(
-			errors.Join(err, errors.HTTPFailure),
-			"fail to create request: %s %v %#v", endpointURL, method, r)
-	}
-
-	request.Header = r.Header
-
-	return request, nil
+	return parsed, nil
 }

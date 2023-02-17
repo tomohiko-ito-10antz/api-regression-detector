@@ -11,7 +11,8 @@ The following commands are available:
 Usage:
 	program init <database-driver> <connection-string>
 	program dump <database-driver> <connection-string>
-	program call <rpc-endpoint> <method>
+	program call http <endpoint-url> <http-method>
+	program call grpc <grpc-endpoint> <grpc-full-method>
 	program compare [--verbose] [--strict] <expected-json> <actual-json>
 	program -h | --help
 	program --version

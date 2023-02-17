@@ -1,11 +1,10 @@
 package grpc
 
 import (
-	"bytes"
 	"context"
 
-	"github.com/Jumpaku/api-regression-detector/lib/call"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
+	"github.com/Jumpaku/api-regression-detector/lib/jsonio/wrap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
@@ -17,7 +16,7 @@ import (
 )
 
 func InvokeRPC(endpoint string, methodDescriptor protoreflect.MethodDescriptor, req Request) (*Response, error) {
-	reader, err := call.ToReader(req.Body)
+	reqBodyBytes, err := wrap.Encode(req.Body)
 	if err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.BadConversion),
@@ -25,7 +24,7 @@ func InvokeRPC(endpoint string, methodDescriptor protoreflect.MethodDescriptor, 
 	}
 
 	inputMessage := dynamicpb.NewMessage(methodDescriptor.Input())
-	if err := (&protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reader.Bytes(), inputMessage); err != nil {
+	if err := (&protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqBodyBytes, inputMessage); err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.BadConversion),
 			"fail to convert json body to protobuf message: %s", methodDescriptor.Input().FullName())
@@ -57,7 +56,7 @@ func InvokeRPC(endpoint string, methodDescriptor protoreflect.MethodDescriptor, 
 				"fail to parse response as JSON: %#v", outputMessage)
 		}
 
-		res.Error, err = call.FromReader(bytes.NewBuffer(errorMessageBytes))
+		res.Error, err = wrap.Decode(errorMessageBytes)
 		if err != nil {
 			return nil, errors.Wrap(
 				errors.Join(err, errors.BadConversion),
@@ -74,7 +73,7 @@ func InvokeRPC(endpoint string, methodDescriptor protoreflect.MethodDescriptor, 
 			"fail to parse response as JSON: %#v", outputMessage)
 	}
 
-	res.Body, err = call.FromReader(bytes.NewBuffer(bodyMessageBytes))
+	res.Body, err = wrap.Decode(bodyMessageBytes)
 	if err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.BadConversion),
