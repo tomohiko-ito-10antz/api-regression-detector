@@ -26,6 +26,8 @@ Options:
 	--strict           Disallow superset match. [default: false]
 ```
 
+## Examples
+
 ### Init
 
 ```sh
