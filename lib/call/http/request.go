@@ -16,7 +16,7 @@ type Request struct {
 	Body   *wrap.JsonValue
 }
 
-func (r *Request) ToHTTPRequest(rawURL string, method Method) (*nethttp.Request, error) {
+func (r *Request) ToHTTPRequest(endpointURL string, method Method) (*nethttp.Request, error) {
 	reader, err := call.ToReader(r.Body)
 	if err != nil {
 		return nil, errors.Wrap(
@@ -24,18 +24,18 @@ func (r *Request) ToHTTPRequest(rawURL string, method Method) (*nethttp.Request,
 			"fail to read JsonValue: %#v", r.Body)
 	}
 
-	parsed, err := url.Parse(rawURL)
+	parsed, err := url.Parse(endpointURL)
 	if err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.HTTPFailure),
-			"fail to parse url: %s", rawURL)
+			"fail to parse url: %s", endpointURL)
 	}
 
 	primitives, err := call.EnumeratePrimitives(r.Body)
 	if err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.HTTPFailure),
-			"fail to parse url: %s", rawURL)
+			"fail to parse url: %s", endpointURL)
 	}
 
 	isPathParam := regexp.MustCompile(`^\[.+\]$`)
@@ -78,7 +78,7 @@ func (r *Request) ToHTTPRequest(rawURL string, method Method) (*nethttp.Request,
 	if err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.HTTPFailure),
-			"fail to create request: %s %v %#v", rawURL, method, r)
+			"fail to create request: %s %v %#v", endpointURL, method, r)
 	}
 
 	request.Header = r.Header

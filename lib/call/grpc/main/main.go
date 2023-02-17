@@ -40,6 +40,6 @@ func callGetError() {
 }
 
 func main() {
-	callSayHello()
-	//callGetError()
+	//callSayHello()
+	callGetError()
 }

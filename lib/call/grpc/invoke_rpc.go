@@ -3,7 +3,6 @@ package grpc
 import (
 	"bytes"
 	"context"
-	"io"
 
 	"github.com/Jumpaku/api-regression-detector/lib/call"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
@@ -29,7 +28,7 @@ func InvokeRPC(endpoint string, methodDescriptor protoreflect.MethodDescriptor, 
 	}
 
 	inputMessage := dynamicpb.NewMessage(methodDescriptor.Input())
-	if err := protojson.Unmarshal(reader.Bytes(), inputMessage); err != nil {
+	if err := (&protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reader.Bytes(), inputMessage); err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.BadConversion),
 			"fail to convert json body to protobuf message: %s", methodDescriptor.Input().FullName())
@@ -47,7 +46,7 @@ func InvokeRPC(endpoint string, methodDescriptor protoreflect.MethodDescriptor, 
 			"fail to invoke grpc: %s", methodDescriptor.Input().FullName())
 	}
 
-	b, err := protojson.MarshalOptions{EmitUnpopulated: true}.Marshal(outputMessage)
+	b, err := protojson.MarshalOptions{EmitUnpopulated: true, AllowPartial: true}.Marshal(outputMessage)
 	if err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.BadConversion),
@@ -61,7 +60,7 @@ func InvokeRPC(endpoint string, methodDescriptor protoreflect.MethodDescriptor, 
 			"fail to parse response as JSON: %s", string(b))
 	}
 
-	e, err := protojson.MarshalOptions{EmitUnpopulated: true}.Marshal(&errorMessage)
+	e, err := protojson.MarshalOptions{EmitUnpopulated: true, AllowPartial: true}.Marshal(&errorMessage)
 	if err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.BadConversion),
@@ -91,7 +90,9 @@ func invokeRPCImpl(endpoint string, fullMethod string, inputMetadata metadata.MD
 
 	defer cc.Close()
 
-	clientStream, err := grpc.NewClientStream(metadata.NewOutgoingContext(context.Background(), inputMetadata), &grpc.StreamDesc{
+	ctx := metadata.NewOutgoingContext(context.Background(), inputMetadata)
+
+	clientStream, err := grpc.NewClientStream(ctx, &grpc.StreamDesc{
 		StreamName:    "ClientStream",
 		Handler:       nil, //func(srv any, stream grpc.ServerStream) error { return nil },
 		ServerStreams: true,
@@ -121,7 +122,11 @@ func invokeRPCImpl(endpoint string, fullMethod string, inputMetadata metadata.MD
 		(*outputMetadata)[k] = append((*outputMetadata)[k], v...)
 	}
 
-	if err = clientStream.RecvMsg(outputMessage); err != nil && err != io.EOF {
+	if err = clientStream.RecvMsg(outputMessage); err != nil {
+		for k, v := range clientStream.Trailer() {
+			(*outputMetadata)[k] = append((*outputMetadata)[k], v...)
+		}
+
 		status, ok := status.FromError(err)
 		if !ok {
 			return errors.Wrap(
@@ -135,10 +140,6 @@ func invokeRPCImpl(endpoint string, fullMethod string, inputMetadata metadata.MD
 				errorMessage.ProtoReflect().Set(field, status.Proto().ProtoReflect().Get(field))
 			}
 		}
-	}
-
-	for k, v := range clientStream.Trailer() {
-		(*outputMetadata)[k] = append((*outputMetadata)[k], v...)
 	}
 
 	return nil

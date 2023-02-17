@@ -21,13 +21,13 @@ const (
 	MethodTrace   Method = http.MethodTrace
 )
 
-func CallHTTP(url string, method Method, req *Request) (*Response, error) {
+func CallHTTP(endpointURL string, method Method, req *Request) (*Response, error) {
 
-	request, err := req.ToHTTPRequest(url, method)
+	request, err := req.ToHTTPRequest(endpointURL, method)
 	if err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.HTTPFailure),
-			"fail to create request: %s %v %#v", url, method, req)
+			"fail to create request: %s %v %#v", endpointURL, method, req)
 	}
 
 	response, err := http.DefaultClient.Do(request)
