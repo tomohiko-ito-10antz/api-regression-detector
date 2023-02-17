@@ -18,6 +18,8 @@ var (
 	GRPCURLFailure error = errors.New("GRPCURLFailure")
 	HTTPFailure    error = errors.New("GRPCURLFailure")
 	BadJSON        error = errors.New("BadJSON")
+	HTTPFailure    error = errors.New("HTTPFailure")
+	GRPCFailure    error = errors.New("GRPCFailure")
 )
 
 var (

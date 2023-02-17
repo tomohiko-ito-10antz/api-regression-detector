@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+option go_package = "github.com/Jumpaku/api-regression-detector/server/gen/proto/api";
+
+package api;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+service GreetingService {
+  rpc SayHello (HelloRequest) returns (HelloResponse) {
+    option (google.api.http) = {
+      get: "/say/hello/{name}"
+    };
+  }
+  rpc GetError (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      get: "/error"
+    };
+  }
+}
+message HelloRequest {
+  string title = 1;
+  string name = 2;
+}
+message HelloResponse {
+  string message = 1;
+}
