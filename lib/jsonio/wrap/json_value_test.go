@@ -12,7 +12,7 @@ func TestString(t *testing.T) {
 	s := "abc"
 	v := wrap.String(s)
 	assert.Equal(t, v.Type, wrap.JsonTypeString)
-	a := v.AsString()
+	a := v.MustString()
 	assert.Equal(t, a, s)
 }
 
@@ -21,13 +21,13 @@ func TestBoolean_True(t *testing.T) {
 		b := true
 		v := wrap.Boolean(b)
 		assert.Equal(t, v.Type, wrap.JsonTypeBoolean)
-		assert.Equal(t, v.AsBool(), b)
+		assert.Equal(t, v.MustBool(), b)
 	})
 	t.Run("false", func(t *testing.T) {
 		b := false
 		v := wrap.Boolean(b)
 		assert.Equal(t, v.Type, wrap.JsonTypeBoolean)
-		assert.Equal(t, v.AsBool(), b)
+		assert.Equal(t, v.MustBool(), b)
 	})
 }
 
@@ -40,7 +40,7 @@ func TestNumber_JsonNumber(t *testing.T) {
 			a, ok := v.Int64()
 			assert.Equal(t, ok, true)
 			assert.Equal(t, a, int64(123))
-			a, ok = v.AsNumber().Int64()
+			a, ok = v.MustNumber().Int64()
 			assert.Equal(t, ok, true)
 			assert.Equal(t, a, int64(123))
 		})
@@ -51,7 +51,7 @@ func TestNumber_JsonNumber(t *testing.T) {
 			a, ok := v.Float64()
 			assert.Equal(t, ok, true)
 			assert.Equal(t, a, -123.45)
-			a, ok = v.AsNumber().Float64()
+			a, ok = v.MustNumber().Float64()
 			assert.Equal(t, ok, true)
 			assert.Equal(t, a, -123.45)
 		})
@@ -63,7 +63,7 @@ func TestNumber_JsonNumber(t *testing.T) {
 		a, ok := v.Int64()
 		assert.Equal(t, ok, true)
 		assert.Equal(t, a, i)
-		a, ok = v.AsNumber().Int64()
+		a, ok = v.MustNumber().Int64()
 		assert.Equal(t, ok, true)
 		assert.Equal(t, a, i)
 	})
@@ -74,7 +74,7 @@ func TestNumber_JsonNumber(t *testing.T) {
 		a, ok := v.Float64()
 		assert.Equal(t, ok, true)
 		assert.Equal(t, a, f)
-		a, ok = v.AsNumber().Float64()
+		a, ok = v.MustNumber().Float64()
 		assert.Equal(t, ok, true)
 		assert.Equal(t, a, f)
 	})
@@ -90,7 +90,7 @@ func TestObject(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		v := wrap.Object(nil)
 		assert.Equal(t, v.Type, wrap.JsonTypeObject)
-		assert.Equal(t, len(v.AsObject()), 0)
+		assert.Equal(t, len(v.MustObject()), 0)
 	})
 	t.Run("elements", func(t *testing.T) {
 		v := wrap.Object(map[string]*wrap.JsonValue{
@@ -103,7 +103,7 @@ func TestObject(t *testing.T) {
 			"f": wrap.Boolean(false),
 		})
 		assert.Equal(t, v.Type, wrap.JsonTypeObject)
-		assert.Equal(t, len(v.AsObject()), 7)
+		assert.Equal(t, len(v.MustObject()), 7)
 	})
 }
 
@@ -111,7 +111,7 @@ func TestArray(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		v := wrap.Array()
 		assert.Equal(t, v.Type, wrap.JsonTypeArray)
-		assert.Equal(t, len(v.AsArray()), 0)
+		assert.Equal(t, len(v.MustArray()), 0)
 	})
 	t.Run("elements", func(t *testing.T) {
 		v := wrap.Array(
@@ -124,122 +124,6 @@ func TestArray(t *testing.T) {
 			wrap.Boolean(false),
 		)
 		assert.Equal(t, v.Type, wrap.JsonTypeArray)
-		assert.Equal(t, len(v.AsArray()), 7)
+		assert.Equal(t, len(v.MustArray()), 7)
 	})
-}
-
-func TestFromAny_Nil(t *testing.T) {
-	v, err := wrap.FromAny(nil)
-	assert.Equal(t, err, nil)
-	assert.Equal(t, v.Type, wrap.JsonTypeNull)
-}
-
-func TestFromAny_Boolean(t *testing.T) {
-	t.Run("true", func(t *testing.T) {
-		v, err := wrap.FromAny(true)
-		assert.Equal(t, err, nil)
-		assert.Equal(t, v.Type, wrap.JsonTypeBoolean)
-		assert.Equal(t, v.BooleanValue, true)
-	})
-	t.Run("false", func(t *testing.T) {
-		v, err := wrap.FromAny(false)
-		assert.Equal(t, err, nil)
-		assert.Equal(t, v.Type, wrap.JsonTypeBoolean)
-		assert.Equal(t, v.BooleanValue, false)
-	})
-}
-
-func TestFromAny_Int64(t *testing.T) {
-	i := int64(123)
-	v, err := wrap.FromAny(i)
-	assert.Equal(t, err, nil)
-	assert.Equal(t, v.Type, wrap.JsonTypeNumber)
-	a, ok := v.NumberValue.Int64()
-	assert.Equal(t, ok, true)
-	assert.Equal(t, a, i)
-}
-
-func TestFromAny_Float(t *testing.T) {
-	f := -123.45
-	v, err := wrap.FromAny(f)
-	assert.Equal(t, err, nil)
-	assert.Equal(t, v.Type, wrap.JsonTypeNumber)
-	a, ok := v.NumberValue.Float64()
-	assert.Equal(t, ok, true)
-	assert.Equal(t, a, f)
-}
-
-func TestFromAny_JsonNumber(t *testing.T) {
-	t.Run("int64", func(t *testing.T) {
-		v, err := wrap.FromAny(json.Number("123"))
-		assert.Equal(t, err, nil)
-		assert.Equal(t, v.Type, wrap.JsonTypeNumber)
-		a, ok := v.NumberValue.Int64()
-		assert.Equal(t, ok, true)
-		assert.Equal(t, a, int64(123))
-	})
-	t.Run("float64", func(t *testing.T) {
-		v, err := wrap.FromAny(json.Number("-123.45"))
-		assert.Equal(t, err, nil)
-		assert.Equal(t, v.Type, wrap.JsonTypeNumber)
-		a, ok := v.NumberValue.Float64()
-		assert.Equal(t, ok, true)
-		assert.Equal(t, a, float64(-123.45))
-	})
-}
-
-func TestFromAny_Object(t *testing.T) {
-	v, err := wrap.FromAny(map[string]any{
-		"x": map[string]any{
-			"a": int64(123),
-			"b": float64(-123.45),
-			"c": "abc",
-			"d": nil,
-			"e": true,
-			"f": false,
-			"g": map[string]any{},
-			"h": []any{},
-		},
-		"y": []any{
-			int64(123),
-			float64(-123.45),
-			"abc",
-			nil,
-			true,
-			false,
-			map[string]any{},
-			[]any{},
-		},
-	})
-	assert.Equal(t, err, nil)
-	assert.Equal(t, v.Type, wrap.JsonTypeObject)
-	assert.Equal(t, len(v.ObjectValue), 2)
-}
-
-func TestFromAny_Array(t *testing.T) {
-	v, err := wrap.FromAny([]any{
-		map[string]any{
-			"a": int64(123),
-			"b": float64(-123.45),
-			"c": "abc",
-			"d": nil,
-			"e": true,
-			"f": false,
-			"g": map[string]any{},
-			"h": []any{},
-		},
-		[]any{
-			int64(123),
-			float64(-123.45),
-			"abc",
-			nil,
-			true,
-			false,
-			map[string]any{},
-			[]any{},
-		},
-	})
-	assert.Equal(t, err, nil)
-	assert.Equal(t, v.Type, wrap.JsonTypeArray)
-	assert.Equal(t, len(v.ArrayValue), 2)
 }

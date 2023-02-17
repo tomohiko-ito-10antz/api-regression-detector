@@ -31,22 +31,28 @@ func (r *Request) ToHTTPRequest(endpointURL string, method Method) (*nethttp.Req
 			"fail to parse url: %s", endpointURL)
 	}
 
-	primitives, err := call.EnumeratePrimitives(r.Body)
-	if err != nil {
-		return nil, errors.Wrap(
-			errors.Join(err, errors.HTTPFailure),
-			"fail to parse url: %s", endpointURL)
+	jsonPrimitiveKeys := r.Body.EnumeratePrimitiveKeys()
+
+	// Add all primitive values in JSON body to queryParams
+	queryParams := url.Values{}
+	for _, key := range jsonPrimitiveKeys {
+		val, ok := r.Body.Find(key...)
+		if !ok || val.Type == wrap.JsonTypeNull {
+			continue
+		}
+		keyStrings := []string{}
+		for _, v := range key {
+			keyStrings = append(keyStrings, v.String())
+		}
+		b, err := wrap.Encode(val)
+		if err != nil {
+			return nil, errors.Wrap(errors.Join(err, errors.BadConversion), "fail to encode JsonValue")
+		}
+		queryParams.Add(strings.Join(keyStrings, "."), string(b))
 	}
 
 	isPathParam := regexp.MustCompile(`^\[.+\]$`)
 	pathElms := strings.Split(parsed.Path, "/")
-
-	// Add all primitive values in JSON body to queryParams
-	queryParams := url.Values{}
-	for jsonPath, primitive := range primitives {
-		queryParams.Add(strings.TrimPrefix(jsonPath, "."), primitive.String())
-	}
-
 	// Add primitive values in JSON body and remove them from queryParams if required as path params
 	for i, pathElm := range pathElms {
 		if !isPathParam.MatchString(pathElm) {
@@ -55,17 +61,17 @@ func (r *Request) ToHTTPRequest(endpointURL string, method Method) (*nethttp.Req
 
 		pathParamName := strings.TrimPrefix(strings.TrimSuffix(pathElm, "]"), "[")
 
-		if primitive, ok := primitives[pathParamName]; ok {
-			pathElms[i] = primitive.String()
-			queryParams.Del(strings.TrimPrefix(pathParamName, "."))
+		if queryParams.Has(pathParamName) {
+			pathElms[i] = queryParams.Get(pathParamName)
+			queryParams.Del(pathParamName)
 			continue
 		}
 
-		for jsonPath, primitive := range primitives {
-			if strings.HasSuffix(jsonPath, "."+pathParamName) {
-				pathElms[i] = primitive.String()
-				queryParams.Del(strings.TrimPrefix(jsonPath, "."))
-				break
+		for queryParamName := range queryParams {
+			if strings.HasSuffix(queryParamName, "."+pathParamName) {
+				pathElms[i] = queryParams.Get(queryParamName)
+				queryParams.Del(queryParamName)
+				continue
 			}
 		}
 	}

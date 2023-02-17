@@ -11,12 +11,9 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
-
-	statuspb "google.golang.org/genproto/googleapis/rpc/status"
 )
 
 func InvokeRPC(endpoint string, methodDescriptor protoreflect.MethodDescriptor, req Request) (*Response, error) {
@@ -36,48 +33,58 @@ func InvokeRPC(endpoint string, methodDescriptor protoreflect.MethodDescriptor, 
 
 	outputMessage := dynamicpb.NewMessage(methodDescriptor.Output())
 
-	errorMessage := statuspb.Status{}
-
 	res := NewResponse()
 
-	if err := invokeRPCImpl(endpoint, string(methodDescriptor.Parent().FullName()+"/"+protoreflect.FullName(methodDescriptor.Name())), metadata.MD(req.Header), inputMessage, (*metadata.MD)(&res.Header), outputMessage, &errorMessage); err != nil {
-		return nil, errors.Wrap(
-			errors.Join(err, errors.BadConversion),
-			"fail to invoke grpc: %s", methodDescriptor.Input().FullName())
+	err = invokeRPCImpl(
+		endpoint,
+		string(methodDescriptor.Parent().FullName()+"/"+protoreflect.FullName(methodDescriptor.Name())),
+		metadata.MD(req.Header),
+		inputMessage,
+		(*metadata.MD)(&res.Header),
+		outputMessage)
+	if err != nil {
+		errorStatus, ok := status.FromError(err)
+		if !ok {
+			return nil, errors.Wrap(
+				errors.Join(err, errors.BadConversion),
+				"fail to invoke grpc: %s", methodDescriptor.Input().FullName())
+		}
+
+		errorMessageBytes, err := protojson.MarshalOptions{EmitUnpopulated: true, AllowPartial: true}.Marshal(errorStatus.Proto())
+		if err != nil {
+			return nil, errors.Wrap(
+				errors.Join(err, errors.BadConversion),
+				"fail to parse response as JSON: %#v", outputMessage)
+		}
+
+		res.Error, err = call.FromReader(bytes.NewBuffer(errorMessageBytes))
+		if err != nil {
+			return nil, errors.Wrap(
+				errors.Join(err, errors.BadConversion),
+				"fail to parse error as JSON: %s", string(errorMessageBytes))
+		}
+
+		res.Status = errorStatus
 	}
 
-	b, err := protojson.MarshalOptions{EmitUnpopulated: true, AllowPartial: true}.Marshal(outputMessage)
+	bodyMessageBytes, err := protojson.MarshalOptions{EmitUnpopulated: true, AllowPartial: true}.Marshal(outputMessage)
 	if err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.BadConversion),
 			"fail to parse response as JSON: %#v", outputMessage)
 	}
 
-	res.Body, err = call.FromReader(bytes.NewBuffer(b))
+	res.Body, err = call.FromReader(bytes.NewBuffer(bodyMessageBytes))
 	if err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.BadConversion),
-			"fail to parse response as JSON: %s", string(b))
-	}
-
-	e, err := protojson.MarshalOptions{EmitUnpopulated: true, AllowPartial: true}.Marshal(&errorMessage)
-	if err != nil {
-		return nil, errors.Wrap(
-			errors.Join(err, errors.BadConversion),
-			"fail to parse response as JSON: %#v", outputMessage)
-	}
-
-	res.Error, err = call.FromReader(bytes.NewBuffer(e))
-	if err != nil {
-		return nil, errors.Wrap(
-			errors.Join(err, errors.BadConversion),
-			"fail to parse response as JSON: %s", string(b))
+			"fail to parse response as JSON: %s", string(bodyMessageBytes))
 	}
 
 	return res, nil
 }
 
-func invokeRPCImpl(endpoint string, fullMethod string, inputMetadata metadata.MD, inputMessage proto.Message, outputMetadata *metadata.MD, outputMessage proto.Message, errorMessage proto.Message) error {
+func invokeRPCImpl(endpoint string, fullMethod string, inputMetadata metadata.MD, inputMessage proto.Message, outputMetadata *metadata.MD, outputMessage proto.Message) error {
 	cc, err := grpc.Dial(
 		endpoint,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -127,19 +134,14 @@ func invokeRPCImpl(endpoint string, fullMethod string, inputMetadata metadata.MD
 			(*outputMetadata)[k] = append((*outputMetadata)[k], v...)
 		}
 
-		status, ok := status.FromError(err)
+		_, ok := status.FromError(err)
 		if !ok {
 			return errors.Wrap(
 				errors.Join(err, errors.GRPCFailure),
 				"fail to receive message: %s %s", endpoint, fullMethod)
 		}
-		fields := errorMessage.ProtoReflect().Descriptor().Fields()
-		for i := 0; i < fields.Len(); i++ {
-			field := fields.ByNumber(protowire.Number(1 + i))
-			if status.Proto().ProtoReflect().Has(field) {
-				errorMessage.ProtoReflect().Set(field, status.Proto().ProtoReflect().Get(field))
-			}
-		}
+
+		return err
 	}
 
 	return nil
