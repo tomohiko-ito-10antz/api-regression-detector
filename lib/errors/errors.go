@@ -16,6 +16,8 @@ var (
 	IOFailure      error = errors.New("IOFailure")
 	DBFailure      error = errors.New("DBFailure")
 	BadJSON        error = errors.New("BadJSON")
+	HTTPFailure    error = errors.New("HTTPFailure")
+	GRPCFailure    error = errors.New("GRPCFailure")
 )
 
 var (

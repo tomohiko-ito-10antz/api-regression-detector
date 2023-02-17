@@ -182,7 +182,7 @@ func TestSaveDumpTables(t *testing.T) {
 			},
 		},
 	}
-	buffer := mock.NamedBuffer{Buffer: &bytes.Buffer{}}
+	buffer := mock.NamedBuffer{Buffer: bytes.NewBuffer(nil)}
 	_ = tables.SaveDumpTables(v, buffer)
 
 	a, err := jsonio.LoadJson[map[string][]map[string]any](mock.NamedBuffer{Buffer: buffer.Buffer})

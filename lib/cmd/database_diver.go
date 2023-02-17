@@ -24,7 +24,7 @@ type SchemaGetter interface {
 	GetSchema(ctx context.Context, tx db.Tx, tableName string) (db.Schema, error)
 }
 
-type Driver struct {
+type DatabaseDriver struct {
 	Name         string
 	DB           db.DB
 	RowLister    RowLister
@@ -33,7 +33,7 @@ type Driver struct {
 	SchemaGetter SchemaGetter
 }
 
-func (d *Driver) Close() error {
+func (d *DatabaseDriver) Close() error {
 	if err := d.DB.Close(); err != nil {
 		return errors.Wrap(errors.Join(err, errors.IOFailure), "fail to close database")
 	}
@@ -41,7 +41,7 @@ func (d *Driver) Close() error {
 	return nil
 }
 
-func (d *Driver) Open(connectionString string) error {
+func (d *DatabaseDriver) Open(connectionString string) error {
 	switch d.Name {
 	default:
 		return errors.Wrap(errors.BadArgs, "unsupported driver name")

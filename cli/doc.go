@@ -5,11 +5,14 @@ func GetDoc() string {
 The following commands are available:
 * init: It initializes tables according to JSON data.
 * dump: It outputs data within tables in JSON format.
+* call: It calls RPC of HTTP or GRPC: sending JSON request and receiving JSON response.
 * compare: It compares two JSON files.
 
 Usage:
 	program init <database-driver> <connection-string>
 	program dump <database-driver> <connection-string>
+	program call http <endpoint-url> <http-method>
+	program call grpc <grpc-endpoint> <grpc-full-method>
 	program compare [--verbose] [--strict] <expected-json> <actual-json>
 	program -h | --help
 	program --version

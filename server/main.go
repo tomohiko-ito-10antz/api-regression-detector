@@ -11,7 +11,9 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func main() {
@@ -25,9 +27,17 @@ type greetingService struct {
 	proto_api.UnimplementedGreetingServiceServer
 }
 
-func (s *greetingService) SayHello(ctx context.Context, in *proto_api.HelloRequest) (*proto_api.HelloResponse, error) {
-	log.Printf("Received: %v", in.GetName())
-	return &proto_api.HelloResponse{Message: "Hello " + in.Name}, nil
+func (s *greetingService) SayHello(ctx context.Context, req *proto_api.HelloRequest) (*proto_api.HelloResponse, error) {
+	message := "Hello, "
+	if req.Title != "" {
+		message += req.Title + " "
+	}
+	message += req.Name + "!"
+	return &proto_api.HelloResponse{Message: message}, nil
+}
+
+func (s *greetingService) GetError(ctx context.Context, req *emptypb.Empty) (*emptypb.Empty, error) {
+	return nil, fmt.Errorf("server error occur")
 }
 
 func runGRPCGateway(grpcHostPort string) {
@@ -56,7 +66,31 @@ func runGRPCServer(port int) {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	s := grpc.NewServer()
+	s := grpc.NewServer(
+		grpc.UnaryInterceptor(func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+			requestMD, ok := metadata.FromIncomingContext(ctx)
+			if !ok {
+				requestMD = metadata.MD{}
+			}
+			log.Printf("api: %#v\n", info.FullMethod)
+			log.Printf("request metadata: %#v\n", requestMD)
+			log.Printf("request body: %#v\n", req)
+			res, err := handler(ctx, req)
+			responseHeaderMD := metadata.New(map[string]string{"header-metadata": "header:" + info.FullMethod})
+			if err := grpc.SetHeader(ctx, responseHeaderMD); err != nil {
+				return nil, err
+			}
+			log.Printf("response header metadata: %#v\n", responseHeaderMD)
+			responseTrailerMD := metadata.New(map[string]string{"trailer-metadata": "trailer:" + info.FullMethod})
+			if err := grpc.SetTrailer(ctx, responseTrailerMD); err != nil {
+				return nil, err
+			}
+			log.Printf("response trailer metadata: %#v\n", responseTrailerMD)
+			log.Printf("response body: %#v\n", res)
+			log.Printf("error: %#v\n", err)
+			return res, err
+		}),
+	)
 	proto_api.RegisterGreetingServiceServer(s, &greetingService{})
 	reflection.Register(s)
 

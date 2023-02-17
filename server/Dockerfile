@@ -2,7 +2,7 @@ FROM golang:1.20.0-bullseye
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt update && apt install -y git curl
+RUN apt update && apt install -y git curl jq
 
 WORKDIR /work/server
 

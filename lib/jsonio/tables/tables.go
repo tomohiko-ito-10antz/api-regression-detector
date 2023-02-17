@@ -85,7 +85,7 @@ func SaveDumpTables(tables DumpTables, file jsonio.NamedWriter) (err error) {
 				case wrap.JsonTypeNull:
 					rowObj[columnName] = nil
 				case wrap.JsonTypeBoolean:
-					rowObj[columnName] = columnValue.Bool()
+					rowObj[columnName] = columnValue.MustBool()
 				case wrap.JsonTypeNumber:
 					var ok bool
 
@@ -99,7 +99,7 @@ func SaveDumpTables(tables DumpTables, file jsonio.NamedWriter) (err error) {
 						}
 					}
 				case wrap.JsonTypeString:
-					rowObj[columnName] = columnValue.String()
+					rowObj[columnName] = columnValue.MustString()
 				default:
 					return errors.Wrap(
 						errors.Join(err, errors.BadConversion, errors.Unsupported),

@@ -2,8 +2,10 @@ package main
 
 import (
 	"os"
+	"strings"
 
 	"github.com/Jumpaku/api-regression-detector/cli"
+	"github.com/Jumpaku/api-regression-detector/lib/call/http"
 	"github.com/Jumpaku/api-regression-detector/lib/log"
 	"github.com/docopt/docopt-go"
 	_ "github.com/go-sql-driver/mysql"
@@ -13,12 +15,12 @@ import (
 )
 
 func main() {
-	args, _ := docopt.ParseArgs(cli.GetDoc(), os.Args[1:], "1.0.0")
-
 	var (
 		code int
 		err  error
 	)
+
+	args, _ := docopt.ParseArgs(cli.GetDoc(), os.Args[1:], "1.0.0")
 
 	switch {
 	case args["compare"]:
@@ -35,6 +37,18 @@ func main() {
 		code, err = cli.RunDump(
 			args["<database-driver>"].(string),
 			args["<connection-string>"].(string))
+	case args["call"]:
+		switch {
+		case args["http"]:
+			code, err = cli.RunCallHTTP(
+				args["<endpoint-url>"].(string),
+				http.Method(strings.ToUpper(args["<http-method>"].(string))))
+		case args["grpc"]:
+			code, err = cli.RunCallGRPC(
+				args["<grpc-endpoint>"].(string),
+				args["<grpc-full-method>"].(string))
+		default:
+		}
 	default:
 	}
 
