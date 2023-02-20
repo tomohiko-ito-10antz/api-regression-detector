@@ -56,14 +56,11 @@ func AssignParamsToURL(templateURL string, req *Request) (*url.URL, error) {
 			"fail to parse url: %s", templateURL)
 	}
 
-	jsonPrimitiveKeys := req.Body.EnumeratePrimitiveKeys()
-
-	// Add all primitive values in JSON body to queryParams
+	// Add all non-null primitive values in JSON body to queryParams
 	queryParams := url.Values{}
-	for _, key := range jsonPrimitiveKeys {
-		val, ok := req.Body.Find(key...)
-		if !ok || val.Type == wrap.JsonTypeNull {
-			continue
+	_ = req.Body.Walk(func(key []wrap.JsonKey, val *wrap.JsonValue) error {
+		if len(key) == 0 || val.Type == wrap.JsonTypeNull {
+			return nil
 		}
 		keyStrings := []string{}
 		for _, v := range key {
@@ -77,7 +74,8 @@ func AssignParamsToURL(templateURL string, req *Request) (*url.URL, error) {
 		case wrap.JsonTypeString:
 			queryParams.Add(strings.Join(keyStrings, "."), val.MustString())
 		}
-	}
+		return nil
+	})
 
 	isPathParam := regexp.MustCompile(`^\[.+\]$`)
 	pathElms := strings.Split(parsed.Path, "/")

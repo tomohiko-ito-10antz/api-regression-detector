@@ -212,63 +212,27 @@ func (v *JsonValue) MustArray() JsonArray {
 	return v.ArrayValue
 }
 
-func (v *JsonValue) EnumeratePrimitiveKeys() [][]JsonKey {
-	switch v.Type {
-	case JsonTypeNull, JsonTypeBoolean, JsonTypeNumber, JsonTypeString:
-		return [][]JsonKey{{}}
-	case JsonTypeObject:
-		keys := [][]JsonKey{}
-		for k, vk := range v.MustObject() {
-			for _, ck := range vk.EnumeratePrimitiveKeys() {
-				keys = append(keys, append([]JsonKey{JsonKey(k)}, ck...))
-			}
-		}
-
-		return keys
-	case JsonTypeArray:
-		keys := [][]JsonKey{}
-		for i, vi := range v.MustArray() {
-			for _, ck := range vi.EnumeratePrimitiveKeys() {
-				keys = append(keys, append([]JsonKey{JsonKeyInteger(i)}, ck...))
-			}
-		}
-
-		return keys
-	default:
-		return nil
-	}
+func (v *JsonValue) Walk(visitor func(keys []JsonKey, val *JsonValue) error) error {
+	return walkImpl([]JsonKey{}, v, visitor)
 }
 
-func (v *JsonValue) Find(keys ...JsonKey) (*JsonValue, bool) {
-	if len(keys) == 0 {
-		return v, true
+func walkImpl(parentKey []JsonKey, val *JsonValue, walkFunc func(keys []JsonKey, val *JsonValue) error) error {
+	if err := walkFunc(parentKey, val); err != nil {
+		return err
 	}
-
-	switch v.Type {
-	case JsonTypeArray:
-		a := v.MustArray()
-
-		index, ok := keys[0].Integer()
-		if !ok {
-			return nil, false
-		}
-
-		if index >= a.Len() {
-			return nil, false
-		}
-
-		return a.Get(index).Find(keys[1:]...)
+	switch val.Type {
 	case JsonTypeObject:
-		o := v.MustObject()
-
-		key := keys[0].String()
-
-		if !o.Has(key) {
-			return nil, false
+		for k, vk := range val.MustObject() {
+			if err := walkImpl(append(parentKey, JsonKey(k)), vk, walkFunc); err != nil {
+				return err
+			}
 		}
-
-		return o.Get(key).Find(keys[1:]...)
-	default:
-		return nil, false
+	case JsonTypeArray:
+		for i, vi := range val.MustArray() {
+			if err := walkImpl(append(parentKey, JsonKeyInteger(i)), vi, walkFunc); err != nil {
+				return err
+			}
+		}
 	}
+	return nil
 }

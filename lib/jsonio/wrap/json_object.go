@@ -27,6 +27,10 @@ func (o JsonObject) Set(k string, v *JsonValue) {
 	o[k] = v
 }
 
+func (o JsonObject) Del(k string) {
+	delete(o, k)
+}
+
 func (o JsonObject) Len() int {
 	return len(o)
 }
