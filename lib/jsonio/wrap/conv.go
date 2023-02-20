@@ -22,8 +22,6 @@ func FromAny(valAny any) (jv *JsonValue, err error) {
 		return Number(mustToFloat64(val)), nil
 	case bool:
 		return Boolean(val), nil
-	case JsonNumber:
-		return &JsonValue{Type: JsonTypeNumber, NumberValue: val}, nil
 	case JsonObject:
 		return &JsonValue{Type: JsonTypeObject, ObjectValue: val}, nil
 	case JsonArray:

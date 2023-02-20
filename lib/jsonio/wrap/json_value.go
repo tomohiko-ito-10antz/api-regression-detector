@@ -9,16 +9,15 @@ import (
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
 )
 
-type JsonType string
+type JsonType int
 
 const (
-	JsonTypeUnknown JsonType = "JsonTypeUnknown"
-	JsonTypeNull    JsonType = "JsonTypeNull"
-	JsonTypeString  JsonType = "JsonTypeString"
-	JsonTypeNumber  JsonType = "JsonTypeNumber"
-	JsonTypeBoolean JsonType = "JsonTypeBoolean"
-	JsonTypeArray   JsonType = "JsonTypeArray"
-	JsonTypeObject  JsonType = "JsonTypeObject"
+	JsonTypeNull JsonType = iota
+	JsonTypeString
+	JsonTypeNumber
+	JsonTypeBoolean
+	JsonTypeArray
+	JsonTypeObject
 )
 
 type JsonKey string
@@ -39,7 +38,7 @@ func (k JsonKey) Integer() (int, bool) {
 type JsonValue struct {
 	Type         JsonType
 	StringValue  string
-	NumberValue  JsonNumber
+	NumberValue  json.Number
 	BooleanValue bool
 	ArrayValue   JsonArray
 	ObjectValue  JsonObject
@@ -88,7 +87,7 @@ func mustToFloat64(v any) float64 {
 func Number[T json.Number | int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64](v T) *JsonValue {
 	switch v := any(v).(type) {
 	case json.Number:
-		return &JsonValue{Type: JsonTypeNumber, NumberValue: JsonNumber(v)}
+		return &JsonValue{Type: JsonTypeNumber, NumberValue: v}
 	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
 		return Number(json.Number(strconv.FormatInt(mustToInt64(v), 10)))
 	case float32, float64:
@@ -172,7 +171,7 @@ func (v *JsonValue) MustBool() bool {
 	return v.BooleanValue
 }
 
-func (v *JsonValue) MustNumber() JsonNumber {
+func (v *JsonValue) MustNumber() json.Number {
 	if v.Type != JsonTypeNumber {
 		panic(errors.Wrap(errors.BadState, "Number() is called with json type %v", v.Type))
 	}
@@ -183,14 +182,20 @@ func (v *JsonValue) Int64() (int64, bool) {
 	if v.Type != JsonTypeNumber {
 		panic(errors.Wrap(errors.BadState, "Int64() is called with json type %v", v.Type))
 	}
-	return v.NumberValue.Int64()
+
+	n, err := v.NumberValue.Int64()
+
+	return n, err == nil
 }
 
 func (v *JsonValue) Float64() (float64, bool) {
 	if v.Type != JsonTypeNumber {
 		panic(errors.Wrap(errors.BadState, "Float64() is called with json type %v", v.Type))
 	}
-	return v.NumberValue.Float64()
+
+	n, err := v.NumberValue.Float64()
+
+	return n, err == nil
 }
 
 func (v *JsonValue) MustObject() JsonObject {

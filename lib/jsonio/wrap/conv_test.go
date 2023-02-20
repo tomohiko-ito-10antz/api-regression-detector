@@ -34,8 +34,8 @@ func TestFromAny_Int64(t *testing.T) {
 	v, err := wrap.FromAny(i)
 	assert.Equal(t, err, nil)
 	assert.Equal(t, v.Type, wrap.JsonTypeNumber)
-	a, ok := v.NumberValue.Int64()
-	assert.Equal(t, ok, true)
+	a, err := v.NumberValue.Int64()
+	assert.Equal(t, err, nil)
 	assert.Equal(t, a, i)
 }
 
@@ -44,8 +44,8 @@ func TestFromAny_Float(t *testing.T) {
 	v, err := wrap.FromAny(f)
 	assert.Equal(t, err, nil)
 	assert.Equal(t, v.Type, wrap.JsonTypeNumber)
-	a, ok := v.NumberValue.Float64()
-	assert.Equal(t, ok, true)
+	a, err := v.NumberValue.Float64()
+	assert.Equal(t, err, nil)
 	assert.Equal(t, a, f)
 }
 
@@ -54,16 +54,16 @@ func TestFromAny_JsonNumber(t *testing.T) {
 		v, err := wrap.FromAny(json.Number("123"))
 		assert.Equal(t, err, nil)
 		assert.Equal(t, v.Type, wrap.JsonTypeNumber)
-		a, ok := v.NumberValue.Int64()
-		assert.Equal(t, ok, true)
+		a, err := v.NumberValue.Int64()
+		assert.Equal(t, err, nil)
 		assert.Equal(t, a, int64(123))
 	})
 	t.Run("float64", func(t *testing.T) {
 		v, err := wrap.FromAny(json.Number("-123.45"))
 		assert.Equal(t, err, nil)
 		assert.Equal(t, v.Type, wrap.JsonTypeNumber)
-		a, ok := v.NumberValue.Float64()
-		assert.Equal(t, ok, true)
+		a, err := v.NumberValue.Float64()
+		assert.Equal(t, err, nil)
 		assert.Equal(t, a, float64(-123.45))
 	})
 }

@@ -27,7 +27,7 @@ func (row Row) GetColumnNames() []string {
 func (row Row) GetJsonType(columnName string) (wrap.JsonType, bool) {
 	val, ok := row[columnName]
 	if !ok {
-		return wrap.JsonTypeUnknown, false
+		return wrap.JsonTypeNull, false
 	}
 
 	return val.Type, true
@@ -89,11 +89,11 @@ func (row Row) ToBool(columnName string) (bool, error) {
 	case wrap.JsonTypeString:
 		return val.MustString() != "", nil
 	case wrap.JsonTypeNumber:
-		if v, ok := val.MustNumber().Int64(); ok {
+		if v, err := val.MustNumber().Int64(); err == nil {
 			return v != 0, nil
 		}
 
-		if v, ok := val.MustNumber().Float64(); ok {
+		if v, err := val.MustNumber().Float64(); err == nil {
 			return v != 0, nil
 		}
 
@@ -130,8 +130,8 @@ func (row Row) ToInt64(columnName string) (int64, error) {
 
 		return v, nil
 	case wrap.JsonTypeNumber:
-		v, ok := val.MustNumber().Int64()
-		if !ok {
+		v, err := val.MustNumber().Int64()
+		if err != nil {
 			return 0, errors.Wrap(
 				errors.BadConversion,
 				"fail to convert value %v:%T of column %s to string", val, val, columnName)
@@ -172,10 +172,10 @@ func (row Row) ToFloat64(columnName string) (float64, error) {
 
 		return v, nil
 	case wrap.JsonTypeNumber:
-		v, ok := val.MustNumber().Float64()
-		if !ok {
+		v, err := val.MustNumber().Float64()
+		if err != nil {
 			return 0, errors.Wrap(
-				errors.BadConversion,
+				errors.Join(err, errors.BadConversion),
 				"fail to convert value %v:%T of column %s to float", val, val, columnName)
 		}
 

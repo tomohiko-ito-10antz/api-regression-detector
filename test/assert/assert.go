@@ -2,10 +2,13 @@ package assert
 
 import "testing"
 
-func Equal(t *testing.T, actual any, expect any) {
+func anyEqual(actual any, expect any) bool {
+	return actual == expect
+}
+func Equal[T any](t *testing.T, actual T, expect T) {
 	t.Helper()
 
-	if actual != expect {
+	if !anyEqual(actual, expect) {
 		t.Errorf("ASSERT EQUAL\n  expect: %v:%T\n  actual: %v:%T", expect, expect, actual, actual)
 	}
 }
@@ -13,7 +16,7 @@ func Equal(t *testing.T, actual any, expect any) {
 func NotEqual(t *testing.T, actual any, expect any) {
 	t.Helper()
 
-	if actual == expect {
+	if anyEqual(actual, expect) {
 		t.Errorf("ASSERT NOT EQUAL\n  expect: %v:%T\n  actual: %v:%T", expect, expect, actual, actual)
 	}
 }
