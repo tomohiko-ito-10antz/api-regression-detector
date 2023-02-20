@@ -22,6 +22,8 @@ Usage:
 	program --version
 
 Options:
+	<grpc-endpoint>    host and port joined by ':'.
+	<grpc-full-method> full method in the form 'package.name.ServiceName/MethodName'.
 	-h --help          Show this screen.
 	--version          Show version.`
 

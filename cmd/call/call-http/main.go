@@ -13,7 +13,7 @@ import (
 )
 
 const doc = `Regression detector call-http.
-call-http calls RPC of HTTP or GRPC: sending JSON request and receiving JSON response.
+call-http calls HTTP API: sending JSON request and receiving JSON response.
 
 Usage:
 	program call http <endpoint-url> <http-method>
@@ -21,6 +21,8 @@ Usage:
 	program --version
 
 Options:
+	<endpoint-url>     The URL of the HTTP endpoint which may has path parameters enclosed in '[' and ']'.
+	<http-method>      One of GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE, or PATCH.
 	-h --help          Show this screen.
 	--version          Show version.`
 

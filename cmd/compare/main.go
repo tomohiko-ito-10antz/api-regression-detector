@@ -19,10 +19,12 @@ Usage:
 	program --version
 
 Options:
-	-h --help          Show this screen.
-	--version          Show version.
+	<expected-json>    JSON file path of expected value.
+	<actual-json>      JSON file path of actual value.
 	--verbose          Show verbose difference. [default: false]
-	--strict           Disallow superset match. [default: false]`
+	--strict           Disallow superset match. [default: false]
+	-h --help          Show this screen.
+	--version          Show version.`
 
 func main() {
 	args, _ := docopt.ParseArgs(doc, os.Args[1:], "1.0.0")

@@ -21,6 +21,8 @@ Usage:
 	program --version
 
 Options:
+	<database-driver>   Supported database driver name which is one of mysql, spanner, sqlite3, or postgres
+	<connection-string> Connection string corresponding to the database driver.
 	-h --help          Show this screen.
 	--version          Show version.`
 
