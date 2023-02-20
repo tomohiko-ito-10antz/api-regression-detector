@@ -45,7 +45,8 @@ func InvokeServerReflection(endpoint string, fullMethod string) (*ReflectionRegi
 
 	err = refClient.Send(&grpc_reflection_v1alpha.ServerReflectionRequest{
 		Host:           endpoint,
-		MessageRequest: &grpc_reflection_v1alpha.ServerReflectionRequest_FileContainingSymbol{FileContainingSymbol: service}})
+		MessageRequest: &grpc_reflection_v1alpha.ServerReflectionRequest_FileContainingSymbol{FileContainingSymbol: service},
+	})
 	if err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.GRPCFailure),

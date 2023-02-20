@@ -16,9 +16,9 @@ const doc = `Regression detector call-http.
 call-http calls HTTP API: sending JSON request and receiving JSON response.
 
 Usage:
-	program call http <endpoint-url> <http-method>
-	program -h | --help
-	program --version
+	call-http <endpoint-url> <http-method>
+	call-http -h | --help
+	call-http --version
 
 Options:
 	<endpoint-url>     The URL of the HTTP endpoint which may has path parameters enclosed in '[' and ']'.
@@ -39,7 +39,7 @@ func main() {
 }
 
 func RunCallHTTP(endpointURL string, method http.Method /*, configJson string*/) (code int, err error) {
-	//configJsonFile, err := os.Open(configJson)
+	// configJsonFile, err := os.Open(configJson)
 	//if err != nil {
 	//	return 1, errors.Wrap(errors.Join(err, errors.IOFailure), "fail to open %s", configJson)
 	//}

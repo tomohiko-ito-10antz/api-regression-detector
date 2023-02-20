@@ -86,7 +86,6 @@ func mustToFloat64(v any) float64 {
 }
 
 func Number[T json.Number | int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64](v T) *JsonValue {
-	fmt.Printf("%#v:%T\n", v, v)
 	switch v := any(v).(type) {
 	case json.Number:
 		return &JsonValue{Type: JsonTypeNumber, NumberValue: JsonNumber(v)}
@@ -103,10 +102,8 @@ func Boolean(v bool) *JsonValue {
 	return &JsonValue{Type: JsonTypeBoolean, BooleanValue: v}
 }
 
-var nullValue = &JsonValue{Type: JsonTypeNull}
-
 func Null() *JsonValue {
-	return nullValue
+	return &JsonValue{Type: JsonTypeNull}
 }
 
 func Object(mv map[string]*JsonValue) *JsonValue {
@@ -127,8 +124,10 @@ func Array(av ...*JsonValue) *JsonValue {
 	return &JsonValue{Type: JsonTypeArray, ArrayValue: JsonArray(av)}
 }
 
-var _ json.Marshaler = (*JsonValue)(nil)
-var _ json.Unmarshaler = (*JsonValue)(nil)
+var (
+	_ json.Marshaler   = (*JsonValue)(nil)
+	_ json.Unmarshaler = (*JsonValue)(nil)
+)
 
 func (v *JsonValue) MarshalJSON() ([]byte, error) {
 	a := ToAny(v)

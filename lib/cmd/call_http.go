@@ -9,7 +9,6 @@ import (
 )
 
 func CallHTTP(endpointURL string, method libhttp.Method, req *libhttp.Request) (*libhttp.Response, error) {
-
 	request, err := req.ToHTTPRequest(endpointURL, method)
 	if err != nil {
 		return nil, errors.Wrap(

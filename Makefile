@@ -41,3 +41,7 @@ test:
 	./test/scripts/db/postgres.sh 2> /dev/null
 	./test/scripts/db/spanner.sh 2> /dev/null
 	./test/scripts/db/sqlite.sh 2> /dev/null
+	./test/scripts/call/grpc-failure.sh 2> /dev/null
+	./test/scripts/call/grpc-success.sh 2> /dev/null
+	./test/scripts/call/http-failure.sh 2> /dev/null
+	./test/scripts/call/http-success.sh 2> /dev/null

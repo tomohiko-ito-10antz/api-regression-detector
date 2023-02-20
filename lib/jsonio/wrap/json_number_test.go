@@ -14,6 +14,7 @@ func TestNumberInt64(t *testing.T) {
 	assert.Equal(t, err, nil)
 	assert.Equal(t, a, int64(123))
 }
+
 func TestNumberFloat64(t *testing.T) {
 	v := jw.JsonNumber(json.Number("-123.45"))
 	a, err := json.Number(v).Float64()

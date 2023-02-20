@@ -14,9 +14,9 @@ const doc = `Regression detector compare.
 compare compares two JSON files.
 
 Usage:
-	program compare [--verbose] [--strict] <expected-json> <actual-json>
-	program -h | --help
-	program --version
+	compare [--verbose] [--strict] <expected-json> <actual-json>
+	compare -h | --help
+	compare --version
 
 Options:
 	<expected-json>    JSON file path of expected value.

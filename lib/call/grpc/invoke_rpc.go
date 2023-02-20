@@ -48,7 +48,6 @@ func InvokeRPC(endpoint string, methodDescriptor protoreflect.MethodDescriptor, 
 				errors.Join(err, errors.BadConversion),
 				"fail to invoke grpc: %s", methodDescriptor.Input().FullName())
 		}
-
 		errorMessageBytes, err := protojson.MarshalOptions{EmitUnpopulated: true, AllowPartial: true}.Marshal(errorStatus.Proto())
 		if err != nil {
 			return nil, errors.Wrap(
@@ -98,7 +97,7 @@ func invokeRPCImpl(endpoint string, fullMethod string, inputMetadata metadata.MD
 
 	clientStream, err := grpc.NewClientStream(ctx, &grpc.StreamDesc{
 		StreamName:    "ClientStream",
-		Handler:       nil, //func(srv any, stream grpc.ServerStream) error { return nil },
+
 		ServerStreams: true,
 		ClientStreams: true,
 	}, cc, fullMethod)

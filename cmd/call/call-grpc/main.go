@@ -17,9 +17,9 @@ const doc = `Regression detector call-grpc.
 call-grpc calls GRPC API: sending JSON request and receiving JSON response.
 
 Usage:
-	program <grpc-endpoint> <grpc-full-method>
-	program -h | --help
-	program --version
+	call-grpc <grpc-endpoint> <grpc-full-method>
+	call-grpc -h | --help
+	call-grpc --version
 
 Options:
 	<grpc-endpoint>    host and port joined by ':'.
@@ -40,7 +40,7 @@ func main() {
 }
 
 func RunCallGRPC(endpoint string, fullMethod string /*, configJson string*/) (code int, err error) {
-	//configJsonFile, err := os.Open(configJson)
+	// configJsonFile, err := os.Open(configJson)
 	//if err != nil {
 	//	return 1, errors.Wrap(errors.Join(err, errors.IOFailure), "fail to open %s", configJson)
 	//}

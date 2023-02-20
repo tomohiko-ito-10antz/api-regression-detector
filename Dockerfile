@@ -13,7 +13,8 @@ WORKDIR /work
 # go tools
 RUN go install github.com/cloudspannerecosystem/spanner-cli@latest && \
     go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest && \
-    go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+    go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest && \
+    go install golang.org/x/tools/cmd/goimports@latest
 
 # go modules
 COPY go.mod /work/go.mod

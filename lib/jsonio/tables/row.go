@@ -32,6 +32,7 @@ func (row Row) GetJsonType(columnName string) (wrap.JsonType, bool) {
 
 	return val.Type, true
 }
+
 func (row Row) Has(columnName string) bool {
 	_, exists := row[columnName]
 

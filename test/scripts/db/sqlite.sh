@@ -8,8 +8,8 @@ INIT_TABLES='test/data/db/sqlite/init.json'
 DUMP_TABLES='test/data/db/sqlite/dump.json'
 EXPECTED_TABLES='test/data/db/sqlite/expected.json'
 
-go run main.go init "${DRIVER}" "${CONNECT}" < "${INIT_TABLES}"
+go run cmd/db/db-init/main.go "${DRIVER}" "${CONNECT}" < "${INIT_TABLES}"
 jq '. | keys' <  "${EXPECTED_TABLES}" \
-	| go run main.go dump "${DRIVER}" "${CONNECT}" > "${DUMP_TABLES}"
+	| go run cmd/db/db-dump/main.go "${DRIVER}" "${CONNECT}" > "${DUMP_TABLES}"
 
-go run main.go compare "${EXPECTED_TABLES}" "${DUMP_TABLES}"
+go run cmd/compare/main.go "${EXPECTED_TABLES}" "${DUMP_TABLES}"

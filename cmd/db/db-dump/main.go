@@ -11,15 +11,19 @@ import (
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio/tables"
 	"github.com/Jumpaku/api-regression-detector/lib/log"
 	"github.com/docopt/docopt-go"
+	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/googleapis/go-sql-spanner"
+	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 const doc = `Regression detector db-dump.
 db-dump outputs data within tables in JSON format.
 
 Usage:
-	program dump <database-driver> <connection-string>
-	program -h | --help
-	program --version
+	db-dump <database-driver> <connection-string>
+	db-dump -h | --help
+	db-dump --version
 
 Options:
 	<database-driver>   Supported database driver name which is one of mysql, spanner, sqlite3, or postgres
