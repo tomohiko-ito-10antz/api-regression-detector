@@ -18,7 +18,7 @@ type Request struct {
 }
 
 func (r *Request) ToHTTPRequest(endpointURL string, method Method) (*nethttp.Request, error) {
-	reqBodyBytes, err := wrap.Encode(r.Body)
+	reqBodyBytes, err := r.Body.MarshalJSON()
 	if err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.HTTPFailure),

@@ -1,6 +1,7 @@
 package wrap
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -85,6 +86,7 @@ func mustToFloat64(v any) float64 {
 }
 
 func Number[T json.Number | int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64](v T) *JsonValue {
+	fmt.Printf("%#v:%T\n", v, v)
 	switch v := any(v).(type) {
 	case json.Number:
 		return &JsonValue{Type: JsonTypeNumber, NumberValue: JsonNumber(v)}
@@ -123,6 +125,38 @@ func Array(av ...*JsonValue) *JsonValue {
 		}
 	}
 	return &JsonValue{Type: JsonTypeArray, ArrayValue: JsonArray(av)}
+}
+
+var _ json.Marshaler = (*JsonValue)(nil)
+var _ json.Unmarshaler = (*JsonValue)(nil)
+
+func (v *JsonValue) MarshalJSON() ([]byte, error) {
+	a := ToAny(v)
+
+	b, err := json.Marshal(a)
+	if err != nil {
+		return nil, errors.Wrap(errors.Join(err, errors.BadConversion), "fail to marshal JSON")
+	}
+
+	return b, nil
+}
+
+func (v *JsonValue) UnmarshalJSON(b []byte) error {
+	var a any
+	decoder := json.NewDecoder(bytes.NewBuffer(b))
+	decoder.UseNumber()
+	if err := decoder.Decode(&a); err != nil {
+		return errors.Wrap(errors.Join(err, errors.BadConversion), "fail to unmarshal JSON")
+	}
+
+	u, err := FromAny(a)
+	if err != nil {
+		return errors.Wrap(errors.Join(err, errors.BadConversion), "fail to unmarshal JSON")
+	}
+
+	*v = *u
+
+	return nil
 }
 
 func (v *JsonValue) MustString() string {

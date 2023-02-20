@@ -6,7 +6,6 @@ import (
 
 	libhttp "github.com/Jumpaku/api-regression-detector/lib/call/http"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
-	"github.com/Jumpaku/api-regression-detector/lib/jsonio/wrap"
 )
 
 func CallHTTP(endpointURL string, method libhttp.Method, req *libhttp.Request) (*libhttp.Response, error) {
@@ -25,8 +24,6 @@ func CallHTTP(endpointURL string, method libhttp.Method, req *libhttp.Request) (
 			"fail to do request: %#v", request)
 	}
 
-	res := &libhttp.Response{Header: response.Header, Code: response.StatusCode}
-
 	resBodyBytes, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, errors.Wrap(
@@ -34,7 +31,11 @@ func CallHTTP(endpointURL string, method libhttp.Method, req *libhttp.Request) (
 			"fail to read response body as JSON: %#v", request.Body)
 	}
 
-	if res.Body, err = wrap.Decode(resBodyBytes); err != nil {
+	res := libhttp.NewResponse()
+	res.Code = response.StatusCode
+	res.Header = response.Header
+
+	if err = res.Body.UnmarshalJSON(resBodyBytes); err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.HTTPFailure),
 			"fail to read response body as JSON: %#v", request.Body)

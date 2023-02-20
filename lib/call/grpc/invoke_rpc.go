@@ -2,9 +2,9 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
-	"github.com/Jumpaku/api-regression-detector/lib/jsonio/wrap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
@@ -16,7 +16,7 @@ import (
 )
 
 func InvokeRPC(endpoint string, methodDescriptor protoreflect.MethodDescriptor, req Request) (*Response, error) {
-	reqBodyBytes, err := wrap.Encode(req.Body)
+	reqBodyBytes, err := req.Body.MarshalJSON()
 	if err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.BadConversion),
@@ -36,7 +36,7 @@ func InvokeRPC(endpoint string, methodDescriptor protoreflect.MethodDescriptor, 
 
 	err = invokeRPCImpl(
 		endpoint,
-		string(methodDescriptor.Parent().FullName()+"/"+protoreflect.FullName(methodDescriptor.Name())),
+		fmt.Sprintf(`%s/%s`, methodDescriptor.Parent().FullName(), methodDescriptor.Name()),
 		metadata.MD(req.Header),
 		inputMessage,
 		(*metadata.MD)(&res.Header),
@@ -56,8 +56,7 @@ func InvokeRPC(endpoint string, methodDescriptor protoreflect.MethodDescriptor, 
 				"fail to parse response as JSON: %#v", outputMessage)
 		}
 
-		res.Error, err = wrap.Decode(errorMessageBytes)
-		if err != nil {
+		if err = res.Error.UnmarshalJSON(errorMessageBytes); err != nil {
 			return nil, errors.Wrap(
 				errors.Join(err, errors.BadConversion),
 				"fail to parse error as JSON: %s", string(errorMessageBytes))
@@ -73,8 +72,7 @@ func InvokeRPC(endpoint string, methodDescriptor protoreflect.MethodDescriptor, 
 			"fail to parse response as JSON: %#v", outputMessage)
 	}
 
-	res.Body, err = wrap.Decode(bodyMessageBytes)
-	if err != nil {
+	if err = res.Body.UnmarshalJSON(bodyMessageBytes); err != nil {
 		return nil, errors.Wrap(
 			errors.Join(err, errors.BadConversion),
 			"fail to parse response as JSON: %s", string(bodyMessageBytes))

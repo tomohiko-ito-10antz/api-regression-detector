@@ -143,31 +143,3 @@ func ToAny(v *JsonValue) any {
 		panic(errors.Wrap(errors.BadState, "unexpected case of ToAny(): %v", v))
 	}
 }
-
-func Encode(v *JsonValue) ([]byte, error) {
-	b := bytes.NewBuffer(nil)
-
-	e := json.NewEncoder(b)
-	if err := e.Encode(ToAny(v)); err != nil {
-		return nil, errors.Wrap(errors.Join(err, errors.BadConversion), "fail to encode JsonValue")
-	}
-
-	return b.Bytes(), nil
-}
-
-func Decode(b []byte) (*JsonValue, error) {
-	d := json.NewDecoder(bytes.NewBuffer(b))
-	d.UseNumber()
-
-	var a any
-	if err := d.Decode(&a); err != nil {
-		return nil, errors.Wrap(errors.Join(err, errors.BadConversion), "fail to decode JsonValue")
-	}
-
-	v, err := FromAny(a)
-	if err != nil {
-		return nil, errors.Wrap(errors.Join(err, errors.BadConversion), "fail to decode JsonValue")
-	}
-
-	return v, nil
-}
