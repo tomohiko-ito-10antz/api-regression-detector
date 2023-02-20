@@ -1,4 +1,4 @@
-package cli
+package db
 
 import (
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"

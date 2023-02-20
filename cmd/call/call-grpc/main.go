@@ -1,4 +1,4 @@
-package cli
+package main
 
 import (
 	"os"
@@ -8,8 +8,34 @@ import (
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio/wrap"
+	"github.com/Jumpaku/api-regression-detector/lib/log"
+	"github.com/docopt/docopt-go"
 	"google.golang.org/grpc/codes"
 )
+
+const doc = `Regression detector call-grpc.
+call-grpc calls GRPC API: sending JSON request and receiving JSON response.
+
+Usage:
+	program <grpc-endpoint> <grpc-full-method>
+	program -h | --help
+	program --version
+
+Options:
+	-h --help          Show this screen.
+	--version          Show version.`
+
+func main() {
+	args, _ := docopt.ParseArgs(doc, os.Args[1:], "1.0.0")
+	code, err := RunCallGRPC(
+		args["<grpc-endpoint>"].(string),
+		args["<grpc-full-method>"].(string),
+	)
+	if err != nil {
+		log.Stderr("Error\n%+v", err)
+	}
+	os.Exit(code)
+}
 
 func RunCallGRPC(endpoint string, fullMethod string /*, configJson string*/) (code int, err error) {
 	//configJsonFile, err := os.Open(configJson)

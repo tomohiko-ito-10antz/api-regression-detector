@@ -1,4 +1,4 @@
-package cli
+package main
 
 import (
 	"os"
@@ -8,7 +8,33 @@ import (
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio/wrap"
+	"github.com/Jumpaku/api-regression-detector/lib/log"
+	"github.com/docopt/docopt-go"
 )
+
+const doc = `Regression detector call-http.
+call-http calls RPC of HTTP or GRPC: sending JSON request and receiving JSON response.
+
+Usage:
+	program call http <endpoint-url> <http-method>
+	program -h | --help
+	program --version
+
+Options:
+	-h --help          Show this screen.
+	--version          Show version.`
+
+func main() {
+	args, _ := docopt.ParseArgs(doc, os.Args[1:], "1.0.0")
+	code, err := RunCallHTTP(
+		args["<endpoint-url>"].(string),
+		http.Method(args["<http-method>"].(string)),
+	)
+	if err != nil {
+		log.Stderr("Error\n%+v", err)
+	}
+	os.Exit(code)
+}
 
 func RunCallHTTP(endpointURL string, method http.Method /*, configJson string*/) (code int, err error) {
 	//configJsonFile, err := os.Open(configJson)

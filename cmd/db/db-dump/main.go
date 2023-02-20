@@ -1,17 +1,43 @@
-package cli
+package main
 
 import (
 	"context"
 	"os"
 
+	"github.com/Jumpaku/api-regression-detector/cmd/db"
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio/tables"
+	"github.com/Jumpaku/api-regression-detector/lib/log"
+	"github.com/docopt/docopt-go"
 )
 
+const doc = `Regression detector db-dump.
+db-dump outputs data within tables in JSON format.
+
+Usage:
+	program dump <database-driver> <connection-string>
+	program -h | --help
+	program --version
+
+Options:
+	-h --help          Show this screen.
+	--version          Show version.`
+
+func main() {
+	args, _ := docopt.ParseArgs(doc, os.Args[1:], "1.0.0")
+	code, err := RunDump(
+		args["<database-driver>"].(string),
+		args["<connection-string>"].(string))
+	if err != nil {
+		log.Stderr("Error\n%+v", err)
+	}
+	os.Exit(code)
+}
+
 func RunDump(databaseDriver string, connectionString string) (code int, err error) {
-	driver, err := NewDriver(databaseDriver)
+	driver, err := db.NewDriver(databaseDriver)
 	if err != nil {
 		return 1, errors.Wrap(errors.Join(err, errors.BadArgs), "fail RunDump")
 	}

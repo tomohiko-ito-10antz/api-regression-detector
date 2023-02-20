@@ -1,4 +1,4 @@
-package cli
+package main
 
 import (
 	"fmt"
@@ -6,7 +6,36 @@ import (
 
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
+	"github.com/Jumpaku/api-regression-detector/lib/log"
+	"github.com/docopt/docopt-go"
 )
+
+const doc = `Regression detector compare.
+compare compares two JSON files.
+
+Usage:
+	program compare [--verbose] [--strict] <expected-json> <actual-json>
+	program -h | --help
+	program --version
+
+Options:
+	-h --help          Show this screen.
+	--version          Show version.
+	--verbose          Show verbose difference. [default: false]
+	--strict           Disallow superset match. [default: false]`
+
+func main() {
+	args, _ := docopt.ParseArgs(doc, os.Args[1:], "1.0.0")
+	code, err := RunCompare(
+		args["<expected-json>"].(string),
+		args["<actual-json>"].(string),
+		args["--verbose"].(bool),
+		args["--strict"].(bool))
+	if err != nil {
+		log.Stderr("Error\n%+v", err)
+	}
+	os.Exit(code)
+}
 
 func RunCompare(expectedJson string, actualJson string, verbose bool, strict bool) (code int, err error) {
 	expectedJsonFile, err := os.Open(expectedJson)
