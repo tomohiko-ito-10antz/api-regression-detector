@@ -1,4 +1,4 @@
-package mysql
+package sqlite
 
 import (
 	"context"
@@ -7,14 +7,14 @@ import (
 
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"
 	"github.com/Jumpaku/api-regression-detector/lib/db"
+	"github.com/Jumpaku/api-regression-detector/lib/db/impl"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
-	"github.com/Jumpaku/api-regression-detector/lib/impl"
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio/tables"
 )
 
 type insertOperation struct{}
 
-func CreateRows() insertOperation {
+func Insert() insertOperation {
 	return insertOperation{}
 }
 
@@ -32,7 +32,11 @@ func (o insertOperation) CreateRows(
 		return nil
 	}
 
-	columnNames := schema.GetColumnNames()
+	if len(rows) == 0 {
+		return nil
+	}
+
+	columnNames := columnTypes.GetColumnNames()
 	stmt := fmt.Sprintf("INSERT INTO %s (%s) VALUES", tableName, strings.Join(columnNames, ", "))
 	params := []any{}
 

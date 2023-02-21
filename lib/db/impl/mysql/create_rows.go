@@ -1,4 +1,4 @@
-package spanner
+package mysql
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"
 	"github.com/Jumpaku/api-regression-detector/lib/db"
+	"github.com/Jumpaku/api-regression-detector/lib/db/impl"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
-	"github.com/Jumpaku/api-regression-detector/lib/impl"
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio/tables"
 )
 
@@ -32,7 +32,11 @@ func (o insertOperation) CreateRows(
 		return nil
 	}
 
-	columnNames := columnTypes.GetColumnNames()
+	if len(rows) == 0 {
+		return nil
+	}
+
+	columnNames := schema.GetColumnNames()
 	stmt := fmt.Sprintf("INSERT INTO %s (%s) VALUES", tableName, strings.Join(columnNames, ", "))
 	params := []any{}
 
@@ -50,8 +54,8 @@ func (o insertOperation) CreateRows(
 
 			stmt += "?"
 
-			dbType, ok := columnTypes[columnName]
-			if !ok {
+			dbType, exists := columnTypes[columnName]
+			if !exists {
 				return errors.Wrap(
 					errors.BadKeyAccess,
 					"column %s not found in table", columnName, tableName)

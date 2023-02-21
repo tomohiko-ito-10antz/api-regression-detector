@@ -1,4 +1,4 @@
-package sqlite
+package spanner
 
 import (
 	"context"
@@ -7,14 +7,14 @@ import (
 
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"
 	"github.com/Jumpaku/api-regression-detector/lib/db"
+	"github.com/Jumpaku/api-regression-detector/lib/db/impl"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
-	"github.com/Jumpaku/api-regression-detector/lib/impl"
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio/tables"
 )
 
 type insertOperation struct{}
 
-func Insert() insertOperation {
+func CreateRows() insertOperation {
 	return insertOperation{}
 }
 
@@ -29,6 +29,10 @@ func (o insertOperation) CreateRows(
 ) error {
 	columnTypes := schema.ColumnTypes
 	if len(columnTypes) == 0 {
+		return nil
+	}
+
+	if len(rows) == 0 {
 		return nil
 	}
 
@@ -50,8 +54,8 @@ func (o insertOperation) CreateRows(
 
 			stmt += "?"
 
-			dbType, exists := columnTypes[columnName]
-			if !exists {
+			dbType, ok := columnTypes[columnName]
+			if !ok {
 				return errors.Wrap(
 					errors.BadKeyAccess,
 					"column %s not found in table", columnName, tableName)
