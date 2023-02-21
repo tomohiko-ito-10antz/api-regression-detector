@@ -103,7 +103,7 @@ func AssignParamsToURL(templateURL string, req *Request) (*url.URL, error) {
 	}
 
 	parsed.Path = ""
-	parsed = parsed.JoinPath(pathElms...)
+	parsed.Path = strings.Join(pathElms, "/")
 	parsed.RawQuery = queryParams.Encode()
 
 	return parsed, nil
