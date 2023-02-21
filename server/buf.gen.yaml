@@ -12,3 +12,4 @@ plugins:
     out: gen
     opt:
       - paths=source_relative
+      - allow_delete_body=true
