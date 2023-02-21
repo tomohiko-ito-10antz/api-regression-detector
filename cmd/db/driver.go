@@ -2,11 +2,11 @@ package db
 
 import (
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"
+	"github.com/Jumpaku/api-regression-detector/lib/db/impl/mysql"
+	"github.com/Jumpaku/api-regression-detector/lib/db/impl/postgres"
+	"github.com/Jumpaku/api-regression-detector/lib/db/impl/spanner"
+	"github.com/Jumpaku/api-regression-detector/lib/db/impl/sqlite"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
-	"github.com/Jumpaku/api-regression-detector/lib/impl/mysql"
-	"github.com/Jumpaku/api-regression-detector/lib/impl/postgres"
-	"github.com/Jumpaku/api-regression-detector/lib/impl/spanner"
-	"github.com/Jumpaku/api-regression-detector/lib/impl/sqlite"
 )
 
 func NewDriver(name string) (*cmd.DatabaseDriver, error) {

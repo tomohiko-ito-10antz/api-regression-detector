@@ -7,8 +7,8 @@ import (
 
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"
 	"github.com/Jumpaku/api-regression-detector/lib/db"
+	"github.com/Jumpaku/api-regression-detector/lib/db/impl"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
-	"github.com/Jumpaku/api-regression-detector/lib/impl"
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio/tables"
 )
 
@@ -29,6 +29,10 @@ func (o insertOperation) CreateRows(
 ) error {
 	columnTypes := schema.ColumnTypes
 	if len(columnTypes) == 0 {
+		return nil
+	}
+
+	if len(rows) == 0 {
 		return nil
 	}
 
