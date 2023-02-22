@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/Jumpaku/api-regression-detector/lib/call/grpc"
@@ -8,7 +9,6 @@ import (
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio/wrap"
-	"github.com/Jumpaku/api-regression-detector/lib/log"
 	"github.com/docopt/docopt-go"
 	"google.golang.org/grpc/codes"
 )
@@ -34,7 +34,7 @@ func main() {
 		args["<grpc-full-method>"].(string),
 	)
 	if err != nil {
-		log.Stderr("Error\n%s\n%+v", err, err)
+		fmt.Printf("Error\n%s\n%+v", err, err)
 	}
 	os.Exit(code)
 }

@@ -6,7 +6,6 @@ import (
 
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
-	"github.com/Jumpaku/api-regression-detector/lib/log"
 	"github.com/docopt/docopt-go"
 )
 
@@ -34,7 +33,7 @@ func main() {
 		args["--show-diff"].(bool),
 		args["--no-superset"].(bool))
 	if err != nil {
-		log.Stderr("Error\n%+v", err)
+		fmt.Printf("Error\n%s\n%+v", err, err)
 	}
 	os.Exit(code)
 }

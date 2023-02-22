@@ -2,13 +2,13 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/Jumpaku/api-regression-detector/cmd/db"
 	"github.com/Jumpaku/api-regression-detector/lib/cmd"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio/tables"
-	"github.com/Jumpaku/api-regression-detector/lib/log"
 	"github.com/docopt/docopt-go"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/googleapis/go-sql-spanner"
@@ -36,7 +36,7 @@ func main() {
 		args["<database-driver>"].(string),
 		args["<connection-string>"].(string))
 	if err != nil {
-		log.Stderr("Error\n%+v", err)
+		fmt.Printf("Error\n%s\n%+v", err, err)
 	}
 	os.Exit(code)
 }
