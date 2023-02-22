@@ -24,7 +24,9 @@ func Init(ctx context.Context,
 
 			schema, err := schemaGetter.GetSchema(ctx, tx, table.Name)
 			if err != nil {
-				return errors.Wrap(err, "fail to get schema of table %s", table.Name)
+				return errors.Wrap(
+					errors.DBFailure.Err(err),
+					errors.Info{"tableName": table.Name}.AppendTo("fail to get schema of table"))
 			}
 
 			tableSchema[table.Name] = schema
@@ -33,21 +35,25 @@ func Init(ctx context.Context,
 		for tableName := range tableSchema {
 			err := rowClearer.ClearRows(ctx, tx, tableName)
 			if err != nil {
-				return errors.Wrap(err, "fail to clear rows in table %s", tableName)
+				return errors.Wrap(
+					errors.DBFailure.Err(err),
+					errors.Info{"tableName": tableName}.AppendTo("fail to clear rows in table"))
 			}
 		}
 
 		for _, table := range jsonTables {
 			err := rowCreator.CreateRows(ctx, tx, table.Name, tableSchema[table.Name], table.Rows)
 			if err != nil {
-				return errors.Wrap(err, "fail to create rows in table %s", table.Name)
+				return errors.Wrap(
+					errors.DBFailure.Err(err),
+					errors.Info{"tableName": table.Name}.AppendTo("fail to create rows in table"))
 			}
 		}
 
 		return nil
 	})
 	if err != nil {
-		return errors.Wrap(err, "transaction for Init failed")
+		return errors.Wrap(errors.DBFailure.Err(err), "fail to run transaction for Init")
 	}
 
 	return nil

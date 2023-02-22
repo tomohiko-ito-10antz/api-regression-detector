@@ -22,6 +22,7 @@ type ReflectionRegistry struct {
 func InvokeServerReflection(endpoint string, fullMethod string) (*ReflectionRegistry, error) {
 	splitFullMethod := strings.Split(strings.TrimLeft(fullMethod, "/"), "/")
 	service := splitFullMethod[0]
+	errorInfo := errors.Info{"endpoint": endpoint}
 
 	cc, err := grpc.Dial(
 		endpoint,
@@ -29,8 +30,8 @@ func InvokeServerReflection(endpoint string, fullMethod string) (*ReflectionRegi
 	)
 	if err != nil {
 		return nil, errors.Wrap(
-			errors.Join(err, errors.GRPCFailure),
-			"fail to dial: %s", endpoint)
+			errors.GRPCFailure.Err(err),
+			errorInfo.AppendTo("fail to dial"))
 	}
 
 	defer cc.Close()
@@ -39,25 +40,26 @@ func InvokeServerReflection(endpoint string, fullMethod string) (*ReflectionRegi
 	refClient, err := grpc_reflection_v1alpha.NewServerReflectionClient(cc).ServerReflectionInfo(refCtx)
 	if err != nil {
 		return nil, errors.Wrap(
-			errors.Join(err, errors.GRPCFailure),
-			"fail to create GRPC reflection client: %s", endpoint)
+			errors.GRPCFailure.Err(err),
+			errorInfo.AppendTo("fail to create GRPC reflection client"))
 	}
 
+	errorInfo = errorInfo.With("service", service)
 	err = refClient.Send(&grpc_reflection_v1alpha.ServerReflectionRequest{
 		Host:           endpoint,
 		MessageRequest: &grpc_reflection_v1alpha.ServerReflectionRequest_FileContainingSymbol{FileContainingSymbol: service},
 	})
 	if err != nil {
 		return nil, errors.Wrap(
-			errors.Join(err, errors.GRPCFailure),
-			"fail to send GRPC reflection request: %s", endpoint)
+			errors.GRPCFailure.Err(err),
+			errorInfo.AppendTo("fail to send GRPC reflection request"))
 	}
 
 	refRes, err := refClient.Recv()
 	if err != nil {
 		return nil, errors.Wrap(
-			errors.Join(err, errors.GRPCFailure),
-			"fail to receive GRPC reflection response: %s", endpoint)
+			errors.GRPCFailure.Err(err),
+			errorInfo.AppendTo("fail to receive GRPC reflection response"))
 	}
 
 	fds := descriptorpb.FileDescriptorSet{}
@@ -66,11 +68,12 @@ func InvokeServerReflection(endpoint string, fullMethod string) (*ReflectionRegi
 		proto.Unmarshal(b, &fdp)
 		fds.File = append(fds.File, &fdp)
 	}
+
 	registryFiles, err := protodesc.NewFiles(&fds)
 	if err != nil {
 		return nil, errors.Wrap(
-			errors.Join(err, errors.GRPCFailure),
-			"fail to create protobuf registry files: %s", endpoint)
+			errors.GRPCFailure.Err(err),
+			errorInfo.AppendTo("fail to create protobuf registry files"))
 	}
 
 	return &ReflectionRegistry{registryFiles}, nil
@@ -78,26 +81,29 @@ func InvokeServerReflection(endpoint string, fullMethod string) (*ReflectionRegi
 
 func (r *ReflectionRegistry) FindMethodDescriptor(fullMethod string) (protoreflect.MethodDescriptor, error) {
 	serviceName := getServiceName(fullMethod)
+
+	errorInfo := errors.Info{"serviceName": serviceName}
+
 	desc, err := r.RegistryFiles.FindDescriptorByName(serviceName)
 	if err != nil {
 		return nil, errors.Wrap(
-			errors.Join(err, errors.GRPCFailure),
-			"fail to resolve service: %s", serviceName)
+			errors.GRPCFailure.Err(err),
+			errorInfo.AppendTo("fail to resolve service"))
 	}
 
 	serviceDescriptor, ok := desc.(protoreflect.ServiceDescriptor)
 	if !ok {
 		return nil, errors.Wrap(
-			errors.Join(err, errors.GRPCFailure),
-			"fail to resolve service: %s", serviceName)
+			errors.GRPCFailure.Err(err),
+			errorInfo.AppendTo("fail to resolve service"))
 	}
 
 	methodName := getMethodName(fullMethod)
+	errorInfo = errorInfo.With("methodName", methodName)
+
 	methodDescriptor := serviceDescriptor.Methods().ByName(methodName)
 	if methodDescriptor == nil {
-		return nil, errors.Wrap(
-			errors.GRPCFailure,
-			"fail to resolve method: %s", methodName)
+		return nil, errors.GRPCFailure.New(errorInfo.AppendTo("fail to resolve method"))
 	}
 
 	return methodDescriptor, nil

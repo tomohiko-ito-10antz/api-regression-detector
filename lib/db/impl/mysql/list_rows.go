@@ -22,37 +22,43 @@ var _ cmd.RowLister = selectOperation{}
 func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName string, schema db.Schema) (rows []db.Row, err error) {
 	stmt := fmt.Sprintf(`SELECT * FROM %s ORDER BY %s`, tableName, strings.Join(schema.PrimaryKeys, ", "))
 
+	errInfo := errors.Info{"stmt": stmt}
+
 	rows, err = tx.Read(ctx, stmt, nil)
 	if err != nil {
 		return nil, errors.Wrap(
-			errors.DBFailure,
-			"fail to select all rows (stmt=%v)", stmt)
+			errors.DBFailure.Err(err),
+			errInfo.AppendTo("fail to select all rows"))
 	}
 
 	out := db.Table{}
 	for _, row := range rows {
 		outRow := db.Row{}
 		for _, columnName := range schema.GetColumnNames() {
+			errInfo := errInfo.With("columnName", columnName)
+
 			col, ok := row[columnName]
 			if !ok {
-				return nil, errors.Wrap(
-					errors.BadKeyAccess,
-					"column %s not found in schema of table %s", columnName, tableName)
+				return nil, errors.BadKeyAccess.New(
+					errInfo.AppendTo("column not found in row"))
 			}
 
 			colBytes, err := col.AsBytes()
 			if err != nil {
 				return nil, errors.Wrap(
-					err,
-					"fail to parse value of column %s as []byte", columnName)
+					errors.BadConversion.Err(err),
+					errInfo.With("columnValue", col).AppendTo("fail to parse column value to []byte"))
 			}
 
 			typ, exists := schema.ColumnTypes[columnName]
 			if !exists {
-				return nil, errors.Wrap(
-					errors.BadKeyAccess,
-					"column %s not found in schema of table %s", columnName, tableName)
+				return nil, errors.BadKeyAccess.New(
+					errInfo.AppendTo("column not found in table schema"))
 			}
+
+			errInfo = errInfo.
+				With("colBytes", string(colBytes.Bytes)).
+				With("columnType", typ)
 
 			var val any
 
@@ -62,8 +68,8 @@ func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName strin
 					val, err = strconv.ParseBool(string(colBytes.Bytes))
 					if err != nil {
 						return nil, errors.Wrap(
-							errors.Join(err, errors.BadConversion),
-							"fail to convert value %v:%T of column %s as bool", colBytes, colBytes, columnName)
+							errors.BadConversion.Err(err),
+							errInfo.AppendTo("fail to convert column value to bool"))
 					}
 				}
 			case db.ColumnTypeInteger:
@@ -71,8 +77,8 @@ func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName strin
 					val, err = strconv.ParseInt(string(colBytes.Bytes), 10, 64)
 					if err != nil {
 						return nil, errors.Wrap(
-							errors.Join(err, errors.BadConversion),
-							"fail to convert value %v:%T of column %s as integer", colBytes, colBytes, columnName)
+							errors.BadConversion.Err(err),
+							errInfo.AppendTo("fail to convert column value to integer"))
 					}
 				}
 			case db.ColumnTypeFloat:
@@ -80,8 +86,8 @@ func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName strin
 					val, err = strconv.ParseFloat(string(colBytes.Bytes), 64)
 					if err != nil {
 						return nil, errors.Wrap(
-							errors.Join(err, errors.BadConversion),
-							"fail to convert value %v:%T of column %s as float", colBytes, colBytes, columnName)
+							errors.BadConversion.Err(err),
+							errInfo.AppendTo("fail to convert column value to float"))
 					}
 				}
 			case db.ColumnTypeTime, db.ColumnTypeString:
@@ -90,9 +96,7 @@ func (o selectOperation) ListRows(ctx context.Context, tx db.Tx, tableName strin
 					typ = db.ColumnTypeString
 				}
 			default:
-				return nil, errors.Wrap(
-					errors.Join(err, errors.Unexpected),
-					"unexpected type %v of column %s", typ, columnName)
+				return nil, errors.Unsupported.New(errInfo.AppendTo("unsupported DB column type"))
 			}
 
 			outRow[columnName] = db.NewColumnValue(val, typ)

@@ -50,24 +50,25 @@ func RunCallHTTP(endpointURL string, method http.Method /*, configJson string*/)
 	//		code = 1
 	//	}
 	//}()
+	errorInfo := errors.Info{"endpointURL": endpointURL, "method": method}
 
 	reqBodyAny, err := jsonio.LoadJson[any](os.Stdin)
 	if err != nil {
-		return 1, errors.Wrap(err, "fail RunCallHTTP")
+		return 1, errors.Wrap(err, errorInfo.AppendTo("fail RunCallHTTP"))
 	}
 
 	reqBody, err := wrap.FromAny(reqBodyAny)
 	if err != nil {
-		return 1, errors.Wrap(err, "fail RunCallHTTP")
+		return 1, errors.Wrap(err, errorInfo.AppendTo("fail RunCallHTTP"))
 	}
 
 	res, err := cmd.CallHTTP(endpointURL, method, &http.Request{Body: reqBody})
 	if err != nil {
-		return 1, errors.Wrap(err, "fail RunCallHTTP")
+		return 1, errors.Wrap(err, errorInfo.AppendTo("fail RunCallHTTP"))
 	}
 
 	if err := jsonio.SaveJson(wrap.ToAny(res.Body), os.Stdout); err != nil {
-		return 1, errors.Wrap(err, "fail RunCallHTTP")
+		return 1, errors.Wrap(err, errorInfo.AppendTo("fail RunCallHTTP"))
 	}
 
 	return 0, nil

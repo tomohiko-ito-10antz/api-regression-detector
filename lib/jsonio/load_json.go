@@ -20,7 +20,7 @@ func LoadJson[T any](file NamedReader) (T, error) {
 
 	var jsonValue T
 	if err := decoder.Decode(&jsonValue); err != nil {
-		return jsonValue, errors.Wrap(errors.Join(err, errors.BadJSON), "fail to decode JSON from %s", file.Name())
+		return jsonValue, errors.Wrap(errors.BadJSON.Err(err), "fail to decode JSON")
 	}
 
 	return jsonValue, nil

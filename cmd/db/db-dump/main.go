@@ -43,19 +43,21 @@ func main() {
 }
 
 func RunDump(databaseDriver string, connectionString string) (code int, err error) {
+	errorInfo := errors.Info{"databaseDriver": databaseDriver}
+
 	driver, err := db.NewDriver(databaseDriver)
 	if err != nil {
-		return 1, errors.Wrap(errors.Join(err, errors.BadArgs), "fail RunDump")
+		return 1, errors.Wrap(errors.BadArgs.Err(err), errorInfo.AppendTo("fail RunDump"))
 	}
 
-	err = driver.Open(connectionString)
-	if err != nil {
-		return 1, errors.Wrap(errors.Join(err, errors.IOFailure), "fail RunDump")
-	}
+	errorInfo = errorInfo.With("connectionString", connectionString)
 
+	if err := driver.Open(connectionString); err != nil {
+		return 1, errors.Wrap(errors.IOFailure.Err(err), errorInfo.AppendTo("fail to open database"))
+	}
 	defer func() {
-		err = errors.Wrap(errors.Join(err, driver.Close()), "fail RunDump")
-		if err != nil {
+		if errs := errors.Wrap(errors.Join(err, driver.Close()), errorInfo.AppendTo("fail RunDump")); errs != nil {
+			err = errs
 			code = 1
 		}
 	}()
@@ -67,11 +69,11 @@ func RunDump(databaseDriver string, connectionString string) (code int, err erro
 
 	dump, err := cmd.Dump(context.Background(), driver.DB, tableNames, driver.SchemaGetter, driver.RowLister)
 	if err != nil {
-		return 1, errors.Wrap(err, "fail Dump")
+		return 1, errors.Wrap(err, errorInfo.With("tableNames", tableNames).AppendTo("fail to get tables from database"))
 	}
 
 	if err := tables.SaveDumpTables(dump, os.Stdout); err != nil {
-		return 1, errors.Wrap(err, "fail to convert dump tables as JSON to stdout")
+		return 1, errors.Wrap(err, "fail to dump tables as JSON to stdout")
 	}
 
 	return 0, nil

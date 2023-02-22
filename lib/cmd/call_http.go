@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"io"
-	"net/http"
+	nethttp "net/http"
 
 	libhttp "github.com/Jumpaku/api-regression-detector/lib/call/http"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
@@ -12,22 +12,24 @@ func CallHTTP(endpointURL string, method libhttp.Method, req *libhttp.Request) (
 	request, err := req.ToHTTPRequest(endpointURL, method)
 	if err != nil {
 		return nil, errors.Wrap(
-			errors.Join(err, errors.HTTPFailure),
-			"fail to create request: %s %v %#v", endpointURL, method, req)
+			errors.HTTPFailure.Err(err),
+			errors.Info{"req": req}.AppendTo("fail to create request"))
 	}
 
-	response, err := http.DefaultClient.Do(request)
+	errInfo := errors.Info{"endpointURL": endpointURL, "method": method, "request": request}
+
+	response, err := nethttp.DefaultClient.Do(request)
 	if err != nil {
 		return nil, errors.Wrap(
-			errors.Join(err, errors.HTTPFailure),
-			"fail to do request: %#v", request)
+			errors.HTTPFailure.Err(err),
+			errInfo.AppendTo("fail to perform HTTP call"))
 	}
 
 	resBodyBytes, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, errors.Wrap(
-			errors.Join(err, errors.HTTPFailure),
-			"fail to read response body as JSON: %#v", request.Body)
+			errors.HTTPFailure.Err(err),
+			errInfo.AppendTo("fail to read response body as JSON"))
 	}
 
 	res := libhttp.NewResponse()
@@ -36,8 +38,8 @@ func CallHTTP(endpointURL string, method libhttp.Method, req *libhttp.Request) (
 
 	if err = res.Body.UnmarshalJSON(resBodyBytes); err != nil {
 		return nil, errors.Wrap(
-			errors.Join(err, errors.HTTPFailure),
-			"fail to read response body as JSON: %#v", request.Body)
+			errors.HTTPFailure.Err(err),
+			errors.Info{"resBodyBytes": string(resBodyBytes)}.AppendTo("fail to parse JSON response body"))
 	}
 
 	return res, nil

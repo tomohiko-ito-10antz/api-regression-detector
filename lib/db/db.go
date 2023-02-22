@@ -33,9 +33,11 @@ func (d *database) RunTransaction(ctx context.Context, handler func(ctx context.
 }
 
 func (d *database) Open() error {
+	errInfo := errors.Info{"driverName": d.driver, "connectionString": d.connection}
+
 	db, err := sql.Open(d.driver, d.connection)
 	if err != nil {
-		return errors.Wrap(errors.Join(err, errors.IOFailure), "fail to open database (driver=%s,connection=%s)", d.driver, d.connection)
+		return errors.Wrap(errors.DBFailure.Err(err), errInfo.AppendTo("fail to open database"))
 	}
 
 	d.db = db
@@ -44,8 +46,10 @@ func (d *database) Open() error {
 }
 
 func (d *database) Close() error {
+	errInfo := errors.Info{"driverName": d.driver, "connectionString": d.connection}
+
 	if err := d.db.Close(); err != nil {
-		return errors.Wrap(errors.Join(err, errors.IOFailure), "fail to close database (driver=%s)", d.driver)
+		return errors.Wrap(errors.DBFailure.Err(err), errInfo.AppendTo("fail to close database"))
 	}
 
 	return nil

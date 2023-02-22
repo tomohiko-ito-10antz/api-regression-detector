@@ -16,18 +16,20 @@ func GetSchema() schemaGetter { return schemaGetter{} }
 var _ cmd.SchemaGetter = schemaGetter{}
 
 func (o schemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string) (db.Schema, error) {
+	errInfo := errors.Info{"tableName": tableName}
+
 	columnTypes, err := getColumnTypes(ctx, tx, tableName)
 	if err != nil {
 		return db.Schema{}, errors.Wrap(
-			errors.DBFailure,
-			"fail to get column types in table %s", tableName)
+			errors.DBFailure.Err(err),
+			errInfo.AppendTo("fail to get column types in table"))
 	}
 
 	primaryKeys, err := getPrimaryKeys(ctx, tx, tableName)
 	if err != nil {
 		return db.Schema{}, errors.Wrap(
-			errors.DBFailure,
-			"fail to get primary keys in table %s", tableName)
+			errors.DBFailure.Err(err),
+			errInfo.AppendTo("fail to get primary keys in table"))
 	}
 
 	return db.Schema{
@@ -39,44 +41,43 @@ func (o schemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string)
 func getColumnTypes(ctx context.Context, tx db.Tx, tableName string) (db.ColumnTypes, error) {
 	stmt := `SELECT name, type FROM pragma_table_info(?)`
 	params := []any{tableName}
+	errInfo := errors.Info{"stmt": stmt, "params": params}
 
 	rows, err := tx.Read(ctx, stmt, params)
 	if err != nil {
 		return nil, errors.Wrap(
-			errors.Join(err, errors.DBFailure),
-			"fail to select column types in table %s (stmt=%v)", tableName, stmt, params)
+			errors.DBFailure.Err(err),
+			errInfo.AppendTo("fail to select column types in table"))
 	}
 
 	columnTypes := db.ColumnTypes{}
 	for _, row := range rows {
-		columnName, ok := row["name"]
+		name, ok := row["name"]
 		if !ok {
-			return nil, errors.Wrap(
-				errors.BadKeyAccess,
-				"key %s not find in table %s", "name", tableName)
+			return nil, errors.BadKeyAccess.New(
+				errInfo.AppendTo("key name not found"))
 		}
 
-		columnNameString, err := columnName.AsString()
+		nameString, err := name.AsString()
 		if err != nil {
 			return nil, errors.Wrap(
-				err,
-				"fail to parse value of column %s as string", columnName)
+				errors.BadConversion.Err(err),
+				errInfo.With("name", name).AppendTo("fail to parse name to string"))
 		}
 
-		col := columnNameString.String
+		col := nameString.String
 
 		columnType, ok := row["type"]
 		if !ok {
-			return nil, errors.Wrap(
-				errors.BadKeyAccess,
-				"key %s not find in table %s", "type", tableName)
+			return nil, errors.BadKeyAccess.New(
+				errInfo.AppendTo("key type not found"))
 		}
 
 		columnTypeString, err := columnType.AsString()
 		if err != nil {
 			return nil, errors.Wrap(
-				err,
-				"fail to parse value of column %s as string", columnName)
+				errors.BadConversion.Err(err),
+				errInfo.With("columnType", columnType).AppendTo("fail to parse type to string"))
 		}
 
 		typ := columnTypeString.String
@@ -110,31 +111,31 @@ func getColumnTypes(ctx context.Context, tx db.Tx, tableName string) (db.ColumnT
 func getPrimaryKeys(ctx context.Context, tx db.Tx, tableName string) ([]string, error) {
 	stmt := `SELECT name FROM pragma_table_info(?) WHERE pk > 0 ORDER BY pk`
 	params := []any{tableName}
+	errInfo := errors.Info{"stmt": stmt, "params": params}
 
 	rows, err := tx.Read(ctx, stmt, params)
 	if err != nil {
 		return nil, errors.Wrap(
-			errors.Join(err, errors.DBFailure),
-			"fail to select primary keys in table %s (stmt=%v,params=%v)", tableName, stmt, params)
+			errors.DBFailure.Err(err),
+			errInfo.AppendTo("fail to select primary keys in table"))
 	}
 
 	primaryKeys := []string{}
 	for _, row := range rows {
-		columnName, ok := row["name"]
+		name, ok := row["name"]
 		if !ok {
-			return nil, errors.Wrap(
-				errors.BadKeyAccess,
-				"key %s not find in table %s", "name", tableName)
+			return nil, errors.BadKeyAccess.New(
+				errInfo.AppendTo("key name not found"))
 		}
 
-		columnNameString, err := columnName.AsString()
+		nameString, err := name.AsString()
 		if err != nil {
 			return nil, errors.Wrap(
-				err,
-				"fail to parse value of column %s as string", columnName)
+				errors.BadConversion.Err(err),
+				errInfo.With("name", name).AppendTo("fail to parse name to string"))
 		}
 
-		primaryKeys = append(primaryKeys, columnNameString.String)
+		primaryKeys = append(primaryKeys, nameString.String)
 	}
 
 	return primaryKeys, nil

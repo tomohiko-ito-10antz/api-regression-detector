@@ -30,6 +30,8 @@ func FromAny(valAny any) (jv *JsonValue, err error) {
 		return &val, nil
 	}
 
+	errInfo := errors.Info{"valAny": valAny}
+
 	rv := reflect.ValueOf(valAny)
 	if !rv.IsValid() {
 		return Null(), nil
@@ -43,7 +45,7 @@ func FromAny(valAny any) (jv *JsonValue, err error) {
 
 		v, err := FromAny(rv.Elem().Interface())
 		if err != nil {
-			return nil, errors.Wrap(errors.Join(err, errors.BadArgs), "cannot parse %v:%T as JsonValue", valAny, valAny)
+			return nil, errors.Wrap(errors.BadConversion.Err(err), errInfo.AppendTo("cannot convert value to JsonValue"))
 		}
 
 		return v, nil
@@ -55,7 +57,7 @@ func FromAny(valAny any) (jv *JsonValue, err error) {
 			if rvi := rv.Index(i); rvi.IsValid() {
 				vi, err = FromAny(rvi.Interface())
 				if err != nil {
-					return nil, errors.Wrap(errors.Join(err, errors.BadArgs), "cannot parse %v:%T as JsonValue", valAny, valAny)
+					return nil, errors.Wrap(errors.BadConversion.Err(err), errInfo.AppendTo("cannot convert value to JsonValue"))
 				}
 			}
 
@@ -70,7 +72,7 @@ func FromAny(valAny any) (jv *JsonValue, err error) {
 
 			rvKeyStr, ok := rvKey.Interface().(string)
 			if !ok {
-				return nil, errors.Wrap(errors.Join(err, errors.BadArgs), "cannot parse %v:%T as JsonValue", valAny, valAny)
+				return nil, errors.Wrap(errors.BadConversion.Err(err), errInfo.AppendTo("cannot convert value to JsonValue"))
 			}
 
 			rvValJson := Null()
@@ -78,7 +80,7 @@ func FromAny(valAny any) (jv *JsonValue, err error) {
 			if rvVal.IsValid() {
 				rvValJson, err = FromAny(rvVal.Interface())
 				if err != nil {
-					return nil, errors.Wrap(errors.Join(err, errors.BadArgs), "cannot parse %v:%T as JsonValue", valAny, valAny)
+					return nil, errors.Wrap(errors.BadConversion.Err(err), errInfo.AppendTo("cannot convert value to JsonValue"))
 				}
 			}
 
@@ -92,17 +94,17 @@ func FromAny(valAny any) (jv *JsonValue, err error) {
 		d := json.NewDecoder(b)
 
 		if err := e.Encode(valAny); err != nil {
-			return nil, errors.Wrap(errors.Join(err, errors.BadArgs), "cannot parse %v:%T as JsonValue", valAny, valAny)
+			return nil, errors.Wrap(errors.BadConversion.Err(err), errInfo.AppendTo("cannot convert value to JsonValue"))
 		}
 
 		var a any
 		if err := d.Decode(&a); err != nil {
-			return nil, errors.Wrap(errors.Join(err, errors.BadArgs), "cannot parse %v:%T as JsonValue", valAny, valAny)
+			return nil, errors.Wrap(errors.BadConversion.Err(err), errInfo.AppendTo("cannot convert value to JsonValue"))
 		}
 
 		v, err := FromAny(a)
 		if err != nil {
-			return nil, errors.Wrap(errors.Join(err, errors.BadArgs), "cannot parse %v:%T as JsonValue", valAny, valAny)
+			return nil, errors.Wrap(errors.BadConversion.Err(err), errInfo.AppendTo("cannot convert value to JsonValue"))
 		}
 
 		return v, nil
@@ -138,6 +140,6 @@ func ToAny(v *JsonValue) any {
 
 		return obj
 	default:
-		panic(errors.Wrap(errors.BadState, "unexpected case of ToAny(): %v", v))
+		return errors.Unreachable[any]("never match this case %#v", v)
 	}
 }

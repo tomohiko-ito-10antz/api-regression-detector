@@ -12,6 +12,7 @@ import (
 func ExtractColumnValueAsDB(row tables.Row, columnName string, dbType db.ColumnType) (any, error) {
 	jsonType, ok := row.GetJsonType(columnName)
 	isNull := !ok || jsonType == wrap.JsonTypeNull
+	errInfo := errors.Info{"columnName": columnName, "jsonType": jsonType, "dbType": dbType}
 
 	switch dbType {
 	case db.ColumnTypeBoolean:
@@ -22,8 +23,8 @@ func ExtractColumnValueAsDB(row tables.Row, columnName string, dbType db.ColumnT
 		val, err := row.ToBool(columnName)
 		if err != nil {
 			return nil, errors.Wrap(
-				errors.Join(err, errors.BadConversion),
-				"fail to convert value of column %s to bool (json type=%v,db type=%v)", columnName, jsonType, dbType)
+				errors.BadConversion.Err(err),
+				errInfo.AppendTo("fail to convert column value from JSON to boolean"))
 		}
 
 		return val, nil
@@ -35,8 +36,8 @@ func ExtractColumnValueAsDB(row tables.Row, columnName string, dbType db.ColumnT
 		val, err := row.ToInt64(columnName)
 		if err != nil {
 			return nil, errors.Wrap(
-				errors.Join(err, errors.BadConversion),
-				"fail to convert value of column %s to int64 (json type=%v,db type=%v)", columnName, jsonType, dbType)
+				errors.BadConversion.Err(err),
+				errInfo.AppendTo("fail to convert column value from JSON to integer"))
 		}
 
 		return val, nil
@@ -48,8 +49,8 @@ func ExtractColumnValueAsDB(row tables.Row, columnName string, dbType db.ColumnT
 		val, err := row.ToFloat64(columnName)
 		if err != nil {
 			return nil, errors.Wrap(
-				errors.Join(err, errors.BadConversion),
-				"fail to convert value of column %s to float64 (json type=%v,db type=%v)", columnName, jsonType, dbType)
+				errors.BadConversion.Err(err),
+				errInfo.AppendTo("fail to convert column value from JSON to float"))
 		}
 
 		return val, nil
@@ -61,8 +62,8 @@ func ExtractColumnValueAsDB(row tables.Row, columnName string, dbType db.ColumnT
 		val, err := row.ToString(columnName)
 		if err != nil {
 			return nil, errors.Wrap(
-				errors.Join(err, errors.BadConversion),
-				"fail to convert value of column %s to string (json type=%v,db type=%v)", columnName, jsonType, dbType)
+				errors.BadConversion.Err(err),
+				errInfo.AppendTo("fail to convert column value from JSON to string"))
 		}
 
 		return val, nil
@@ -74,19 +75,19 @@ func ExtractColumnValueAsDB(row tables.Row, columnName string, dbType db.ColumnT
 		val, err := row.ToString(columnName)
 		if err != nil {
 			return nil, errors.Wrap(
-				errors.Join(err, errors.BadConversion),
-				"fail to convert value of column %s to time.Time (json type=%v,db type=%v)", columnName, jsonType, dbType)
+				errors.BadConversion.Err(err),
+				errInfo.AppendTo("fail to convert column value from JSON to string"))
 		}
 
 		t, err := time.Parse(time.RFC3339, val)
 		if err != nil {
 			return nil, errors.Wrap(
-				errors.Join(err, errors.BadConversion),
-				"fail to convert value of column %s to time.Time (json type=%v,db type=%v)", columnName, jsonType, dbType)
+				errors.BadConversion.Err(err),
+				errInfo.AppendTo("fail to convert column value from JSON to time.Time"))
 		}
 
 		return t, nil
 	default:
-		return nil, errors.Wrap(errors.Join(errors.BadArgs), "unexpected DB column type %v of column %s", dbType, columnName)
+		return nil, errors.Unsupported.New(errInfo.AppendTo("unsupported DB column type"))
 	}
 }

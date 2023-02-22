@@ -20,12 +20,12 @@ const (
 func Compare(expectedJson io.Reader, actualJson io.Reader) (CompareResult, string, error) {
 	expected, err := io.ReadAll(expectedJson)
 	if err != nil {
-		return CompareResultError, "", errors.Wrap(errors.IOFailure, "fail to read first JSON")
+		return CompareResultError, "", errors.IOFailure.New("fail to read first JSON")
 	}
 
 	actual, err := io.ReadAll(actualJson)
 	if err != nil {
-		return CompareResultError, "", errors.Wrap(errors.IOFailure, "fail to read second JSON")
+		return CompareResultError, "", errors.IOFailure.New("fail to read second JSON")
 	}
 
 	opt := jsondiff.DefaultConsoleOptions()
@@ -47,10 +47,8 @@ func Compare(expectedJson io.Reader, actualJson io.Reader) (CompareResult, strin
 		return CompareResultSupersetMatch, describeDiff(description), nil
 	case jsondiff.NoMatch:
 		return CompareResultNoMatch, describeDiff(description), nil
-	case jsondiff.BothArgsAreInvalidJson, jsondiff.FirstArgIsInvalidJson, jsondiff.SecondArgIsInvalidJson:
-		return CompareResultError, "", errors.Wrap(errors.BadJSON, description)
 	default:
-		return CompareResultError, "", errors.Wrap(errors.BadState, "unexpected case %v", match)
+		return CompareResultError, "", errors.BadJSON.New(description)
 	}
 }
 

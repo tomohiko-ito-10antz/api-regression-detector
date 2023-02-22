@@ -54,18 +54,19 @@ func (o insertOperation) CreateRows(
 
 			stmt += "?"
 
+			errInfo := errors.Info{"tableName": tableName, "columnName": columnName}
+
 			dbType, exists := columnTypes[columnName]
 			if !exists {
-				return errors.Wrap(
-					errors.BadKeyAccess,
-					"column %s not found in table", columnName, tableName)
+				return errors.BadKeyAccess.New(errInfo.AppendTo("column not found in table"))
 			}
+
+			errInfo = errInfo.With("dbType", dbType)
 
 			param, err := impl.ExtractColumnValueAsDB(row, columnName, dbType)
 			if err != nil {
-				return errors.Wrap(
-					errors.BadConversion,
-					"fail to convert value of column %s to type %v", columnName, dbType)
+				return errors.BadConversion.New(
+					errInfo.AppendTo("fail to parse column value to DB type"))
 			}
 
 			params = append(params, param)
@@ -75,9 +76,11 @@ func (o insertOperation) CreateRows(
 	}
 
 	if err := tx.Write(ctx, stmt, params); err != nil {
+		errInfo := errors.Info{"stmt": stmt, "params": params}
+
 		return errors.Wrap(
-			errors.BadConversion,
-			"fail to insert rows (stmt=%v,params=%v)", stmt, params)
+			errors.DBFailure.Err(err),
+			errInfo.AppendTo("fail to insert rows"))
 	}
 
 	return nil

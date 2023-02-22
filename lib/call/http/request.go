@@ -18,20 +18,24 @@ type Request struct {
 }
 
 func (r *Request) ToHTTPRequest(endpointURL string, method Method) (*nethttp.Request, error) {
+	errInfo := errors.Info{"requestBody": r.Body}
 	reqBodyBytes, err := r.Body.MarshalJSON()
 	if err != nil {
 		return nil, errors.Wrap(
-			errors.Join(err, errors.HTTPFailure),
-			"fail to read JsonValue: %#v", r.Body)
+			errors.HTTPFailure.Err(err),
+			errInfo.AppendTo("fail to convert request body to JSON"))
 	}
+
+	errInfo = errInfo.With("endpointURL", endpointURL).With("method", method)
 
 	if method == MethodGet {
 		urlWithParams, err := AssignParamsToURL(endpointURL, r)
 		if err != nil {
 			return nil, errors.Wrap(
-				errors.Join(err, errors.HTTPFailure),
-				"fail to assign JsonValue: %#v", r.Body)
+				errors.HTTPFailure.Err(err),
+				errInfo.AppendTo("fail to assign request body parameters to URL"))
 		}
+
 		endpointURL = urlWithParams.String()
 		reqBodyBytes = nil
 	}
@@ -39,8 +43,8 @@ func (r *Request) ToHTTPRequest(endpointURL string, method Method) (*nethttp.Req
 	request, err := nethttp.NewRequest(string(method), endpointURL, bytes.NewBuffer(reqBodyBytes))
 	if err != nil {
 		return nil, errors.Wrap(
-			errors.Join(err, errors.HTTPFailure),
-			"fail to create request: %s %v %#v", endpointURL, method, r)
+			errors.HTTPFailure.Err(err),
+			errInfo.AppendTo("fail to create request"))
 	}
 
 	request.Header = r.Header
@@ -52,8 +56,8 @@ func AssignParamsToURL(templateURL string, req *Request) (*url.URL, error) {
 	parsed, err := url.Parse(templateURL)
 	if err != nil {
 		return nil, errors.Wrap(
-			errors.Join(err, errors.HTTPFailure),
-			"fail to parse url: %s", templateURL)
+			errors.HTTPFailure.Err(err),
+			errors.Info{"templateURL": templateURL}.AppendTo("fail to parse url"))
 	}
 
 	// Add all non-null primitive values in JSON body to queryParams
@@ -66,13 +70,14 @@ func AssignParamsToURL(templateURL string, req *Request) (*url.URL, error) {
 		for _, v := range key {
 			keyStrings = append(keyStrings, v.String())
 		}
+		keyPath := strings.Join(keyStrings, ".")
 		switch val.Type {
 		case wrap.JsonTypeBoolean:
-			queryParams.Add(strings.Join(keyStrings, "."), strconv.FormatBool(val.MustBool()))
+			queryParams.Add(keyPath, strconv.FormatBool(val.MustBool()))
 		case wrap.JsonTypeNumber:
-			queryParams.Add(strings.Join(keyStrings, "."), string(val.MustNumber()))
+			queryParams.Add(keyPath, string(val.MustNumber()))
 		case wrap.JsonTypeString:
-			queryParams.Add(strings.Join(keyStrings, "."), val.MustString())
+			queryParams.Add(keyPath, val.MustString())
 		}
 		return nil
 	})

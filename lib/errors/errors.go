@@ -6,21 +6,30 @@ import (
 )
 
 var (
-	BadIndexAccess error = errors.New("BadIndexAccess")
-	BadKeyAccess   error = errors.New("BadKeyAccess")
-	Unsupported    error = errors.New("Unsupported")
-	Unexpected     error = errors.New("Unsupported")
-	BadConversion  error = errors.New("BadConversion")
-	BadArgs        error = errors.New("BadArgs")
-	BadState       error = errors.New("BadState")
-	IOFailure      error = errors.New("IOFailure")
-	DBFailure      error = errors.New("DBFailure")
-	BadJSON        error = errors.New("BadJSON")
-	HTTPFailure    error = errors.New("HTTPFailure")
-	GRPCFailure    error = errors.New("GRPCFailure")
+	Wrap = errors.Wrapf
+	Join = multierr.Combine
+	Is   = errors.Is
+	New  = errors.Errorf
 )
 
-var (
-	Wrap = errors.Wrapf
-	Join = multierr.Combine // stderrors.Join
-)
+func Assert(condition bool, format string, args ...any) {
+	if !condition {
+		panic(Unexpected.New(format, args...))
+	}
+}
+
+func Unreachable[T any](format string, args ...any) T {
+	panic(Unexpected.New(format, args...))
+}
+
+func Unreachable2[T1, T2 any](format string, args ...any) (T1, T2) {
+	panic(Unexpected.New(format, args...))
+}
+
+func Unreachable3[T1, T2, T3 any](format string, args ...any) (T1, T2, T3) {
+	panic(Unexpected.New(format, args...))
+}
+
+func Unreachable4[T1, T2, T3, T4 any](format string, args ...any) (T1, T2, T3, T4) {
+	panic(Unexpected.New(format, args...))
+}

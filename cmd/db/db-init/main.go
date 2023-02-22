@@ -42,31 +42,33 @@ func main() {
 }
 
 func RunInit(databaseDriver string, connectionString string) (code int, err error) {
+	errorInfo := errors.Info{"databaseDriver": databaseDriver}
+
 	driver, err := db.NewDriver(databaseDriver)
 	if err != nil {
-		return 1, errors.Wrap(err, "fail to new %s", databaseDriver)
+		return 1, errors.Wrap(errors.BadArgs.Err(err), errorInfo.AppendTo("fail RunInit"))
 	}
 
-	err = driver.Open(connectionString)
-	if err != nil {
-		return 1, errors.Wrap(err, "fail to connect %s", connectionString)
-	}
+	errorInfo = errorInfo.With("connectionString", connectionString)
 
+	if err := driver.Open(connectionString); err != nil {
+		return 1, errors.Wrap(err, errorInfo.AppendTo("fail to open database "))
+	}
 	defer func() {
-		err = errors.Wrap(errors.Join(err, driver.Close()), "fail RunInit")
-		if err != nil {
+		if errs := errors.Wrap(errors.Join(err, driver.Close()), errorInfo.AppendTo("fail RunInit")); errs != nil {
+			err = errs
 			code = 1
 		}
 	}()
 
 	initTables, err := tables.LoadInitTables(os.Stdin)
 	if err != nil {
-		return 1, errors.Wrap(err, "fail to load JSON from stdin")
+		return 1, errors.Wrap(err, "fail to load init tables from stdin")
 	}
 
 	err = cmd.Init(context.Background(), driver.DB, initTables, driver.SchemaGetter, driver.RowClearer, driver.RowCreator)
 	if err != nil {
-		return 1, errors.Wrap(err, "fail Init")
+		return 1, errors.Wrap(err, errorInfo.With("initTables", initTables).AppendTo("fail to init tables in database"))
 	}
 
 	return 0, nil

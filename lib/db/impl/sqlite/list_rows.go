@@ -26,11 +26,13 @@ func (o selectOperation) ListRows(
 ) ([]db.Row, error) {
 	stmt := fmt.Sprintf(`SELECT * FROM %s ORDER BY %s`, tableName, strings.Join(schema.PrimaryKeys, ", "))
 
+	errInfo := errors.Info{"stmt": stmt}
+
 	rows, err := tx.Read(ctx, stmt, nil)
 	if err != nil {
 		return nil, errors.Wrap(
-			errors.DBFailure,
-			"fail to select all rows (stmt=%v)", stmt)
+			errors.DBFailure.Err(err),
+			errInfo.AppendTo("fail to select all rows"))
 	}
 
 	out := db.Table{}
@@ -39,16 +41,14 @@ func (o selectOperation) ListRows(
 		for _, columnName := range schema.GetColumnNames() {
 			col, ok := row[columnName]
 			if !ok {
-				return nil, errors.Wrap(
-					errors.BadKeyAccess,
-					"column %s not found in schema of table %s", columnName, tableName)
+				return nil, errors.BadKeyAccess.New(
+					errInfo.AppendTo("column not found in row"))
 			}
 
 			typ, exists := schema.ColumnTypes[columnName]
 			if !exists {
-				return nil, errors.Wrap(
-					errors.BadKeyAccess,
-					"column %s not found in schema of table %s", columnName, tableName)
+				return nil, errors.BadKeyAccess.New(
+					errInfo.AppendTo("column not found in table schema"))
 			}
 
 			outRow[columnName] = col.WithType(typ)

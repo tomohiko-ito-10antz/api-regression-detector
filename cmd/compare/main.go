@@ -14,15 +14,15 @@ const doc = `Regression detector compare.
 compare compares two JSON files.
 
 Usage:
-	compare [--verbose] [--strict] <expected-json> <actual-json>
+	compare [--show-diff] [--no-superset] <expected-json> <actual-json>
 	compare -h | --help
 	compare --version
 
 Options:
 	<expected-json>    JSON file path of expected value.
 	<actual-json>      JSON file path of actual value.
-	--verbose          Show verbose difference. [default: false]
-	--strict           Disallow superset match. [default: false]
+	--show-diff        Show difference. [default: false]
+	--no-superset      Disallow superset match. [default: false]
 	-h --help          Show this screen.
 	--version          Show version.`
 
@@ -31,47 +31,49 @@ func main() {
 	code, err := RunCompare(
 		args["<expected-json>"].(string),
 		args["<actual-json>"].(string),
-		args["--verbose"].(bool),
-		args["--strict"].(bool))
+		args["--show-diff"].(bool),
+		args["--no-superset"].(bool))
 	if err != nil {
 		log.Stderr("Error\n%+v", err)
 	}
 	os.Exit(code)
 }
 
-func RunCompare(expectedJson string, actualJson string, verbose bool, strict bool) (code int, err error) {
+func RunCompare(expectedJson string, actualJson string, showDiff bool, noSuperset bool) (code int, err error) {
+	errorInfo := errors.Info{"expectedJson": expectedJson, "actualJson": actualJson, "showDiff": showDiff, "noSuperset": noSuperset}
+
 	expectedJsonFile, err := os.Open(expectedJson)
 	if err != nil {
-		return 1, errors.Wrap(errors.Join(err, errors.IOFailure), "fail to open %s", expectedJson)
+		return 1, errors.Wrap(errors.IOFailure.Err(err), errors.Info{"expectedJson": expectedJson}.AppendTo("fail to open expected JSON file"))
 	}
 
 	defer func() {
-		if errs := errors.Join(err, expectedJsonFile.Close()); err != nil {
-			err = errors.Wrap(errors.Join(errs, errors.IOFailure), "fail RunCompare")
+		if errs := errors.Join(err, errors.IOFailure.Err(expectedJsonFile.Close())); errs != nil {
+			err = errors.Wrap(errs, errorInfo.AppendTo("fail RunCompare"))
 			code = 1
 		}
 	}()
 
 	actualJsonFile, err := os.Open(actualJson)
 	if err != nil {
-		return 1, errors.Wrap(errors.Join(err, errors.IOFailure), "fail to open %s", actualJson)
+		return 1, errors.Wrap(errors.IOFailure.Err(err), errors.Info{"actualJson": actualJson}.AppendTo("fail to open actual JSON file"))
 	}
 
 	defer func() {
-		if errs := errors.Join(err, actualJsonFile.Close()); err != nil {
-			err = errors.Wrap(errors.Join(errs, errors.IOFailure), "fail RunCompare")
+		if errs := errors.Join(err, errors.IOFailure.Err(actualJsonFile.Close())); errs != nil {
+			err = errors.Wrap(errs, errorInfo.AppendTo("fail RunCompare"))
 			code = 1
 		}
 	}()
 
 	match, detail, err := cmd.Compare(expectedJsonFile, actualJsonFile)
 	if err != nil {
-		return 1, errors.Wrap(err, "fail RunCompare %s", detail)
+		return 1, errors.Wrap(err, errorInfo.With("detail", detail).AppendTo("fail RunCompare"))
 	}
 
 	fmt.Println(match)
 
-	if verbose {
+	if showDiff {
 		fmt.Println(detail)
 	}
 
@@ -79,7 +81,7 @@ func RunCompare(expectedJson string, actualJson string, verbose bool, strict boo
 	case cmd.CompareResultFullMatch:
 		return 0, nil
 	case cmd.CompareResultSupersetMatch:
-		if strict {
+		if noSuperset {
 			return 1, nil
 		}
 		return 0, nil

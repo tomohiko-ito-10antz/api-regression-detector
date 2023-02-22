@@ -16,17 +16,19 @@ func GetSchema() schemaGetter { return schemaGetter{} }
 var _ cmd.SchemaGetter = schemaGetter{}
 
 func (o schemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string) (db.Schema, error) {
+	errInfo := errors.Info{"tableName": tableName}
+
 	columnTypes, err := getColumnTypes(ctx, tx, tableName)
 	if err != nil {
 		return db.Schema{}, errors.Wrap(
-			errors.DBFailure,
-			"fail to get column types in table %s", tableName)
+			errors.DBFailure.Err(err),
+			errInfo.AppendTo("fail to get column types in table"))
 	}
 	primaryKeys, err := getPrimaryKeys(ctx, tx, tableName)
 	if err != nil {
 		return db.Schema{}, errors.Wrap(
-			errors.DBFailure,
-			"fail to get primary keys in table %s", tableName)
+			errors.DBFailure.Err(err),
+			errInfo.AppendTo("fail to get primary keys in table"))
 	}
 	return db.Schema{
 		ColumnTypes: columnTypes,
@@ -37,42 +39,41 @@ func (o schemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string)
 func getColumnTypes(ctx context.Context, tx db.Tx, tableName string) (columnTypes db.ColumnTypes, err error) {
 	stmt := `SELECT column_name, spanner_type FROM information_schema.columns WHERE table_name = ?`
 	params := []any{tableName}
+	errInfo := errors.Info{"stmt": stmt, "params": params}
 
 	rows, err := tx.Read(ctx, stmt, params)
 	if err != nil {
 		return nil, errors.Wrap(
-			errors.Join(err, errors.DBFailure),
-			"fail to select column types in table %s (stmt=%v)", tableName, stmt, params)
+			errors.DBFailure.Err(err),
+			errInfo.AppendTo("fail to select column types in table"))
 	}
 
 	columnTypes = db.ColumnTypes{}
 	for _, row := range rows {
 		columnName, ok := row["column_name"]
 		if !ok {
-			return nil, errors.Wrap(
-				errors.BadKeyAccess,
-				"key %s not find in table %s", "column_name", tableName)
+			return nil, errors.BadKeyAccess.New(
+				errInfo.AppendTo("key column_name not found"))
 		}
 
 		col, err := columnName.AsString()
 		if err != nil {
 			return nil, errors.Wrap(
-				err,
-				"fail to parse value of column %s as string", columnName)
+				errors.BadConversion.Err(err),
+				errInfo.With("columnName", columnName).AppendTo("fail to parse column_name to string"))
 		}
 
 		spannerType, ok := row["spanner_type"]
 		if !ok {
-			return nil, errors.Wrap(
-				errors.BadKeyAccess,
-				"key %s not find in table %s", "spanner_type", tableName)
+			return nil, errors.BadKeyAccess.New(
+				errInfo.AppendTo("key spanner_type not found"))
 		}
 
 		typ, err := spannerType.AsString()
 		if err != nil {
 			return nil, errors.Wrap(
-				err,
-				"fail to parse value of column %s as string", columnName)
+				errors.BadConversion.Err(err),
+				errInfo.With("spannerType", spannerType).AppendTo("fail to parse spanner_type to string"))
 		}
 
 		startsWithAny := func(prefixes ...string) bool {
@@ -115,28 +116,28 @@ WHERE
 ORDER BY
     ordinal_position`
 	params := []any{tableName}
+	errInfo := errors.Info{"stmt": stmt, "params": params}
 
 	rows, err := tx.Read(ctx, stmt, params)
 	if err != nil {
 		return nil, errors.Wrap(
-			errors.Join(err, errors.DBFailure),
-			"fail to select primary keys in table %s (stmt=%v,params=%v)", tableName, stmt, params)
+			errors.DBFailure.Err(err),
+			errInfo.AppendTo("fail to select primary keys in table"))
 	}
 
 	primaryKeys := []string{}
 	for _, row := range rows {
 		columnName, ok := row["column_name"]
 		if !ok {
-			return nil, errors.Wrap(
-				errors.BadKeyAccess,
-				"key %s not find in table %s", "column_name", tableName)
+			return nil, errors.BadKeyAccess.New(
+				errInfo.AppendTo("key column_name not found"))
 		}
 
 		col, err := columnName.AsString()
 		if err != nil {
 			return nil, errors.Wrap(
-				err,
-				"fail to parse value of column %s as string", columnName)
+				errors.BadConversion.Err(err),
+				errInfo.With("columnName", columnName).AppendTo("fail to parse column_name to string"))
 		}
 
 		primaryKeys = append(primaryKeys, col.String)
