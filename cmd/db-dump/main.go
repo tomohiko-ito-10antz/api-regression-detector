@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 
-	"github.com/Jumpaku/api-regression-detector/cmd/db"
-	"github.com/Jumpaku/api-regression-detector/lib/cmd"
+	"github.com/Jumpaku/api-regression-detector/cmd"
+	libcmd "github.com/Jumpaku/api-regression-detector/lib/cmd"
+	"github.com/Jumpaku/api-regression-detector/lib/cmd/cli"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio"
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio/tables"
@@ -33,48 +33,52 @@ Options:
 
 func main() {
 	args, _ := docopt.ParseArgs(doc, os.Args[1:], "1.0.0")
-	code, err := RunDump(
+	code := RunDump(
+		cmd.Stdio,
 		args["<database-driver>"].(string),
 		args["<connection-string>"].(string))
-	if err != nil {
-		fmt.Printf("Error\n%s\n%+v", err, err)
-	}
+
 	os.Exit(code)
 }
 
-func RunDump(databaseDriver string, connectionString string) (code int, err error) {
+func RunDump(stdio *cli.Stdio, databaseDriver string, connectionString string) (code int) {
 	errorInfo := errors.Info{"databaseDriver": databaseDriver}
 
-	driver, err := db.NewDriver(databaseDriver)
+	driver, err := cmd.NewDriver(databaseDriver)
 	if err != nil {
-		return 1, errors.Wrap(errors.BadArgs.Err(err), errorInfo.AppendTo("fail RunDump"))
+		cmd.PrintError(stdio.Stderr, errors.Wrap(errors.BadArgs.Err(err), errorInfo.AppendTo("fail RunDump")))
+		return 1
 	}
 
 	errorInfo = errorInfo.With("connectionString", connectionString)
 
 	if err := driver.Open(connectionString); err != nil {
-		return 1, errors.Wrap(errors.IOFailure.Err(err), errorInfo.AppendTo("fail to open database"))
+		cmd.PrintError(stdio.Stderr, errors.Wrap(errors.IOFailure.Err(err), errorInfo.AppendTo("fail to open database")))
+		return 1
 	}
 	defer func() {
-		if errs := errors.Wrap(errors.Join(err, driver.Close()), errorInfo.AppendTo("fail RunDump")); errs != nil {
-			err = errs
+		if err := errors.Join(err, driver.Close()); err != nil {
+			cmd.PrintError(os.Stderr, errors.Wrap(err, errorInfo.AppendTo("fail RunDump")))
 			code = 1
 		}
 	}()
 
 	tableNames, err := jsonio.LoadJson[[]string](os.Stdin)
 	if err != nil {
-		return 1, errors.Wrap(err, "fail to load init tables as JSON from stdin")
+		cmd.PrintError(os.Stderr, errors.Wrap(err, "fail to load init tables as JSON from stdin"))
+		return 1
 	}
 
-	dump, err := cmd.Dump(context.Background(), driver.DB, tableNames, driver.SchemaGetter, driver.RowLister)
+	dump, err := libcmd.Dump(context.Background(), driver.DB, tableNames, driver.SchemaGetter, driver.RowLister)
 	if err != nil {
-		return 1, errors.Wrap(err, errorInfo.With("tableNames", tableNames).AppendTo("fail to get tables from database"))
+		cmd.PrintError(os.Stderr, errors.Wrap(err, errorInfo.With("tableNames", tableNames).AppendTo("fail to get tables from database")))
+		return 1
 	}
 
 	if err := tables.SaveDumpTables(dump, os.Stdout); err != nil {
-		return 1, errors.Wrap(err, "fail to dump tables as JSON to stdout")
+		cmd.PrintError(os.Stderr, errors.Wrap(err, "fail to dump tables as JSON to stdout"))
+		return 1
 	}
 
-	return 0, nil
+	return 0
 }
