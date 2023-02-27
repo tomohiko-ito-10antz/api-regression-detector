@@ -17,6 +17,14 @@ type Request struct {
 	Body   *wrap.JsonValue
 }
 
+func ParseHeader(header string) (string, string, error) {
+	key, val, ok := strings.Cut(header, ":")
+	if !ok {
+		return "", "", errors.BadArgs.New(errors.Info{"header": header}.AppendTo("header must be in the form 'Key: value'"))
+	}
+	return key, strings.Trim(val, " \t"), nil
+}
+
 func (r *Request) ToHTTPRequest(endpointURL string, method Method) (*nethttp.Request, error) {
 	errInfo := errors.Info{"requestBody": r.Body}
 	reqBodyBytes, err := r.Body.MarshalJSON()

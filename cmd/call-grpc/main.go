@@ -11,11 +11,12 @@ const doc = `Regression detector call-grpc.
 call-grpc calls GRPC API: sending JSON request and receiving JSON response.
 
 Usage:
-	call-grpc <grpc-endpoint> <grpc-full-method>
+	call-grpc [--metadata=<grpc-metadata>]... <grpc-endpoint> <grpc-full-method>
 	call-grpc -h | --help
 	call-grpc --version
 
 Options:
+	<grpc-metadata>	   metadata in the form 'key: value'.
 	<grpc-endpoint>    host and port joined by ':'.
 	<grpc-full-method> full method in the form 'package.name.ServiceName/MethodName'.
 	-h --help          Show this screen.
