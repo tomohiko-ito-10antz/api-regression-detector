@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/Jumpaku/api-regression-detector/cmd"
@@ -24,10 +25,12 @@ Options:
 
 func main() {
 	args, _ := docopt.ParseArgs(doc, os.Args[1:], "1.0.0")
+	fmt.Printf("%#v\n", args)
 	code := cmd.RunCallGRPC(
 		cmd.Stdio,
 		args["<grpc-endpoint>"].(string),
 		args["<grpc-full-method>"].(string),
+		args["--metadata"].([]string),
 	)
 
 	os.Exit(code)

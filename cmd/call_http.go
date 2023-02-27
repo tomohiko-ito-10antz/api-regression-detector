@@ -13,6 +13,7 @@ import (
 
 func RunCallHTTP(stdio *cli.Stdio, endpointURL string, method http.Method, headers []string) (code int) {
 	errorInfo := errors.Info{"endpointURL": endpointURL, "method": method, "headers": headers}
+
 	headerMap := map[string][]string{}
 	for _, header := range headers {
 		key, val, err := http.ParseHeader(header)
