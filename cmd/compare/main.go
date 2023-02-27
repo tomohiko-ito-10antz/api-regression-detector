@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Jumpaku/api-regression-detector/lib/cmd"
+	"github.com/Jumpaku/api-regression-detector/cmd"
+	libcmd "github.com/Jumpaku/api-regression-detector/lib/cmd"
+	"github.com/Jumpaku/api-regression-detector/lib/cmd/cli"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
-	"github.com/Jumpaku/api-regression-detector/lib/log"
 	"github.com/docopt/docopt-go"
 )
 
@@ -28,47 +29,49 @@ Options:
 
 func main() {
 	args, _ := docopt.ParseArgs(doc, os.Args[1:], "1.0.0")
-	code, err := RunCompare(
+	code := RunCompare(
+		cmd.Stdio,
 		args["<expected-json>"].(string),
 		args["<actual-json>"].(string),
 		args["--show-diff"].(bool),
 		args["--no-superset"].(bool))
-	if err != nil {
-		log.Stderr("Error\n%+v", err)
-	}
+
 	os.Exit(code)
 }
 
-func RunCompare(expectedJson string, actualJson string, showDiff bool, noSuperset bool) (code int, err error) {
+func RunCompare(stdio *cli.Stdio, expectedJson string, actualJson string, showDiff bool, noSuperset bool) (code int) {
 	errorInfo := errors.Info{"expectedJson": expectedJson, "actualJson": actualJson, "showDiff": showDiff, "noSuperset": noSuperset}
 
 	expectedJsonFile, err := os.Open(expectedJson)
 	if err != nil {
-		return 1, errors.Wrap(errors.IOFailure.Err(err), errors.Info{"expectedJson": expectedJson}.AppendTo("fail to open expected JSON file"))
+		cmd.PrintError(os.Stderr, errors.Wrap(err, errors.Info{"expectedJson": expectedJson}.AppendTo("fail to open expected JSON file")))
+		return 1
 	}
 
 	defer func() {
 		if errs := errors.Join(err, errors.IOFailure.Err(expectedJsonFile.Close())); errs != nil {
-			err = errors.Wrap(errs, errorInfo.AppendTo("fail RunCompare"))
+			cmd.PrintError(os.Stderr, errors.Wrap(errs, errorInfo.AppendTo("fail RunCompare")))
 			code = 1
 		}
 	}()
 
 	actualJsonFile, err := os.Open(actualJson)
 	if err != nil {
-		return 1, errors.Wrap(errors.IOFailure.Err(err), errors.Info{"actualJson": actualJson}.AppendTo("fail to open actual JSON file"))
+		cmd.PrintError(os.Stderr, errors.Wrap(err, errors.Info{"actualJson": actualJson}.AppendTo("fail to open actual JSON file")))
+		return 1
 	}
 
 	defer func() {
-		if errs := errors.Join(err, errors.IOFailure.Err(actualJsonFile.Close())); errs != nil {
-			err = errors.Wrap(errs, errorInfo.AppendTo("fail RunCompare"))
+		if err := errors.Join(err, errors.IOFailure.Err(actualJsonFile.Close())); err != nil {
+			cmd.PrintError(os.Stderr, errors.Wrap(err, errorInfo.AppendTo("fail RunCompare")))
 			code = 1
 		}
 	}()
 
-	match, detail, err := cmd.Compare(expectedJsonFile, actualJsonFile)
+	match, detail, err := libcmd.Compare(expectedJsonFile, actualJsonFile)
 	if err != nil {
-		return 1, errors.Wrap(err, errorInfo.With("detail", detail).AppendTo("fail RunCompare"))
+		cmd.PrintError(os.Stderr, errors.Wrap(err, errorInfo.With("detail", detail).AppendTo("fail RunCompare")))
+		return 1
 	}
 
 	fmt.Println(match)
@@ -78,14 +81,14 @@ func RunCompare(expectedJson string, actualJson string, showDiff bool, noSuperse
 	}
 
 	switch match {
-	case cmd.CompareResultFullMatch:
-		return 0, nil
-	case cmd.CompareResultSupersetMatch:
+	case libcmd.CompareResultFullMatch:
+		return 0
+	case libcmd.CompareResultSupersetMatch:
 		if noSuperset {
-			return 1, nil
+			return 1
 		}
-		return 0, nil
+		return 0
 	default:
-		return 1, nil
+		return 1
 	}
 }

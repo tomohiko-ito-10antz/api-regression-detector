@@ -5,7 +5,6 @@ import (
 	"database/sql"
 
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
-	"github.com/Jumpaku/api-regression-detector/lib/log"
 )
 
 type Tx interface {
@@ -37,7 +36,6 @@ func runTransaction(ctx context.Context, db *sql.DB, handler func(ctx context.Co
 }
 
 func (e *transaction) Write(ctx context.Context, stmt string, params []any) error {
-	log.Stderr("SQL\n\tstatement: %v\n\tparams   : %#v", stmt, params)
 	errInfo := errors.Info{"stmt": stmt, "params": params}
 
 	if _, err := e.tx.Exec(stmt, params...); err != nil {
@@ -48,7 +46,6 @@ func (e *transaction) Write(ctx context.Context, stmt string, params []any) erro
 }
 
 func (e *transaction) Read(ctx context.Context, stmt string, params []any) ([]Row, error) {
-	log.Stderr("SQL\n\tstatement: %v\n\tparams   : %#v", stmt, params)
 	errInfo := errors.Info{"stmt": stmt, "params": params}
 
 	itr, err := e.tx.Query(stmt, params...)

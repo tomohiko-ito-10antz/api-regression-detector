@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
-	"github.com/Jumpaku/api-regression-detector/lib/log"
 )
 
 type NamedReader interface {
@@ -13,8 +12,7 @@ type NamedReader interface {
 	Name() string
 }
 
-func LoadJson[T any](file NamedReader) (T, error) {
-	log.Stderr("INPUT JSON FROM %s", file.Name())
+func LoadJson[T any](file io.Reader) (T, error) {
 	decoder := json.NewDecoder(file)
 	decoder.UseNumber()
 

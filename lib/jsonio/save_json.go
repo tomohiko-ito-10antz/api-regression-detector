@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
-	"github.com/Jumpaku/api-regression-detector/lib/log"
 )
 
 type NamedWriter interface {
@@ -13,8 +12,7 @@ type NamedWriter interface {
 	Name() string
 }
 
-func SaveJson[T any](jsonValue T, file NamedWriter) (err error) {
-	log.Stderr("OUTPUT JSON TO %s", file.Name())
+func SaveJson[T any](jsonValue T, file io.Writer) (err error) {
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")
 
