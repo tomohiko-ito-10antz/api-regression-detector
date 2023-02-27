@@ -46,7 +46,8 @@ func NewDriver(name string) (*cmd.DatabaseDriver, error) {
 			SchemaGetter: spanner.GetSchema(),
 		}
 	default:
-		return nil, errors.Wrap(errors.BadArgs, "invalid driver name %s", name)
+		return nil, errors.WithTag(errors.New(errors.Info{"name": name}.AppendTo("invalid driver name")),
+			errors.BadArgs, errors.Unsupported)
 	}
 
 	return driver, nil

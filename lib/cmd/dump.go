@@ -24,33 +24,39 @@ func Dump(
 
 		dbTables := libdb.Tables{}
 		for _, tableName := range tableNames {
+			errInfo := errors.Info{"tableName": tableName}
+
 			schema, err := schemaGetter.GetSchema(ctx, tx, tableName)
 			if err != nil {
-				return errors.Wrap(err, "fail to get schema of table %s", tableName)
+				return errors.Wrap(err, errInfo.AppendTo("fail to get schema of table"))
 			}
+
 			rows, err := rowLister.ListRows(ctx, tx, tableName, schema)
 			if err != nil {
-				return errors.Wrap(err, "fail to list rows of table %s", tableName)
+				return errors.Wrap(err, errInfo.AppendTo("fail to list rows of table"))
 			}
+
 			dbTables[tableName] = libdb.Table{Name: tableName, Schema: schema, Rows: rows}
 		}
 
 		dumpTables, err = convertTablesDBToJson(dbTables)
 		if err != nil {
-			return errors.Wrap(err, "fail to convert tables to JSON")
+			return errors.Wrap(errors.BadConversion.Err(err), "fail to convert tables to JSON")
 		}
 
 		return nil
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, "transaction for Dump failed")
+		return nil, errors.Wrap(errors.DBFailure.Err(err), "fail to run transaction for Dump")
 	}
 
 	return dumpTables, nil
 }
 
-func convertTablesDBToJson(dbTables libdb.Tables) (jsonTables tables.DumpTables, err error) {
-	jsonTables = tables.DumpTables{}
+func convertTablesDBToJson(dbTables libdb.Tables) (tables.DumpTables, error) {
+	var err error
+
+	jsonTables := tables.DumpTables{}
 	for dbTableName, dbTable := range dbTables {
 		jsonRows := []tables.Row{}
 		for _, dbRow := range dbTable.Rows {
@@ -58,7 +64,10 @@ func convertTablesDBToJson(dbTables libdb.Tables) (jsonTables tables.DumpTables,
 			for dbColumnName, dbColumnValue := range dbRow {
 				jsonRow[dbColumnName], err = convertDBColumnValueToJsonValue(dbColumnValue)
 				if err != nil {
-					return nil, errors.Wrap(err, "fail to convert DB value to JSON value")
+					errInfo := errors.Info{"dbColumnValue": dbColumnValue}
+
+					return nil, errors.Wrap(err,
+						errInfo.AppendTo("fail to convert column value from column type to JSON"))
 				}
 			}
 
@@ -72,11 +81,14 @@ func convertTablesDBToJson(dbTables libdb.Tables) (jsonTables tables.DumpTables,
 }
 
 func convertDBColumnValueToJsonValue(dbVal *libdb.ColumnValue) (*wrap.JsonValue, error) {
+	errInfo := errors.Info{"dbVal": dbVal}
 	switch dbVal.Type {
 	case libdb.ColumnTypeBoolean:
 		v, err := dbVal.AsBool()
 		if err != nil {
-			return nil, errors.Wrap(errors.Join(err, errors.BadConversion), "fail to parse DB column value as bool value")
+			return nil, errors.Wrap(
+				errors.BadConversion.Err(err),
+				errInfo.AppendTo("fail to convert column value from column type to NullBool"))
 		}
 
 		if !v.Valid {
@@ -87,7 +99,9 @@ func convertDBColumnValueToJsonValue(dbVal *libdb.ColumnValue) (*wrap.JsonValue,
 	case libdb.ColumnTypeInteger:
 		v, err := dbVal.AsInteger()
 		if err != nil {
-			return nil, errors.Wrap(errors.Join(err, errors.BadConversion), "fail to parse DB column value as integer value")
+			return nil, errors.Wrap(
+				errors.BadConversion.Err(err),
+				errInfo.AppendTo("fail to convert column value from column type to NullInteger"))
 		}
 
 		if !v.Valid {
@@ -98,7 +112,9 @@ func convertDBColumnValueToJsonValue(dbVal *libdb.ColumnValue) (*wrap.JsonValue,
 	case libdb.ColumnTypeFloat:
 		v, err := dbVal.AsFloat()
 		if err != nil {
-			return nil, errors.Wrap(errors.Join(err, errors.BadConversion), "fail to parse DB column value as float value")
+			return nil, errors.Wrap(
+				errors.BadConversion.Err(err),
+				errInfo.AppendTo("fail to convert column value from column type to NullFloat"))
 		}
 
 		if !v.Valid {
@@ -109,7 +125,9 @@ func convertDBColumnValueToJsonValue(dbVal *libdb.ColumnValue) (*wrap.JsonValue,
 	case libdb.ColumnTypeString:
 		v, err := dbVal.AsString()
 		if err != nil {
-			return nil, errors.Wrap(errors.Join(err, errors.BadConversion), "fail to parse DB column value as string value")
+			return nil, errors.Wrap(
+				errors.BadConversion.Err(err),
+				errInfo.AppendTo("fail to convert column value from column type to NullString"))
 		}
 
 		if !v.Valid {
@@ -120,7 +138,9 @@ func convertDBColumnValueToJsonValue(dbVal *libdb.ColumnValue) (*wrap.JsonValue,
 	case libdb.ColumnTypeTime:
 		v, err := dbVal.AsTime()
 		if err != nil {
-			return nil, errors.Wrap(errors.Join(err, errors.BadConversion), "fail to parse DB column value as time.Time value")
+			return nil, errors.Wrap(
+				errors.BadConversion.Err(err),
+				errInfo.AppendTo("fail to convert column value from column type to NullTime"))
 		}
 
 		if !v.Valid {
@@ -131,7 +151,9 @@ func convertDBColumnValueToJsonValue(dbVal *libdb.ColumnValue) (*wrap.JsonValue,
 	default:
 		v, err := dbVal.AsBytes()
 		if err != nil {
-			return nil, errors.Wrap(errors.Join(err, errors.BadConversion), "fail to parse DB column value as []byte value")
+			return nil, errors.Wrap(
+				errors.BadConversion.Err(err),
+				errInfo.AppendTo("fail to convert column value from column type to NullBytes"))
 		}
 
 		if !v.Valid {

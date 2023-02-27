@@ -93,7 +93,7 @@ func Number[T json.Number | int | int8 | int16 | int32 | int64 | uint | uint8 | 
 	case float32, float64:
 		return Number(json.Number(strconv.FormatFloat(mustToFloat64(v), 'f', 16, 64)))
 	default:
-		panic("never match this case")
+		return errors.Unreachable[*JsonValue]("never match this case %#v", v)
 	}
 }
 
@@ -133,7 +133,7 @@ func (v *JsonValue) MarshalJSON() ([]byte, error) {
 
 	b, err := json.Marshal(a)
 	if err != nil {
-		return nil, errors.Wrap(errors.Join(err, errors.BadConversion), "fail to marshal JSON")
+		return nil, errors.Wrap(errors.BadConversion.Err(err), errors.Info{"valAny": a}.AppendTo("fail to convert JSON to []byte"))
 	}
 
 	return b, nil
@@ -143,13 +143,14 @@ func (v *JsonValue) UnmarshalJSON(b []byte) error {
 	var a any
 	decoder := json.NewDecoder(bytes.NewBuffer(b))
 	decoder.UseNumber()
+
 	if err := decoder.Decode(&a); err != nil {
-		return errors.Wrap(errors.Join(err, errors.BadConversion), "fail to unmarshal JSON")
+		return errors.Wrap(errors.BadConversion.Err(err), errors.Info{"data": string(b)}.AppendTo("fail to convert JSON to JsonValue"))
 	}
 
 	u, err := FromAny(a)
 	if err != nil {
-		return errors.Wrap(errors.Join(err, errors.BadConversion), "fail to unmarshal JSON")
+		return errors.Wrap(errors.BadConversion.Err(err), errors.Info{"value": a}.AppendTo("fail to convert JSON to JsonValue"))
 	}
 
 	*v = *u
@@ -158,30 +159,25 @@ func (v *JsonValue) UnmarshalJSON(b []byte) error {
 }
 
 func (v *JsonValue) MustString() string {
-	if v.Type != JsonTypeString {
-		panic(errors.Wrap(errors.BadState, "String() is called with json type %v", v.Type))
-	}
+	errors.Assert(v.Type == JsonTypeString, "MustString() must be called with JsonTypeString (val=%#v)", v)
+
 	return v.StringValue
 }
 
 func (v *JsonValue) MustBool() bool {
-	if v.Type != JsonTypeBoolean {
-		panic(errors.Wrap(errors.BadState, "Bool() is called with json type %v", v.Type))
-	}
+	errors.Assert(v.Type == JsonTypeBoolean, "MustBool() must be called with JsonTypeBoolean (val=%#v)", v)
+
 	return v.BooleanValue
 }
 
 func (v *JsonValue) MustNumber() json.Number {
-	if v.Type != JsonTypeNumber {
-		panic(errors.Wrap(errors.BadState, "Number() is called with json type %v", v.Type))
-	}
+	errors.Assert(v.Type == JsonTypeNumber, "MustNumber() must be called with JsonTypeNumber (val=%#v)", v)
+
 	return v.NumberValue
 }
 
 func (v *JsonValue) Int64() (int64, bool) {
-	if v.Type != JsonTypeNumber {
-		panic(errors.Wrap(errors.BadState, "Int64() is called with json type %v", v.Type))
-	}
+	errors.Assert(v.Type == JsonTypeNumber, "Int64() must be called with JsonTypeNumber (val=%#v)", v)
 
 	n, err := v.NumberValue.Int64()
 
@@ -189,9 +185,7 @@ func (v *JsonValue) Int64() (int64, bool) {
 }
 
 func (v *JsonValue) Float64() (float64, bool) {
-	if v.Type != JsonTypeNumber {
-		panic(errors.Wrap(errors.BadState, "Float64() is called with json type %v", v.Type))
-	}
+	errors.Assert(v.Type == JsonTypeNumber, "Float64() must be called with JsonTypeNumber (val=%#v)", v)
 
 	n, err := v.NumberValue.Float64()
 
@@ -199,16 +193,14 @@ func (v *JsonValue) Float64() (float64, bool) {
 }
 
 func (v *JsonValue) MustObject() JsonObject {
-	if v.Type != JsonTypeObject {
-		panic(errors.Wrap(errors.BadState, "Object() is called with json type %v", v.Type))
-	}
+	errors.Assert(v.Type == JsonTypeObject, "MustObject() must be called with JsonTypeObject (val=%#v)", v)
+
 	return v.ObjectValue
 }
 
 func (v *JsonValue) MustArray() JsonArray {
-	if v.Type != JsonTypeArray {
-		panic(errors.Wrap(errors.BadState, "Array() is called with json type %v", v.Type))
-	}
+	errors.Assert(v.Type == JsonTypeArray, "MustArray() must be called with JsonTypeArray (val=%#v)", v)
+
 	return v.ArrayValue
 }
 

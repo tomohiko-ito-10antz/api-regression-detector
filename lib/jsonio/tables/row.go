@@ -40,12 +40,15 @@ func (row Row) Has(columnName string) bool {
 }
 
 func (row Row) ToString(columnName string) (string, error) {
+	errInfo := errors.Info{"row": row, "columnName": columnName}
+
 	val, ok := row[columnName]
 	if !ok {
-		return "", errors.Wrap(
-			errors.BadKeyAccess,
-			"column %s not found in JsonRow", columnName)
+		return "", errors.BadKeyAccess.New(
+			errInfo.AppendTo("column not found in JsonRow"))
 	}
+
+	errInfo = errInfo.With("val", val)
 
 	switch val.Type {
 	case wrap.JsonTypeNull:
@@ -57,9 +60,8 @@ func (row Row) ToString(columnName string) (string, error) {
 	case wrap.JsonTypeBoolean:
 		return strconv.FormatBool(val.MustBool()), nil
 	default:
-		return "", errors.Wrap(
-			errors.BadConversion,
-			"fail to convert value %v:%T of column %s to string", val, val, columnName)
+		return "", errors.BadConversion.New(
+			errInfo.AppendTo("fail to convert value from JSON to string"))
 	}
 }
 
@@ -76,12 +78,15 @@ func parseAsInteger(text string) (int64, bool) {
 }
 
 func (row Row) ToBool(columnName string) (bool, error) {
+	errInfo := errors.Info{"row": row, "columnName": columnName}
+
 	val, ok := row[columnName]
 	if !ok {
-		return false, errors.Wrap(
-			errors.BadKeyAccess,
-			"column %s not found in JsonRow", columnName)
+		return false, errors.BadKeyAccess.New(
+			errInfo.AppendTo("column not found in JsonRow"))
 	}
+
+	errInfo = errInfo.With("val", val)
 
 	switch val.Type {
 	case wrap.JsonTypeNull:
@@ -97,25 +102,26 @@ func (row Row) ToBool(columnName string) (bool, error) {
 			return v != 0, nil
 		}
 
-		return false, errors.Wrap(
-			errors.BadConversion,
-			"fail to convert value %v:%T of column %s to string", val, val, columnName)
+		return false, errors.BadConversion.New(
+			errInfo.AppendTo("fail to convert value from JSON to bool"))
 	case wrap.JsonTypeBoolean:
 		return val.MustBool(), nil
 	default:
-		return false, errors.Wrap(
-			errors.BadConversion,
-			"fail to convert value %v:%T of column %s to string", val, val, columnName)
+		return false, errors.BadConversion.New(
+			errInfo.AppendTo("fail to convert value from JSON to bool"))
 	}
 }
 
 func (row Row) ToInt64(columnName string) (int64, error) {
+	errInfo := errors.Info{"row": row, "columnName": columnName}
+
 	val, ok := row[columnName]
 	if !ok {
-		return 0, errors.Wrap(
-			errors.BadKeyAccess,
-			"column %s not found in JsonRow", columnName)
+		return 0, errors.BadKeyAccess.New(
+			errInfo.AppendTo("column not found in JsonRow"))
 	}
+
+	errInfo = errInfo.With("val", val)
 
 	switch val.Type {
 	case wrap.JsonTypeNull:
@@ -123,18 +129,16 @@ func (row Row) ToInt64(columnName string) (int64, error) {
 	case wrap.JsonTypeString:
 		v, ok := parseAsInteger(val.MustString())
 		if !ok {
-			return 0, errors.Wrap(
-				errors.BadConversion,
-				"fail to convert value %v:%T of column %s to string", val, val, columnName)
+			return 0, errors.BadConversion.New(
+				errInfo.AppendTo("fail to convert value from JSON to int64"))
 		}
 
 		return v, nil
 	case wrap.JsonTypeNumber:
 		v, err := val.MustNumber().Int64()
 		if err != nil {
-			return 0, errors.Wrap(
-				errors.BadConversion,
-				"fail to convert value %v:%T of column %s to string", val, val, columnName)
+			return 0, errors.BadConversion.New(
+				errInfo.AppendTo("fail to convert value from JSON to int64"))
 		}
 
 		return v, nil
@@ -145,19 +149,21 @@ func (row Row) ToInt64(columnName string) (int64, error) {
 			return 0, nil
 		}
 	default:
-		return 0, errors.Wrap(
-			errors.BadConversion,
-			"fail to convert value %v:%T of column %s to string", val, val, columnName)
+		return 0, errors.BadConversion.New(
+			errInfo.AppendTo("fail to convert value from JSON to int64"))
 	}
 }
 
 func (row Row) ToFloat64(columnName string) (float64, error) {
+	errInfo := errors.Info{"row": row, "columnName": columnName}
+
 	val, ok := row[columnName]
 	if !ok {
-		return 0, errors.Wrap(
-			errors.BadKeyAccess,
-			"column %s not found in JsonRow", columnName)
+		return 0, errors.BadKeyAccess.New(
+			errInfo.AppendTo("column not found in JsonRow"))
 	}
+
+	errInfo = errInfo.With("val", val)
 
 	switch val.Type {
 	case wrap.JsonTypeNull:
@@ -165,18 +171,16 @@ func (row Row) ToFloat64(columnName string) (float64, error) {
 	case wrap.JsonTypeString:
 		v, err := strconv.ParseFloat(val.MustString(), 64)
 		if err != nil {
-			return 0, errors.Wrap(
-				errors.BadConversion,
-				"fail to convert value %v:%T of column %s to float", val, val, columnName)
+			return 0, errors.BadConversion.New(
+				errInfo.AppendTo("fail to convert value from JSON to float64"))
 		}
 
 		return v, nil
 	case wrap.JsonTypeNumber:
 		v, err := val.MustNumber().Float64()
 		if err != nil {
-			return 0, errors.Wrap(
-				errors.Join(err, errors.BadConversion),
-				"fail to convert value %v:%T of column %s to float", val, val, columnName)
+			return 0, errors.BadConversion.New(
+				errInfo.AppendTo("fail to convert value from JSON to float64"))
 		}
 
 		return v, nil
@@ -187,9 +191,8 @@ func (row Row) ToFloat64(columnName string) (float64, error) {
 			return 0, nil
 		}
 	default:
-		return 0, errors.Wrap(
-			errors.BadConversion,
-			"fail to convert value %v:%T of column %s to float", val, val, columnName)
+		return 0, errors.BadConversion.New(
+			errInfo.AppendTo("fail to convert value from JSON to float64"))
 	}
 }
 

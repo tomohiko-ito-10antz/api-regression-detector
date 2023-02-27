@@ -19,24 +19,27 @@ func InvokeRPC(endpoint string, methodDescriptor protoreflect.MethodDescriptor, 
 	reqBodyBytes, err := req.Body.MarshalJSON()
 	if err != nil {
 		return nil, errors.Wrap(
-			errors.Join(err, errors.BadConversion),
-			"fail to read JsonValue: %#v", req.Body)
+			errors.BadConversion.Err(err),
+			errors.Info{"req.Body": req.Body}.AppendTo("fail to convert request body to JSON"))
 	}
 
 	inputMessage := dynamicpb.NewMessage(methodDescriptor.Input())
 	if err := (&protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqBodyBytes, inputMessage); err != nil {
+		errorInfo := errors.Info{"reqBodyBytes": string(reqBodyBytes), "methodInputFullname": methodDescriptor.Input().FullName()}
+
 		return nil, errors.Wrap(
-			errors.Join(err, errors.BadConversion),
-			"fail to convert json body to protobuf message: %s", methodDescriptor.Input().FullName())
+			errors.BadConversion.Err(err),
+			errorInfo.AppendTo("fail to convert request body from JSON to protobuf message"))
 	}
 
 	outputMessage := dynamicpb.NewMessage(methodDescriptor.Output())
 
 	res := NewResponse()
+	fullMethod := fmt.Sprintf(`%s/%s`, methodDescriptor.Parent().FullName(), methodDescriptor.Name())
 
 	err = invokeRPCImpl(
 		endpoint,
-		fmt.Sprintf(`%s/%s`, methodDescriptor.Parent().FullName(), methodDescriptor.Name()),
+		fullMethod,
 		metadata.MD(req.Header),
 		inputMessage,
 		(*metadata.MD)(&res.Header),
@@ -44,21 +47,28 @@ func InvokeRPC(endpoint string, methodDescriptor protoreflect.MethodDescriptor, 
 	if err != nil {
 		errorStatus, ok := status.FromError(err)
 		if !ok {
+			errorInfo := errors.Info{"endpoint": endpoint, "fullMethod": fullMethod}
+
 			return nil, errors.Wrap(
-				errors.Join(err, errors.BadConversion),
-				"fail to invoke grpc: %s", methodDescriptor.Input().FullName())
+				errors.GRPCFailure.Err(err),
+				errorInfo.AppendTo("fail to invoke grpc"))
 		}
+
 		errorMessageBytes, err := protojson.MarshalOptions{EmitUnpopulated: true, AllowPartial: true}.Marshal(errorStatus.Proto())
 		if err != nil {
+			errorInfo := errors.Info{"errorStatus": errorStatus.Proto()}
+
 			return nil, errors.Wrap(
-				errors.Join(err, errors.BadConversion),
-				"fail to parse response as JSON: %#v", outputMessage)
+				errors.BadConversion.Err(err),
+				errorInfo.AppendTo("fail to convert error response body from protobuf message to JSON"))
 		}
 
 		if err = res.Error.UnmarshalJSON(errorMessageBytes); err != nil {
+			errorInfo := errors.Info{"errorMessageBytes": string(errorMessageBytes)}
+
 			return nil, errors.Wrap(
-				errors.Join(err, errors.BadConversion),
-				"fail to parse error as JSON: %s", string(errorMessageBytes))
+				errors.BadConversion.Err(err),
+				errorInfo.AppendTo("fail to parse error response body from JSON"))
 		}
 
 		res.Status = errorStatus
@@ -66,59 +76,63 @@ func InvokeRPC(endpoint string, methodDescriptor protoreflect.MethodDescriptor, 
 
 	bodyMessageBytes, err := protojson.MarshalOptions{EmitUnpopulated: true, AllowPartial: true}.Marshal(outputMessage)
 	if err != nil {
+		errorInfo := errors.Info{"methodOutputFullname": methodDescriptor.Output().FullName()}
 		return nil, errors.Wrap(
-			errors.Join(err, errors.BadConversion),
-			"fail to parse response as JSON: %#v", outputMessage)
+			errors.BadConversion.Err(err),
+			errorInfo.AppendTo("fail to convert response body from protobuf message to JSON"))
 	}
 
 	if err = res.Body.UnmarshalJSON(bodyMessageBytes); err != nil {
+		errorInfo := errors.Info{"errorMessageBytes": string(bodyMessageBytes)}
+
 		return nil, errors.Wrap(
-			errors.Join(err, errors.BadConversion),
-			"fail to parse response as JSON: %s", string(bodyMessageBytes))
+			errors.BadConversion.Err(err),
+			errorInfo.AppendTo("fail to parse response body from JSON"))
 	}
 
 	return res, nil
 }
 
 func invokeRPCImpl(endpoint string, fullMethod string, inputMetadata metadata.MD, inputMessage proto.Message, outputMetadata *metadata.MD, outputMessage proto.Message) error {
+	errInfo := errors.Info{"endpoint": endpoint}
 	cc, err := grpc.Dial(
 		endpoint,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
 		return errors.Wrap(
-			errors.Join(err, errors.GRPCFailure),
-			"fail to dial: %s", endpoint)
+			errors.GRPCFailure.Err(err),
+			errInfo.AppendTo("fail to dial"))
 	}
 
 	defer cc.Close()
 
 	ctx := metadata.NewOutgoingContext(context.Background(), inputMetadata)
+	errInfo = errInfo.With("fullMethod", fullMethod)
 
 	clientStream, err := grpc.NewClientStream(ctx, &grpc.StreamDesc{
 		StreamName:    "ClientStream",
-
 		ServerStreams: true,
 		ClientStreams: true,
 	}, cc, fullMethod)
 	if err != nil {
 		return errors.Wrap(
-			errors.Join(err, errors.GRPCFailure),
-			"fail to create client stream: %s %s", endpoint, fullMethod)
+			errors.GRPCFailure.Err(err),
+			errInfo.AppendTo("fail to create client stream"))
 	}
 
 	if err = clientStream.SendMsg(inputMessage); err != nil {
 		return errors.Wrap(
-			errors.Join(err, errors.GRPCFailure),
-			"fail to send message: %s %s", endpoint, fullMethod)
+			errors.GRPCFailure.Err(err),
+			errInfo.With("inputMessage", inputMessage).AppendTo("fail to send message"))
 	}
 
 	*outputMetadata = metadata.MD{}
 	headerMetadata, err := clientStream.Header()
 	if err != nil {
 		return errors.Wrap(
-			errors.Join(err, errors.GRPCFailure),
-			"fail to receive header metadata: %s %s", endpoint, fullMethod)
+			errors.GRPCFailure.Err(err),
+			errInfo.AppendTo("fail to receive header metadata"))
 	}
 
 	for k, v := range headerMetadata {
@@ -133,8 +147,8 @@ func invokeRPCImpl(endpoint string, fullMethod string, inputMetadata metadata.MD
 		_, ok := status.FromError(err)
 		if !ok {
 			return errors.Wrap(
-				errors.Join(err, errors.GRPCFailure),
-				"fail to receive message: %s %s", endpoint, fullMethod)
+				errors.GRPCFailure.Err(err),
+				errInfo.AppendTo("fail to receive trailer metadata"))
 		}
 
 		return err

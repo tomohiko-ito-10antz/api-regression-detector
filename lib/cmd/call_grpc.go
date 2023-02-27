@@ -6,25 +6,27 @@ import (
 )
 
 func CallGRPC(endpoint string, fullMethod string, req *grpc.Request) (*grpc.Response, error) {
+	errInfo := errors.Info{"endpoint": endpoint, "fullMethod": fullMethod}
+
 	registry, err := grpc.InvokeServerReflection(endpoint, fullMethod)
 	if err != nil {
 		return nil, errors.Wrap(
-			errors.Join(err, errors.GRPCFailure),
-			"fail to resolve reflection registry: %s %s", endpoint, fullMethod)
+			errors.GRPCFailure.Err(err),
+			errInfo.AppendTo("fail to resolve GRPC reflection registry"))
 	}
 
 	methodDescriptor, err := registry.FindMethodDescriptor(fullMethod)
 	if err != nil {
 		return nil, errors.Wrap(
-			errors.Join(err, errors.GRPCFailure),
-			"fail to resolve reflection method: %s %s", endpoint, fullMethod)
+			errors.GRPCFailure.Err(err),
+			errInfo.AppendTo("fail to resolve GRPC method by reflection"))
 	}
 
 	res, err := grpc.InvokeRPC(endpoint, methodDescriptor, *req)
 	if err != nil {
 		return nil, errors.Wrap(
-			errors.Join(err, errors.BadConversion),
-			"fail to invoke GRPC call: %s %s", endpoint, fullMethod)
+			errors.GRPCFailure.Err(err),
+			errInfo.With("request", req).AppendTo("fail to invoke GRPC call"))
 	}
 
 	return res, nil

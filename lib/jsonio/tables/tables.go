@@ -81,6 +81,9 @@ func SaveDumpTables(tables DumpTables, file jsonio.NamedWriter) (err error) {
 					rowObj[columnName] = nil
 					continue
 				}
+
+				errInfo := errors.Info{"columnValue": columnValue}
+
 				switch columnValue.Type {
 				case wrap.JsonTypeNull:
 					rowObj[columnName] = nil
@@ -93,17 +96,14 @@ func SaveDumpTables(tables DumpTables, file jsonio.NamedWriter) (err error) {
 					if !ok {
 						rowObj[columnName], ok = columnValue.Float64()
 						if !ok {
-							return errors.Wrap(
-								errors.BadConversion,
-								"fail to parse %v column value %v:%T of %s as JSON primitive", columnValue.Type, columnValue, columnValue, columnName)
+							return errors.BadConversion.New(
+								errInfo.AppendTo("fail to parse column value as JSON number"))
 						}
 					}
 				case wrap.JsonTypeString:
 					rowObj[columnName] = columnValue.MustString()
 				default:
-					return errors.Wrap(
-						errors.Join(err, errors.BadConversion, errors.Unsupported),
-						"unsupported conversion for column %s of type %v to JSON primitive", columnValue, columnValue.Type)
+					return errors.Unsupported.New(errInfo.AppendTo("unsupported conversion"))
 				}
 			}
 
@@ -115,8 +115,8 @@ func SaveDumpTables(tables DumpTables, file jsonio.NamedWriter) (err error) {
 
 	if err := jsonio.SaveJson(json, file); err != nil {
 		return errors.Wrap(
-			errors.Join(err, errors.BadArgs),
-			"fail to save tables %v:%T as JSON to %s", json, json, file.Name())
+			errors.IOFailure.Err(err),
+			"fail to save tables")
 	}
 
 	return nil
