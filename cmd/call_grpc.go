@@ -12,19 +12,19 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
-func RunCallGRPC(stdio *cli.Stdio, endpoint string, fullMethod string /*, configJson string*/) (code int) {
-	// configJsonFile, err := os.Open(configJson)
-	//if err != nil {
-	//	return 1, errors.Wrap(errors.Join(err, errors.IOFailure), "fail to open %s", configJson)
-	//}
-	//
-	//defer func() {
-	//	if errs := errors.Join(err, configJsonFile.Close()); err != nil {
-	//		err = errors.Wrap(errors.Join(errs, errors.IOFailure), "fail RunCompare")
-	//		code = 1
-	//	}
-	//}()
-	errorInfo := errors.Info{"endpoint": endpoint, "fullMethod": fullMethod}
+func RunCallGRPC(stdio *cli.Stdio, endpoint string, fullMethod string, metadata []string) (code int) {
+	errorInfo := errors.Info{"endpoint": endpoint, "fullMethod": fullMethod, "metadata": metadata}
+
+	metadataMap := map[string][]string{}
+	for _, md := range metadata {
+		key, val, err := grpc.ParseMetadata(md)
+		if err != nil {
+			PrintError(os.Stderr, errors.Wrap(err, errorInfo.AppendTo("fail RunCallGRPC")))
+			return 1
+		}
+
+		metadataMap[key] = append(metadataMap[key], val)
+	}
 
 	reqBodyAny, err := jsonio.LoadJson[any](stdio.Stdin)
 	if err != nil {
@@ -38,7 +38,7 @@ func RunCallGRPC(stdio *cli.Stdio, endpoint string, fullMethod string /*, config
 		return 1
 	}
 
-	res, err := libcmd.CallGRPC(endpoint, fullMethod, &grpc.Request{Body: reqBody})
+	res, err := libcmd.CallGRPC(endpoint, fullMethod, &grpc.Request{Metadata: metadataMap, Body: reqBody})
 	if err != nil {
 		PrintError(os.Stderr, errors.Wrap(err, errorInfo.AppendTo("fail RunCallGRPC")))
 		return 1

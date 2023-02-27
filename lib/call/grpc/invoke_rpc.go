@@ -40,7 +40,7 @@ func InvokeRPC(endpoint string, methodDescriptor protoreflect.MethodDescriptor, 
 	err = invokeRPCImpl(
 		endpoint,
 		fullMethod,
-		metadata.MD(req.Header),
+		metadata.MD(req.Metadata),
 		inputMessage,
 		(*metadata.MD)(&res.Header),
 		outputMessage)
