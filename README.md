@@ -3,11 +3,11 @@
 ## Install
 
 ```sh
-go install github.com/Jumpaku/api-regression-detector/cmd/call/call-http@latest
-go install github.com/Jumpaku/api-regression-detector/cmd/call/call-grpc@latest
+go install github.com/Jumpaku/api-regression-detector/cmd/call-http@latest
+go install github.com/Jumpaku/api-regression-detector/cmd/call-grpc@latest
 go install github.com/Jumpaku/api-regression-detector/cmd/compare@latest
-go install github.com/Jumpaku/api-regression-detector/cmd/db/db-init@latest
-go install github.com/Jumpaku/api-regression-detector/cmd/db/db-dump@latest
+go install github.com/Jumpaku/api-regression-detector/cmd/db-init@latest
+go install github.com/Jumpaku/api-regression-detector/cmd/db-dump@latest
 ```
 
 ## Usage
