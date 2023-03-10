@@ -36,14 +36,14 @@ func (r *Request) ToHTTPRequest(endpointURL string, method Method) (*nethttp.Req
 
 	errInfo = errInfo.With("endpointURL", endpointURL).With("method", method)
 
-	if method == MethodGet {
-		urlWithParams, err := AssignParamsToURL(endpointURL, r)
-		if err != nil {
-			return nil, errors.Wrap(
-				errors.HTTPFailure.Err(err),
-				errInfo.AppendTo("fail to assign request body parameters to URL"))
-		}
+	urlWithParams, err := AssignParamsToURL(endpointURL, r)
+	if err != nil {
+		return nil, errors.Wrap(
+			errors.HTTPFailure.Err(err),
+			errInfo.AppendTo("fail to assign request body parameters to URL"))
+	}
 
+	if method == MethodGet {
 		endpointURL = urlWithParams.String()
 		reqBodyBytes = nil
 	}
