@@ -12,29 +12,29 @@ service GreetingService {
     option (google.api.http) = {get: "/error"};
   }
   rpc GetHello(HelloRequest) returns (HelloResponse) {
-    option (google.api.http) = {get: "/say/hello/{name}"};
+    option (google.api.http) = {get: "/hello/{name}"};
   }
   rpc PostHello(HelloRequest) returns (HelloResponse) {
     option (google.api.http) = {
-      post: "/say/hello/{name}",
+      post: "/hello/{name}",
       body: "*"
     };
   }
   rpc DeleteHello(HelloRequest) returns (HelloResponse) {
     option (google.api.http) = {
-      delete: "/say/hello/{name}",
+      delete: "/hello/{name}",
       body: "*"
     };
   }
   rpc PutHello(HelloRequest) returns (HelloResponse) {
     option (google.api.http) = {
-      put: "/say/hello/{name}",
+      put: "/hello/{name}",
       body: "*"
     };
   }
   rpc PatchHello(HelloRequest) returns (HelloResponse) {
     option (google.api.http) = {
-      patch: "/say/hello/{name}",
+      patch: "/hello/{name}",
       body: "*"
     };
   }

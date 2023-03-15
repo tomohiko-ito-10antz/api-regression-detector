@@ -4,9 +4,9 @@ set -eux
 
 ENDPOINT='api:50051'
 METHOD='api.GreetingService/PutHello'
-REQUEST='test/data/call/grpc-put/request.json'
-ACTUAL_RESPONSE='test/data/call/grpc-put/actual.json'
-EXPECTED_RESPONSE='test/data/call/grpc-put/expected.json'
+REQUEST='test/data/call/put/request.json'
+ACTUAL_RESPONSE='test/data/call/put/actual.json'
+EXPECTED_RESPONSE='test/data/call/put/expected.json'
 
 go run cmd/call-grpc/main.go "${ENDPOINT}" "${METHOD}" < "${REQUEST}" > "${ACTUAL_RESPONSE}"
 
