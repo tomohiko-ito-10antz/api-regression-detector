@@ -32,10 +32,53 @@ func (o schemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string)
 			errInfo.AppendTo("fail to get primary keys in table"))
 	}
 
+	referencedTables, err := getReferencedTables(ctx, tx, tableName)
+	if err != nil {
+		return db.Schema{}, errors.Wrap(
+			errors.DBFailure.Err(err),
+			errInfo.AppendTo("fail to get referenced table of table"))
+	}
+
 	return db.Schema{
-		ColumnTypes: columnTypes,
-		PrimaryKeys: primaryKeys,
+		ColumnTypes:  columnTypes,
+		PrimaryKeys:  primaryKeys,
+		Dependencies: referencedTables,
 	}, nil
+}
+
+func getReferencedTables(ctx context.Context, tx db.Tx, tableName string) (referencedTables []string, err error) {
+	stmt := `SELECT DISTINCT "table" AS 'table' FROM pragma_foreign_key_list(?)`
+	params := []any{tableName}
+	errInfo := errors.Info{"stmt": stmt, "params": params}
+
+	rows, err := tx.Read(ctx, stmt, params)
+	if err != nil {
+		return nil, errors.Wrap(
+			errors.DBFailure.Err(err),
+			errInfo.AppendTo("fail to select referenced tables of table"))
+	}
+
+	referencedTables = []string{}
+	for _, row := range rows {
+		table, ok := row["table"]
+		if !ok {
+			return nil, errors.BadKeyAccess.New(
+				errInfo.AppendTo("key table not found"))
+		}
+
+		tableString, err := table.AsString()
+		if err != nil {
+			return nil, errors.Wrap(
+				errors.BadConversion.Err(err),
+				errInfo.With("table", table).AppendTo("fail to convert table to string"))
+		}
+
+		ref := string(tableString.String)
+
+		referencedTables = append(referencedTables, ref)
+	}
+
+	return referencedTables, nil
 }
 
 func getColumnTypes(ctx context.Context, tx db.Tx, tableName string) (db.ColumnTypes, error) {
