@@ -27,16 +27,32 @@ type greetingService struct {
 	proto_api.UnimplementedGreetingServiceServer
 }
 
-func (s *greetingService) SayHello(ctx context.Context, req *proto_api.HelloRequest) (*proto_api.HelloResponse, error) {
+func Hello(req *proto_api.HelloRequest) (*proto_api.HelloResponse, error) {
 	message := "Hello, "
 	if req.Title != "" {
 		message += req.Title + " "
 	}
 	message += req.Name + "!"
-	return &proto_api.HelloResponse{Message: message}, nil
+	return &proto_api.HelloResponse{Message: message, Method: req.Method}, nil
 }
 
-func (s *greetingService) GetError(ctx context.Context, req *emptypb.Empty) (*emptypb.Empty, error) {
+func (s *greetingService) GetHello(ctx context.Context, req *proto_api.HelloRequest) (*proto_api.HelloResponse, error) {
+	return Hello(req)
+}
+func (s *greetingService) PostHello(ctx context.Context, req *proto_api.HelloRequest) (*proto_api.HelloResponse, error) {
+	return Hello(req)
+}
+func (s *greetingService) DeleteHello(ctx context.Context, req *proto_api.HelloRequest) (*proto_api.HelloResponse, error) {
+	return Hello(req)
+}
+func (s *greetingService) PutHello(ctx context.Context, req *proto_api.HelloRequest) (*proto_api.HelloResponse, error) {
+	return Hello(req)
+}
+func (s *greetingService) PatchHello(ctx context.Context, req *proto_api.HelloRequest) (*proto_api.HelloResponse, error) {
+	return Hello(req)
+}
+
+func (s *greetingService) Error(ctx context.Context, req *emptypb.Empty) (*emptypb.Empty, error) {
 	return nil, fmt.Errorf("server error occur")
 }
 

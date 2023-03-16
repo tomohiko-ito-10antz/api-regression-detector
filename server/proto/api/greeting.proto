@@ -1,28 +1,50 @@
 syntax = "proto3";
 
-option go_package = "github.com/Jumpaku/api-regression-detector/server/gen/proto/api";
-
 package api;
 
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 
+option go_package = "github.com/Jumpaku/api-regression-detector/server/gen/proto/api";
+
 service GreetingService {
-  rpc SayHello (HelloRequest) returns (HelloResponse) {
+  rpc Error(google.protobuf.Empty) returns (google.protobuf.Empty) {
+    option (google.api.http) = {get: "/error"};
+  }
+  rpc GetHello(HelloRequest) returns (HelloResponse) {
+    option (google.api.http) = {get: "/hello/{name}"};
+  }
+  rpc PostHello(HelloRequest) returns (HelloResponse) {
     option (google.api.http) = {
-      get: "/say/hello/{name}"
+      post: "/hello/{name}",
+      body: "*"
     };
   }
-  rpc GetError (google.protobuf.Empty) returns (google.protobuf.Empty) {
+  rpc DeleteHello(HelloRequest) returns (HelloResponse) {
     option (google.api.http) = {
-      get: "/error"
+      delete: "/hello/{name}",
+      body: "*"
+    };
+  }
+  rpc PutHello(HelloRequest) returns (HelloResponse) {
+    option (google.api.http) = {
+      put: "/hello/{name}",
+      body: "*"
+    };
+  }
+  rpc PatchHello(HelloRequest) returns (HelloResponse) {
+    option (google.api.http) = {
+      patch: "/hello/{name}",
+      body: "*"
     };
   }
 }
 message HelloRequest {
   string title = 1;
   string name = 2;
+  string method = 3;
 }
 message HelloResponse {
   string message = 1;
+  string method = 2;
 }

@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
+	"golang.org/x/exp/slices"
 )
 
 type JsonType int
@@ -20,19 +21,38 @@ const (
 	JsonTypeObject
 )
 
-type JsonKey string
+type JsonKeyElm string
 
-func JsonKeyInteger(index int) JsonKey {
-	return JsonKey(strconv.FormatInt(int64(index), 10))
+func (e JsonKeyElm) String() string {
+	return string(e)
+}
+func (e JsonKeyElm) Integer() (int, bool) {
+	elm, err := strconv.ParseInt(e.String(), 10, 64)
+	return int(elm), err == nil
 }
 
-func (k JsonKey) String() string {
-	return string(k)
-}
+type JsonKey []JsonKeyElm
 
-func (k JsonKey) Integer() (int, bool) {
-	v, err := strconv.ParseInt(string(k), 10, 64)
-	return int(v), err != nil
+func (k JsonKey) Equals(other JsonKey) bool {
+	return slices.Equal(k, other)
+}
+func (k JsonKey) Len() int {
+	return len(k)
+}
+func (k JsonKey) Append(key JsonKeyElm) JsonKey {
+	return JsonKey(append(k, key))
+}
+func (k JsonKey) AppendStr(key string) JsonKey {
+	return k.Append(JsonKeyElm(key))
+}
+func (k JsonKey) AppendInt(index int) JsonKey {
+	return k.AppendStr(strconv.FormatInt(int64(index), 10))
+}
+func (k JsonKey) Get(index int) (JsonKeyElm, bool) {
+	if index >= k.Len() {
+		return "", false
+	}
+	return k[index], true
 }
 
 type JsonValue struct {
@@ -204,24 +224,24 @@ func (v *JsonValue) MustArray() JsonArray {
 	return v.ArrayValue
 }
 
-func (v *JsonValue) Walk(visitor func(keys []JsonKey, val *JsonValue) error) error {
-	return walkImpl([]JsonKey{}, v, visitor)
+func (v *JsonValue) Walk(visitor func(key JsonKey, val *JsonValue) error) error {
+	return walkImpl(JsonKey{}, v, visitor)
 }
 
-func walkImpl(parentKey []JsonKey, val *JsonValue, walkFunc func(keys []JsonKey, val *JsonValue) error) error {
+func walkImpl(parentKey JsonKey, val *JsonValue, walkFunc func(key JsonKey, val *JsonValue) error) error {
 	if err := walkFunc(parentKey, val); err != nil {
 		return err
 	}
 	switch val.Type {
 	case JsonTypeObject:
 		for k, vk := range val.MustObject() {
-			if err := walkImpl(append(parentKey, JsonKey(k)), vk, walkFunc); err != nil {
+			if err := walkImpl(parentKey.AppendStr(k), vk, walkFunc); err != nil {
 				return err
 			}
 		}
 	case JsonTypeArray:
 		for i, vi := range val.MustArray() {
-			if err := walkImpl(append(parentKey, JsonKeyInteger(i)), vi, walkFunc); err != nil {
+			if err := walkImpl(parentKey.AppendInt(i), vi, walkFunc); err != nil {
 				return err
 			}
 		}

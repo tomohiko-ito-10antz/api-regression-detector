@@ -41,7 +41,15 @@ test:
 	./test/scripts/db/postgres.sh 2> /dev/null
 	./test/scripts/db/spanner.sh 2> /dev/null
 	./test/scripts/db/sqlite.sh 2> /dev/null
-	./test/scripts/call/grpc-failure.sh 2> /dev/null
-	./test/scripts/call/grpc-success.sh 2> /dev/null
-	./test/scripts/call/http-failure.sh 2> /dev/null
-	./test/scripts/call/http-success.sh 2> /dev/null
+	./test/scripts/call/grpc-error.sh 2> /dev/null
+	./test/scripts/call/grpc-get.sh 2> /dev/null
+	./test/scripts/call/grpc-post.sh 2> /dev/null
+	./test/scripts/call/grpc-put.sh 2> /dev/null
+	./test/scripts/call/grpc-patch.sh 2> /dev/null
+	./test/scripts/call/grpc-delete.sh 2> /dev/null
+	./test/scripts/call/http-error.sh 2> /dev/null
+	./test/scripts/call/http-get.sh 2> /dev/null
+	./test/scripts/call/http-post.sh 2> /dev/null
+	./test/scripts/call/http-put.sh 2> /dev/null
+	./test/scripts/call/http-patch.sh 2> /dev/null
+	./test/scripts/call/http-delete.sh 2> /dev/null
