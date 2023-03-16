@@ -30,10 +30,105 @@ func (o schemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string)
 			errors.DBFailure.Err(err),
 			errInfo.AppendTo("fail to get primary keys in table"))
 	}
+	referencedTables, err := getReferencedTables(ctx, tx, tableName)
+	if err != nil {
+		return db.Schema{}, errors.Wrap(
+			errors.DBFailure.Err(err),
+			errInfo.AppendTo("fail to get referenced table of table"))
+	}
+	interleavedTables, err := getParentTables(ctx, tx, tableName)
+	if err != nil {
+		return db.Schema{}, errors.Wrap(
+			errors.DBFailure.Err(err),
+			errInfo.AppendTo("fail to get interleaved table of table"))
+	}
+
 	return db.Schema{
-		ColumnTypes: columnTypes,
-		PrimaryKeys: primaryKeys,
+		ColumnTypes:  columnTypes,
+		PrimaryKeys:  primaryKeys,
+		Dependencies: append(referencedTables, interleavedTables...),
 	}, nil
+}
+
+func getReferencedTables(ctx context.Context, tx db.Tx, tableName string) (referencedTables []string, err error) {
+	stmt := `SELECT
+	DISTINCT ctu.table_name AS referenced_table_name
+  FROM 
+	information_schema.TABLE_CONSTRAINTS AS tc
+	JOIN information_schema.CONSTRAINT_TABLE_USAGE AS ctu
+	  ON tc.constraint_name = ctu.constraint_name
+  WHERE tc.constraint_type = 'FOREIGN KEY'
+	AND tc.table_name = ?`
+	params := []any{tableName}
+	errInfo := errors.Info{"stmt": stmt, "params": params}
+
+	rows, err := tx.Read(ctx, stmt, params)
+	if err != nil {
+		return nil, errors.Wrap(
+			errors.DBFailure.Err(err),
+			errInfo.AppendTo("fail to select referenced tables of table"))
+	}
+
+	referencedTables = []string{}
+	for _, row := range rows {
+		referencedTable, ok := row["referenced_table_name"]
+		if !ok {
+			return nil, errors.BadKeyAccess.New(
+				errInfo.AppendTo("key referenced_table_name not found"))
+		}
+
+		referencedTableString, err := referencedTable.AsString()
+		if err != nil {
+			return nil, errors.Wrap(
+				errors.BadConversion.Err(err),
+				errInfo.With("referencedTable", referencedTable).AppendTo("fail to referenced_table_name to []byte"))
+		}
+
+		ref := string(referencedTableString.String)
+
+		referencedTables = append(referencedTables, ref)
+	}
+
+	return referencedTables, nil
+}
+
+func getParentTables(ctx context.Context, tx db.Tx, tableName string) (parentTables []string, err error) {
+	stmt := `SELECT
+    parent_table_name AS parent_table_name
+FROM information_schema.TABLES
+WHERE parent_table_name IS NOT NULL
+    AND table_name = ?`
+	params := []any{tableName}
+	errInfo := errors.Info{"stmt": stmt, "params": params}
+
+	rows, err := tx.Read(ctx, stmt, params)
+	if err != nil {
+		return nil, errors.Wrap(
+			errors.DBFailure.Err(err),
+			errInfo.AppendTo("fail to select referenced tables of table"))
+	}
+
+	parentTables = []string{}
+	for _, row := range rows {
+		parentTable, ok := row["parent_table_name"]
+		if !ok {
+			return nil, errors.BadKeyAccess.New(
+				errInfo.AppendTo("key parent_table_name not found"))
+		}
+
+		parentTablesString, err := parentTable.AsString()
+		if err != nil {
+			return nil, errors.Wrap(
+				errors.BadConversion.Err(err),
+				errInfo.With("parentTables", parentTables).AppendTo("fail to parent_table_name to []byte"))
+		}
+
+		ref := string(parentTablesString.String)
+
+		parentTables = append(parentTables, ref)
+	}
+
+	return parentTables, nil
 }
 
 func getColumnTypes(ctx context.Context, tx db.Tx, tableName string) (columnTypes db.ColumnTypes, err error) {

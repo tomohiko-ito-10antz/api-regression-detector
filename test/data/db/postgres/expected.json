@@ -42,5 +42,17 @@
             "c3": "2022-12-25T00:45:17Z",
             "id": 6
         }
+    ],
+    "child_example_table_1": [
+        {
+            "example_table_id": 1,
+            "id": 1
+        }
+    ],
+    "child_example_table_2": [
+        {
+            "example_table_id": 2,
+            "id": 2
+        }
     ]
 }

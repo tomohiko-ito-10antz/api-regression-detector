@@ -1,4 +1,16 @@
 {
+  "child_example_table_1": [
+    {
+      "example_table_id": 1,
+      "id": 1
+    }
+  ],
+  "child_example_table_2": [
+    {
+      "example_table_id": 2,
+      "id": 2
+    }
+  ],
   "example_table": [
     {
       "c0": "abc",

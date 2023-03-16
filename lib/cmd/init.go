@@ -35,18 +35,18 @@ func Init(ctx context.Context,
 		}
 
 		tableNames := []string{}
-		references := topological_sort.NewGraph[string]()
+		dependencies := topological_sort.NewGraph[string]()
 		for tableName, schema := range tableSchema {
 			tableNames = append(tableNames, tableName)
-			for _, referred := range schema.References {
-				references.Arrow(tableName, referred)
+			for _, depended := range schema.Dependencies {
+				dependencies.Arrow(tableName, depended)
 			}
 		}
 
-		tableNamesOrder, ok := topological_sort.Perform(references)
+		tableNamesOrder, ok := topological_sort.Perform(dependencies)
 		if !ok {
 			return errors.DBFailure.New(
-				errors.Info{"references": references}.AppendTo("fail to clear rows in table due to cycle"))
+				errors.Info{"dependencies": dependencies}.AppendTo("fail to clear rows in table due to cycle"))
 		}
 
 		sort.Slice(tableNames, func(i, j int) bool {
