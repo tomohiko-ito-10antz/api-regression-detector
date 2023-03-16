@@ -17,12 +17,13 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+cover.html
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
 # Go workspace file
-go.work
+# go.work
 
 ### Linux ###
 *~
@@ -99,3 +100,5 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,linux,windows,go
+
+examples/sqlite/sqlite.db

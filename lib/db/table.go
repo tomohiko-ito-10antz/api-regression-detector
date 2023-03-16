@@ -1,9 +1,9 @@
 package db
 
 type Schema struct {
-	PrimaryKeys []string
-	ColumnTypes ColumnTypes
-	References  []string
+	PrimaryKeys  []string
+	ColumnTypes  ColumnTypes
+	Dependencies []string
 }
 
 type Tables map[string]Table

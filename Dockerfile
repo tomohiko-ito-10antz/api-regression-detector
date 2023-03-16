@@ -14,6 +14,7 @@ WORKDIR /work
 RUN go install github.com/cloudspannerecosystem/spanner-cli@latest && \
     go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest && \
     go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest && \
+    go install github.com/bufbuild/buf/cmd/buf@v1.14.0 && \
     go install golang.org/x/tools/cmd/goimports@latest
 
 # go modules

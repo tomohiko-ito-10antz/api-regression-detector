@@ -40,9 +40,9 @@ func (o schemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string)
 	}
 
 	return db.Schema{
-		PrimaryKeys: primaryKeys,
-		ColumnTypes: columnTypes,
-		References:  referencedTables,
+		PrimaryKeys:  primaryKeys,
+		ColumnTypes:  columnTypes,
+		Dependencies: referencedTables,
 	}, nil
 }
 

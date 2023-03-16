@@ -35,10 +35,19 @@
         ]
     },
     {
-        "name": "child_example_table",
-        "row": [
+        "name": "child_example_table_1",
+        "rows": [
             {
                 "id": 1,
+                "example_table_id": 1
+            }
+        ]
+    },
+    {
+        "name": "child_example_table_2",
+        "rows": [
+            {
+                "id": 2,
                 "example_table_id": 2
             }
         ]

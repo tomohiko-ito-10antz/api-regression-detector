@@ -33,5 +33,23 @@
                 "c3": "2022-12-25T00:54:17+00:09"
             }
         ]
+    },
+    {
+        "name": "child_example_table_1",
+        "rows": [
+            {
+                "id": 1,
+                "example_table_id": 1
+            }
+        ]
+    },
+    {
+        "name": "child_example_table_2",
+        "rows": [
+            {
+                "id": 2,
+                "example_table_id": 2
+            }
+        ]
     }
 ]
