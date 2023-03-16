@@ -20,7 +20,7 @@ var _ cmd.RowClearer = truncateOperation{}
 func (o truncateOperation) ClearRows(ctx context.Context, tx db.Tx, tableName string) error {
 	errInfo := errors.Info{tableName: tableName}
 
-	err := tx.Write(ctx, fmt.Sprintf(`TRUNCATE TABLE %s RESTART IDENTITY`, tableName), nil)
+	err := tx.Write(ctx, fmt.Sprintf(`TRUNCATE TABLE %s RESTART IDENTITY CASCADE`, tableName), nil)
 	if err != nil {
 		return errors.Wrap(
 			errors.DBFailure.Err(err),
