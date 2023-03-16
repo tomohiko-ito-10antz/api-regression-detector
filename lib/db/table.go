@@ -3,6 +3,7 @@ package db
 type Schema struct {
 	PrimaryKeys []string
 	ColumnTypes ColumnTypes
+	References  []string
 }
 
 type Tables map[string]Table

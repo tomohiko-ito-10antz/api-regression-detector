@@ -32,10 +32,57 @@ func (o schemaGetter) GetSchema(ctx context.Context, tx db.Tx, tableName string)
 			errInfo.AppendTo("fail to get primary keys in table"))
 	}
 
+	referencedTables, err := getReferencedTables(ctx, tx, tableName)
+	if err != nil {
+		return db.Schema{}, errors.Wrap(
+			errors.DBFailure.Err(err),
+			errInfo.AppendTo("fail to get referenced table of table"))
+	}
+
 	return db.Schema{
 		PrimaryKeys: primaryKeys,
 		ColumnTypes: columnTypes,
+		References:  referencedTables,
 	}, nil
+}
+
+func getReferencedTables(ctx context.Context, tx db.Tx, tableName string) (referencedTables []string, err error) {
+	stmt := `SELECT
+    referenced_table_name AS referenced_table_name
+FROM information_schema.KEY_COLUMN_USAGE
+WHERE table_name = ?
+    AND referenced_table_name IS NOT NULL`
+	params := []any{tableName}
+	errInfo := errors.Info{"stmt": stmt, "params": params}
+
+	rows, err := tx.Read(ctx, stmt, params)
+	if err != nil {
+		return nil, errors.Wrap(
+			errors.DBFailure.Err(err),
+			errInfo.AppendTo("fail to select referenced tables of table"))
+	}
+
+	referencedTables = []string{}
+	for _, row := range rows {
+		referencedTable, ok := row["referenced_table_name"]
+		if !ok {
+			return nil, errors.BadKeyAccess.New(
+				errInfo.AppendTo("key referenced_table_name not found"))
+		}
+
+		referencedTableBytes, err := referencedTable.AsBytes()
+		if err != nil {
+			return nil, errors.Wrap(
+				errors.BadConversion.Err(err),
+				errInfo.With("referencedTable", referencedTable).AppendTo("fail to referenced_table_name to []byte"))
+		}
+
+		ref := string(referencedTableBytes.Bytes)
+
+		referencedTables = append(referencedTables, ref)
+	}
+
+	return referencedTables, nil
 }
 
 func getColumnTypes(ctx context.Context, tx db.Tx, tableName string) (columnTypes db.ColumnTypes, err error) {
