@@ -1,3 +1,4 @@
+SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS example_table;
 CREATE TABLE example_table (
     id integer auto_increment,
@@ -21,3 +22,4 @@ CREATE TABLE child_example_table_2 (
     PRIMARY KEY(id),
     FOREIGN KEY (example_table_id) REFERENCES example_table (id)
 );
+SET FOREIGN_KEY_CHECKS = 1;
