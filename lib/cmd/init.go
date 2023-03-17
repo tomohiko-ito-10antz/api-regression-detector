@@ -2,10 +2,12 @@ package cmd
 
 import (
 	"context"
+	"sort"
 
 	libdb "github.com/Jumpaku/api-regression-detector/lib/db"
 	"github.com/Jumpaku/api-regression-detector/lib/errors"
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio/tables"
+	"github.com/Jumpaku/api-regression-detector/lib/topological_sort"
 )
 
 func Init(ctx context.Context,
@@ -32,7 +34,26 @@ func Init(ctx context.Context,
 			tableSchema[table.Name] = schema
 		}
 
-		for tableName := range tableSchema {
+		tableNames := []string{}
+		dependencies := topological_sort.NewGraph[string]()
+		for tableName, schema := range tableSchema {
+			tableNames = append(tableNames, tableName)
+			for _, depended := range schema.Dependencies {
+				dependencies.Arrow(tableName, depended)
+			}
+		}
+
+		tableNamesOrder, ok := topological_sort.Perform(dependencies)
+		if !ok {
+			return errors.DBFailure.New(
+				errors.Info{"dependencies": dependencies}.AppendTo("fail to clear rows in table due to cycle"))
+		}
+
+		sort.Slice(tableNames, func(i, j int) bool {
+			return tableNamesOrder[tableNames[i]] < tableNamesOrder[tableNames[j]]
+		})
+
+		for _, tableName := range tableNames {
 			err := rowClearer.ClearRows(ctx, tx, tableName)
 			if err != nil {
 				return errors.Wrap(
