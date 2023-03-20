@@ -18,7 +18,7 @@ Usage:
 
 Options:
 	<http-header>      Header in the form 'Key: value'.
-	<endpoint-url>     The URL of the HTTP endpoint which may has path parameters enclosed in '[' and ']'.
+	<endpoint-url>     The URL of the HTTP endpoint which may have path parameters enclosed in '[' and ']'.
 	<http-method>      One of GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE, or PATCH.
 	-h --help          Show this screen.
 	--version          Show version.`
