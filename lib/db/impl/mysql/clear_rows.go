@@ -20,11 +20,25 @@ var _ cmd.RowClearer = truncateOperation{}
 func (o truncateOperation) ClearRows(ctx context.Context, tx db.Tx, tableName string) error {
 	errInfo := errors.Info{tableName: tableName}
 
-	err := tx.Write(ctx, fmt.Sprintf(`TRUNCATE TABLE %s`, tableName), nil)
+	err := tx.Write(ctx, `SET FOREIGN_KEY_CHECKS = 0`, nil)
+	if err != nil {
+		return errors.Wrap(
+			errors.DBFailure.Err(err),
+			errInfo.AppendTo("fail to disable foreign key check"))
+	}
+
+	err = tx.Write(ctx, fmt.Sprintf(`DELETE FROM %s WHERE TRUE`, tableName), nil)
 	if err != nil {
 		return errors.Wrap(
 			errors.DBFailure.Err(err),
 			errInfo.AppendTo("fail to truncate rows in table"))
+	}
+
+	err = tx.Write(ctx, `SET FOREIGN_KEY_CHECKS = 1`, nil)
+	if err != nil {
+		return errors.Wrap(
+			errors.DBFailure.Err(err),
+			errInfo.AppendTo("fail to enable foreign key check"))
 	}
 
 	err = tx.Write(ctx, fmt.Sprintf(`ALTER TABLE %s AUTO_INCREMENT = 1`, tableName), nil)

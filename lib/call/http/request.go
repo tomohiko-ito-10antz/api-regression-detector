@@ -36,15 +36,16 @@ func (r *Request) ToHTTPRequest(endpointURL string, method Method) (*nethttp.Req
 
 	errInfo = errInfo.With("endpointURL", endpointURL).With("method", method)
 
-	if method == MethodGet {
-		urlWithParams, err := AssignParamsToURL(endpointURL, r)
-		if err != nil {
-			return nil, errors.Wrap(
-				errors.HTTPFailure.Err(err),
-				errInfo.AppendTo("fail to assign request body parameters to URL"))
-		}
+	urlWithParams, err := AssignParamsToURL(endpointURL, r.Body)
+	if err != nil {
+		return nil, errors.Wrap(
+			errors.HTTPFailure.Err(err),
+			errInfo.AppendTo("fail to assign request body parameters to URL"))
+	}
 
-		endpointURL = urlWithParams.String()
+	endpointURL = urlWithParams.String()
+
+	if method == MethodGet {
 		reqBodyBytes = nil
 	}
 
@@ -60,7 +61,7 @@ func (r *Request) ToHTTPRequest(endpointURL string, method Method) (*nethttp.Req
 	return request, nil
 }
 
-func AssignParamsToURL(templateURL string, req *Request) (*url.URL, error) {
+func AssignParamsToURL(templateURL string, body *wrap.JsonValue) (*url.URL, error) {
 	parsed, err := url.Parse(templateURL)
 	if err != nil {
 		return nil, errors.Wrap(
@@ -70,8 +71,8 @@ func AssignParamsToURL(templateURL string, req *Request) (*url.URL, error) {
 
 	// Add all non-null primitive values in JSON body to queryParams
 	queryParams := url.Values{}
-	_ = req.Body.Walk(func(key []wrap.JsonKey, val *wrap.JsonValue) error {
-		if len(key) == 0 || val.Type == wrap.JsonTypeNull {
+	_ = body.Walk(func(key wrap.JsonKey, val *wrap.JsonValue) error {
+		if key.Len() == 0 || val.Type == wrap.JsonTypeNull {
 			return nil
 		}
 		keyStrings := []string{}

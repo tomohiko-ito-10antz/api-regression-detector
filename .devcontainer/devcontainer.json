@@ -3,11 +3,17 @@
   "dockerComposeFile": "../docker-compose.yml",
   "service": "dev",
   "workspaceFolder": "/work/",
-  "extensions": [
-    "donjayamanne.githistory",
-    "streetsidesoftware.code-spell-checker",
-    "golang.go"
-  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "donjayamanne.githistory",
+        "streetsidesoftware.code-spell-checker",
+        "golang.go",
+        "bufbuild.vscode-buf",
+        "pbkit.vscode-pbkit"
+      ]
+    }
+  },
   "settings": {
     "editor.wordWrap": "on",
     "editor.formatOnSave": true
