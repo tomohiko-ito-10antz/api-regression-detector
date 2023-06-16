@@ -1,13 +1,20 @@
+.DEFAULT_GOAL := help
+.PHONY: help
+help: ## Show help
+	@grep -E '^[a-zA-Z_-]+:.*?##.*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?##"}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
+
 .PHONY: init-mysql
-init-mysql:
+init-mysql: ## Initialize MySQL database for develop
 	mysql --host=mysql --password=password main < examples/mysql/create.sql
 
 .PHONY: init-postgres
-init-postgres:
+init-postgres: ## Initialize PostgreSQL database for develop
 	psql --host=postgres --username=root --dbname=main < examples/postgres/create.sql
 
 .PHONY: init-spanner
-init-spanner:
+init-spanner: ## Initialize Spanner emulator database for develop
 	gcloud config set project regression-detector
 	gcloud config set auth/disable_credentials true
 	gcloud config set api_endpoint_overrides/spanner http://spanner:9020/
@@ -19,26 +26,18 @@ init-spanner:
 	spanner-cli -p regression-detector -i example -d main --file=examples/spanner/create.sql
 
 .PHONY: init-sqlite
-init-sqlite:
+init-sqlite: ## Initialize SQLite3 database for develop
 	sqlite3 examples/sqlite/sqlite.db <examples/sqlite/create.sql
 
-.PHONY: build
-build:
-	env GOOS=windows GOARCH=arm64 go build -ldflags '-s -w' -trimpath -o bin/windows/arm64/jrd main.go
-	env GOOS=windows GOARCH=amd64 go build -ldflags '-s -w' -trimpath -o bin/windows/amd64/jrd main.go
-	env GOOS=linux   GOARCH=arm64 go build -ldflags '-s -w' -trimpath -o bin/linux/arm64/jrd main.go
-	env GOOS=linux   GOARCH=amd64 go build -ldflags '-s -w' -trimpath -o bin/linux/amd64/jrd main.go
-	env GOOS=darwin  GOARCH=arm64 go build -ldflags '-s -w' -trimpath -o bin/darwin/arm64/jrd main.go
-	env GOOS=darwin  GOARCH=amd64 go build -ldflags '-s -w' -trimpath -o bin/darwin/amd64/jrd main.go
-
 .PHONY: lint
-lint:
+lint: ## Perform lint
 	find . -print | grep --regex '.*\.go' | xargs goimports -w
 	golangci-lint run --fix --enable-all ./...
 
 
 .PHONY: test
-test:
+test: ## Perform test
+	go clean -testcache
 	go test ./...
 	./test/scripts/db/mysql.sh 2> /dev/null
 	./test/scripts/db/postgres.sh 2> /dev/null
@@ -58,6 +57,4 @@ test:
 	./test/scripts/call/http-patch.sh 2> /dev/null
 	./test/scripts/call/http-delete.sh 2> /dev/null
 
-.PHONY: cover
-cover:
 	go test -cover ./... -coverprofile=test/cover.out && go tool cover -html=test/cover.out -o test/cover.html

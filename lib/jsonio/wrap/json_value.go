@@ -31,10 +31,6 @@ func (e JsonKeyElm) Integer() (int, bool) {
 	return int(elm), err == nil
 }
 
-func (k JsonKey) Integer() (int, bool) {
-	v, err := strconv.ParseInt(string(k), 10, 64)
-	return int(v), err == nil
-}
 type JsonKey []JsonKeyElm
 
 func (k JsonKey) Equals(other JsonKey) bool {

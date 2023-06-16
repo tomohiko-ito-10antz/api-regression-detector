@@ -9,28 +9,6 @@ import (
 	"github.com/Jumpaku/api-regression-detector/test/assert"
 )
 
-func TestJsonKey_String(t *testing.T) {
-	t.Run("number", func(t *testing.T) {
-		_, ok := wrap.JsonKey("abc").Integer()
-		assert.Equal(t, ok, false)
-	})
-	t.Run("string", func(t *testing.T) {
-		a := wrap.JsonKey("abc").String()
-		assert.Equal(t, a, "abc")
-	})
-}
-func TestJsonKey_Integer(t *testing.T) {
-	t.Run("number", func(t *testing.T) {
-		a, ok := wrap.JsonKeyInteger(123).Integer()
-		assert.Equal(t, ok, true)
-		assert.Equal(t, a, 123)
-	})
-	t.Run("string", func(t *testing.T) {
-		a := wrap.JsonKeyInteger(123).String()
-		assert.Equal(t, a, "123")
-	})
-}
-
 func TestString(t *testing.T) {
 	s := "abc"
 	v := wrap.String(s)
@@ -254,98 +232,5 @@ func TestUnmarshalJSON(t *testing.T) {
 		err := a.UnmarshalJSON([]byte(`{"a":true,"b":false,"c":null,"d":123,"e":"abc","f":[],"g":{}}`))
 		assert.Equal(t, err, nil)
 		assert.Equal(t, a.Type, wrap.JsonTypeObject)
-	})
-}
-
-func TestWalk(t *testing.T) {
-	t.Run("null", func(t *testing.T) {
-		a := [][]wrap.JsonKey{}
-		err := wrap.Null().Walk(func(keys []wrap.JsonKey, val *wrap.JsonValue) error {
-			a = append(a, keys)
-			return nil
-		})
-		assert.Equal(t, err, nil)
-		assert.Equal(t, len(a), 1)
-	})
-	t.Run("integer", func(t *testing.T) {
-		a := [][]wrap.JsonKey{}
-		err := wrap.Number(123).Walk(func(keys []wrap.JsonKey, val *wrap.JsonValue) error {
-			a = append(a, keys)
-			return nil
-		})
-		assert.Equal(t, err, nil)
-		assert.Equal(t, len(a), 1)
-	})
-	t.Run("float", func(t *testing.T) {
-		a := [][]wrap.JsonKey{}
-		err := wrap.Number(-123.45).Walk(func(keys []wrap.JsonKey, val *wrap.JsonValue) error {
-			a = append(a, keys)
-			return nil
-		})
-		assert.Equal(t, err, nil)
-		assert.Equal(t, len(a), 1)
-	})
-	t.Run("string", func(t *testing.T) {
-		a := [][]wrap.JsonKey{}
-		err := wrap.String("abc").Walk(func(keys []wrap.JsonKey, val *wrap.JsonValue) error {
-			a = append(a, keys)
-			return nil
-		})
-		assert.Equal(t, err, nil)
-		assert.Equal(t, len(a), 1)
-	})
-	t.Run("bool", func(t *testing.T) {
-		t.Run("true", func(t *testing.T) {
-			a := [][]wrap.JsonKey{}
-			err := wrap.Boolean(true).Walk(func(keys []wrap.JsonKey, val *wrap.JsonValue) error {
-				a = append(a, keys)
-				return nil
-			})
-			assert.Equal(t, err, nil)
-			assert.Equal(t, len(a), 1)
-		})
-		t.Run("false", func(t *testing.T) {
-			a := [][]wrap.JsonKey{}
-			err := wrap.Boolean(false).Walk(func(keys []wrap.JsonKey, val *wrap.JsonValue) error {
-				a = append(a, keys)
-				return nil
-			})
-			assert.Equal(t, err, nil)
-			assert.Equal(t, len(a), 1)
-		})
-	})
-	t.Run("array", func(t *testing.T) {
-		a := [][]wrap.JsonKey{}
-		err := wrap.Array(
-			wrap.Boolean(true),
-			wrap.Boolean(false),
-			wrap.Null(),
-			wrap.Number(123),
-			wrap.String("abc"),
-			wrap.Array(),
-			wrap.Object(nil),
-		).Walk(func(keys []wrap.JsonKey, val *wrap.JsonValue) error {
-			a = append(a, keys)
-			return nil
-		})
-		assert.Equal(t, err, nil)
-		assert.Equal(t, len(a), 8)
-	})
-	t.Run("object", func(t *testing.T) {
-		a := [][]wrap.JsonKey{}
-		err := wrap.Object(map[string]*wrap.JsonValue{
-			"a": wrap.Boolean(true),
-			"b": wrap.Boolean(false),
-			"c": wrap.Null(),
-			"d": wrap.Number(123),
-			"e": wrap.String("abc"),
-			"f": wrap.Array(),
-			"g": wrap.Object(nil),
-		}).Walk(func(keys []wrap.JsonKey, val *wrap.JsonValue) error {
-			a = append(a, keys)
-			return nil
-		})
-		assert.Equal(t, err, nil)
-		assert.Equal(t, len(a), 8)
 	})
 }
