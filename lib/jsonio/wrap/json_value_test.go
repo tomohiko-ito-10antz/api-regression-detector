@@ -2,6 +2,7 @@ package wrap_test
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/Jumpaku/api-regression-detector/lib/jsonio/wrap"
@@ -125,5 +126,111 @@ func TestArray(t *testing.T) {
 		)
 		assert.Equal(t, v.Type, wrap.JsonTypeArray)
 		assert.Equal(t, len(v.MustArray()), 7)
+	})
+}
+
+func TestMarshalJSON(t *testing.T) {
+	t.Run("null", func(t *testing.T) {
+		a, err := wrap.Null().MarshalJSON()
+		assert.Equal(t, err, nil)
+		assert.Equal(t, string(a), "null")
+	})
+	t.Run("integer", func(t *testing.T) {
+		a, err := wrap.Number(123).MarshalJSON()
+		assert.Equal(t, err, nil)
+		assert.Equal(t, string(a), "123")
+	})
+	t.Run("float", func(t *testing.T) {
+		a, err := wrap.Number(-123.45).MarshalJSON()
+		assert.Equal(t, err, nil)
+		assert.Equal(t, strings.HasPrefix(string(a), "-123.45"), true)
+	})
+	t.Run("string", func(t *testing.T) {
+		a, err := wrap.String("abc").MarshalJSON()
+		assert.Equal(t, err, nil)
+		assert.Equal(t, string(a), `"abc"`)
+	})
+	t.Run("bool", func(t *testing.T) {
+		t.Run("true", func(t *testing.T) {
+			a, err := wrap.Boolean(true).MarshalJSON()
+			assert.Equal(t, err, nil)
+			assert.Equal(t, string(a), "true")
+		})
+		t.Run("false", func(t *testing.T) {
+			a, err := wrap.Boolean(false).MarshalJSON()
+			assert.Equal(t, err, nil)
+			assert.Equal(t, string(a), "false")
+		})
+	})
+	t.Run("array", func(t *testing.T) {
+		a, err := wrap.Array(wrap.Boolean(true), wrap.Boolean(false), wrap.Null(), wrap.Number(123), wrap.String("abc"), wrap.Array(), wrap.Object(nil)).MarshalJSON()
+		assert.Equal(t, err, nil)
+		assert.Equal(t, string(a), `[true,false,null,123,"abc",[],{}]`)
+	})
+	t.Run("object", func(t *testing.T) {
+		a, err := wrap.Object(map[string]*wrap.JsonValue{
+			"a": wrap.Boolean(true),
+			"b": wrap.Boolean(false),
+			"c": wrap.Null(),
+			"d": wrap.Number(123),
+			"e": wrap.String("abc"),
+			"f": wrap.Array(),
+			"g": wrap.Object(nil),
+		}).MarshalJSON()
+		assert.Equal(t, err, nil)
+		assert.Equal(t, string(a), `{"a":true,"b":false,"c":null,"d":123,"e":"abc","f":[],"g":{}}`)
+	})
+}
+
+func TestUnmarshalJSON(t *testing.T) {
+	t.Run("null", func(t *testing.T) {
+		a := wrap.JsonValue{}
+		err := a.UnmarshalJSON([]byte("null"))
+		assert.Equal(t, err, nil)
+		assert.Equal(t, a.Type, wrap.JsonTypeNull)
+	})
+	t.Run("integer", func(t *testing.T) {
+		a := wrap.JsonValue{}
+		err := a.UnmarshalJSON([]byte("123"))
+		assert.Equal(t, err, nil)
+		assert.Equal(t, a.Type, wrap.JsonTypeNumber)
+	})
+	t.Run("float", func(t *testing.T) {
+		a := wrap.JsonValue{}
+		err := a.UnmarshalJSON([]byte("-123.45"))
+		assert.Equal(t, err, nil)
+		assert.Equal(t, a.Type, wrap.JsonTypeNumber)
+	})
+	t.Run("string", func(t *testing.T) {
+		a := wrap.JsonValue{}
+		err := a.UnmarshalJSON([]byte(`"abc"`))
+		assert.Equal(t, err, nil)
+		assert.Equal(t, a.Type, wrap.JsonTypeString)
+	})
+	t.Run("bool", func(t *testing.T) {
+		t.Run("true", func(t *testing.T) {
+			a := wrap.JsonValue{}
+			err := a.UnmarshalJSON([]byte("true"))
+			assert.Equal(t, err, nil)
+			assert.Equal(t, a.Type, wrap.JsonTypeBoolean)
+		})
+		t.Run("false", func(t *testing.T) {
+			a := wrap.JsonValue{}
+			err := a.UnmarshalJSON([]byte("false"))
+			assert.Equal(t, err, nil)
+			assert.Equal(t, a.Type, wrap.JsonTypeBoolean)
+		})
+	})
+	t.Run("array", func(t *testing.T) {
+		a := wrap.JsonValue{}
+		err := a.UnmarshalJSON([]byte(`[true,false,null,123,"abc",[],{}]`))
+		assert.Equal(t, err, nil)
+		assert.Equal(t, a.Type, wrap.JsonTypeArray)
+	})
+	t.Run("object", func(t *testing.T) {
+		a := wrap.JsonValue{}
+		err := a.UnmarshalJSON([]byte(`{"a":true,"b":false,"c":null,"d":123,"e":"abc","f":[],"g":{}}`))
+		assert.Equal(t, err, nil)
+		assert.Equal(t, a.Type, wrap.JsonTypeObject)
 	})
 }
