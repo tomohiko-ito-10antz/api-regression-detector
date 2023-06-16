@@ -1,5 +1,23 @@
 # api-regression-detector
 
+CLI tools that can be used for the following API regression test:
+
+1. Initialize tables in database, which a target API uses.
+2. Send request to the target API.
+3. Receive response from the target API.
+4. Dump tables in database, which the target API modified.
+5. Compare expected response and actual response.
+6. Compare expected tables and actual tables.
+
+Table of contents:
+1. [Install](#install)
+2. [Usage](#usage)
+     1. [db-init](#db-init)
+     1. [db-dump](#db-dump)
+     1. [compare](#compare)
+     1. [call-http](#call-http)
+     1. [call-grpc](#call-grpc)
+
 ## Install
 
 ```sh
@@ -30,6 +48,71 @@ Options:
         --version          Show version.
 ```
 
+#### Input
+
+To initialize tables in the database, `db-init` receives the JSON data from stdin. It is assumed that the JSON data is represented as the following type `DBInitInput`.
+
+```ts
+type DBInitInput = InitTable[];
+type InitTable = {
+        /** name of table to be initialized */
+        name: string,
+        /** rows to be inserted */
+        rows: Row[] 
+}
+type Row = { [columnName: string]: ColumnValue };
+type ColumnValue = boolean | string | number | null
+```
+
+Example:
+```json
+[
+    {
+        "name": "example_table",
+        "rows": [
+            {
+                "c0": "abc",
+                "c1": 123,
+                "c2": true,
+                "c3": "2022-12-25T00:45:17Z",
+                "id": 1
+            },
+            {
+                "c0": "",
+                "c1": 0,
+                "c2": false,
+                "c3": "2022-12-24T15:54:17Z",
+                "id": 2
+            }
+        ]
+    },
+    {
+        "name": "child_example_table_1",
+        "rows": [
+            {
+                "id": 1,
+                "example_table_id": 1
+            }
+        ]
+    },
+    {
+        "name": "child_example_table_2",
+        "rows": [
+            {
+                "id": 2,
+                "example_table_id": 2
+            }
+        ]
+    }
+]
+```
+
+#### Output
+
+Nothing.
+
+<span id="usage-db-dump"></span>
+
 ### db-dump
 
 ```
@@ -48,6 +131,70 @@ Options:
         --version           Show version.
 ```
 
+#### Input
+
+To dump specified tables in the database, `db-dump` receives the JSON data from stdin. It is assumed that the JSON data is represented as the following type `DBDumpInput`.
+
+```ts
+/** Array of table names to be dumped */
+type DBDumpInput = string[];
+```
+
+Example:
+```json
+[
+    "example_table",
+    "child_example_table_1",
+    "child_example_table_2"
+]
+```
+
+#### Output
+
+`db-dump` outputs data of specified tables as JSON to stdout. The JSON data is represented as the following type `DBDumpOutput`.
+
+```ts
+type DBDumpOutput = { [tableName: string]: Row[] };
+type Row = { [columnName: string]: ColumnValue };
+type ColumnValue = boolean | string | number | null
+```
+
+Example:
+```json
+{
+    "example_table": [
+        {
+            "c0": "abc",
+            "c1": 123,
+            "c2": true,
+            "c3": "2022-12-25T00:45:17Z",
+            "id": 1
+        },
+        {
+            "c0": "",
+            "c1": 0,
+            "c2": false,
+            "c3": "2022-12-24T15:54:17Z",
+            "id": 2
+        }
+    ],
+    "child_example_table_1": [
+        {
+            "example_table_id": 1,
+            "id": 1
+        }
+    ],
+    "child_example_table_2": [
+        {
+            "example_table_id": 2,
+            "id": 2
+        }
+    ]
+}
+```
+
+<span id="usage-compare"></span>
+
 ### compare
 
 ```
@@ -55,18 +202,104 @@ Regression detector compare.
 compare compares two JSON files.
 
 Usage:
-        program compare [--verbose] [--strict] <expected-json> <actual-json>
-        program -h | --help
-        program --version
+	compare [--show-diff] [--no-superset] <expected-json> <actual-json>
+	compare -h | --help
+	compare --version
 
 Options:
-        <expected-json>    JSON file path of expected value.
-        <actual-json>      JSON file path of actual value.
-        --verbose          Show verbose difference. [default: false]
-        --strict           Disallow superset match. [default: false]
-        -h --help          Show this screen.
-        --version          Show version.
+	<expected-json>    JSON file path of expected value.
+	<actual-json>      JSON file path of actual value.
+	--show-diff        Show difference. [default: false]
+	--no-superset      Disallow superset match. [default: false]
+	-h --help          Show this screen.
+	--version          Show version.
 ```
+
+#### Input
+
+Nothing.
+
+#### Output
+
+`compare` outputs comparison result of specified two JSON data to stdout. The result is represented as the following type `CompareOutput`.
+
+```ts
+type CompareOutput = 
+        | "FullMatch" /** two JSON data match exactly */
+        | "SupersetMatch" /** second JSON data is an extension of first JSON data */
+        | "NoMatch" /** two JSON data are incompatible exactly */;
+```
+
+With `--show-diff` option, `compare` outputs difference of specified two JSON data after the result as follows:
+
+```
+NoMatch
+ |[
+ |    {
+ |        "add": {
+ |            ...skipped 2 object properties...,
++|            "c": 3,
++|            "d": 4
+ |        }
+ |    },
+ |    {
+ |        "remove": {
+-|            "a": 1
+ |        }
+ |    },
+ |    {
+ |        "change": {
+~|            "a": 1 => 2
+ |        }
+ |    }
+ |]
+```
+
+expected.json
+```json
+[
+    {
+        "add": {
+            "a": 1,
+            "b": 2
+        }
+    },
+    {
+        "remove": {
+            "a": 1
+        }
+    },
+    {
+        "change": {
+            "a": 1
+        }
+    }
+]
+```
+
+actual.json
+```json
+[
+    {
+        "add": {
+            "d": 4,
+            "a": 1,
+            "b": 2,
+            "c": 3
+        }
+    },
+    {
+        "remove": {}
+    },
+    {
+        "change": {
+            "a": 2
+        }
+    }
+]
+```
+
+<span id="call-http"></span>
 
 ### call-http
 
@@ -86,6 +319,16 @@ Options:
         --version          Show version.
 ```
 
+#### Input
+
+`call-http` sends request with JSON data given from stdin.
+
+#### Output
+
+`call-http` outputs response body as JSON data to stdout.
+
+<span id="call-grpc"></span>
+
 ### call-grpc
 
 ```
@@ -104,68 +347,10 @@ Options:
         --version          Show version.
 ```
 
-## Examples
+#### Input
 
-### db-init
+`call-grpc` sends request with JSON data given from stdin.
 
-```sh
-go run main.go init mysql "root:password@(mysql)/main" <examples/init.json
-```
+#### Output
 
-```sh
-go run main.go init postgres "user=root password=password host=postgres dbname=main sslmode=disable" <examples/init.json
-```
-
-```sh
-go run main.go init sqlite3 "file:examples/sqlite/sqlite.db" <examples/init.json
-```
-
-```sh
-go run main.go init spanner "projects/regression-detector/instances/example/databases/main" <examples/init.json
-```
-
-### db-dump
-
-```sh
-jq '. | keys' <examples/init.json | go run main.go dump mysql "root:password@(mysql)/main"
-```
-
-```sh
-jq '. | keys' <examples/init.json | go run main.go dump postgres "user=root password=password host=postgres dbname=main sslmode=disable" <examples/init.json
-```
-
-```sh
-jq '. | keys' <examples/init.json | go run main.go dump sqlite3 "file:examples/sqlite/sqlite.db" <examples/init.json
-```
-
-```sh
-jq '. | keys' <examples/init.json | go run main.go dump spanner "projects/regression-detector/instances/example/databases/main" <examples/init.json
-```
-
-### compare
-
-```sh
-go run main.go compare --strict --verbose examples/expected.json examples/actual.json
-```
-
-### call-http
-
-```sh
-go run main.go call http 'http://api:80/say/hello/[name]' 'GET' < examples/http/say/hello/[name]/request.json
-```
-
-### call-grpc
-
-```sh
-go run main.go call grpc 'api:50051' 'api.GreetingService/SayHello' < examples/grpc/api/GreetingService/SayHello/request.json
-```
-
-## Development
-
-### Execution
-
-#### Init
-
-#### Dump
-
-#### Compare
+`call-grpc` outputs response body as JSON data to stdout.
