@@ -1,6 +1,6 @@
 # api-regression-detector
 
-The api-regression-detector is a collection of command-line tools intended to be used for API regression testing. It provides functionalities to initialize tables in a database, perform API call (sending requests and receiving responses), dump modified tables in the database, and compare expected results in the JSON format.
+The api-regression-detector is a collection of command-line tools intended to be used for API regression testing. It provides functionalities to initialize tables in a database, perform API calls (sending requests and receiving responses), dump modified tables in the database, and compare expected results in the JSON format.
 
 Table of contents:
 1. [Install](#install)
@@ -38,12 +38,12 @@ db-init -h | --help
 
 #### Input
 
-To initialize tables in the database, `db-init` expects a JSON data to be provided via stdin. The JSON data should be represented as the following type `DBInitInput`:
+To initialize tables in the database, `db-init` expects JSON data to be provided via stdin. The JSON data should be represented as the following type `DBInitInput`:
 
 ```ts
 type DBInitInput = InitTable[];
 type InitTable = {
-        /** name of table to be initialized */
+        /** name of the table to be initialized */
         name: string,
         /** rows to be inserted */
         rows: Row[] 
@@ -115,7 +115,7 @@ db-dump -h | --help
 
 #### Input
 
-To output tables in the database, `db-dump` expects a JSON data to be provided via stdin. The JSON data should be represented as the following type `DBDumpInput`:
+To output tables in the database, `db-dump` expects JSON data to be provided via stdin. The JSON data should be represented as the following type `DBDumpInput`:
 
 ```ts
 /** Array of table names to be dumped */
@@ -193,7 +193,7 @@ compare -h | --help
 
 #### Input
 
-No specific input required.
+No specific input is required.
 
 #### Output
 
@@ -290,7 +290,7 @@ call-http -h | --help
 
 #### Input
 
-`call-http` sends a API request provided via stdin in JSON format.
+`call-http` sends an API request provided via stdin in JSON format.
 
 #### Output
 
@@ -311,7 +311,7 @@ call-grpc -h | --help
 
 #### Input
 
-`call-grpc` sends a API request provided via stdin in JSON format.
+`call-grpc` sends an API request provided via stdin in JSON format.
 
 #### Output
 
