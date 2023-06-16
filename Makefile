@@ -44,6 +44,7 @@ test:
 	./test/scripts/db/postgres.sh 2> /dev/null
 	./test/scripts/db/spanner.sh 2> /dev/null
 	./test/scripts/db/sqlite.sh 2> /dev/null
+
 	./test/scripts/call/grpc-error.sh 2> /dev/null
 	./test/scripts/call/grpc-get.sh 2> /dev/null
 	./test/scripts/call/grpc-post.sh 2> /dev/null
@@ -56,3 +57,7 @@ test:
 	./test/scripts/call/http-put.sh 2> /dev/null
 	./test/scripts/call/http-patch.sh 2> /dev/null
 	./test/scripts/call/http-delete.sh 2> /dev/null
+
+.PHONY: cover
+cover:
+	go test -cover ./... -coverprofile=test/cover.out && go tool cover -html=test/cover.out -o test/cover.html
